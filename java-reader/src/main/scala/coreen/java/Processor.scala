@@ -3,9 +3,6 @@
 
 package coreen.java
 
-import java.util.Set
-
-import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.{
   ProcessingEnvironment, SupportedAnnotationTypes, SupportedSourceVersion}
 import javax.tools.Diagnostic
@@ -37,13 +34,13 @@ class Processor extends AbstractTypeProcessor
         Debug.log("Coreen running", "vers", procenv.getSourceVersion)
       }
       case _ => {
-        procenv.getMessager.printMessage(Diagnostic.Kind.WARNING, "Coreen requires javac v1.6.")
+        procenv.getMessager.printMessage(Diagnostic.Kind.WARNING, "Coreen requires javac v1.7.")
       }
     }
   }
 
   override def typeProcess (elem :TypeElement, tree :TreePath) {
-    println(_scanner(tree.getCompilationUnit.asInstanceOf[JCCompilationUnit]))
+    _scanner(tree.getCompilationUnit.asInstanceOf[JCCompilationUnit]) foreach { e => println(e) }
   }
 
   protected var _trees :Trees = _
