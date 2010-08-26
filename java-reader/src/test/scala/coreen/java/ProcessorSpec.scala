@@ -41,7 +41,8 @@ class ProcessorSpec extends FlatSpec with ShouldMatchers
     // val diags = new DiagnosticCollector[JavaFileObject]
     // val fmgr = compiler.getStandardFileManager(diags, null, null)
     val options = List("-processor", classOf[Processor].getName,
-                       "-classpath", cpath map(_.getPath) mkString(":"))
+                       "-classpath", cpath map(_.getPath) mkString(":"),
+                       "-source", "1.6")
 
     // this is the file we'll be running the compiler on
     val tfile = new File(troot, "test-resources/Test.java")
@@ -54,9 +55,10 @@ class ProcessorSpec extends FlatSpec with ShouldMatchers
     // println("Success: " + success)
     // println("Diags: " + diags.getDiagnostics)
 
+    val javac = System.getProperty("user.home") + "/research/langtools/dist/bin/javac"
     // TEMP: run the compiler in a separate process because of classloader FAIL when running tests
     // from inside SBT
-    val proc = new ProcessBuilder((("javac" :: options) :+ tfile.getPath()).asJava).start
+    val proc = new ProcessBuilder(((javac :: options) :+ tfile.getPath()).asJava).start
     val output = Source.fromInputStream(proc.getInputStream).getLines.mkString("\n")
     val errput = Source.fromInputStream(proc.getErrorStream).getLines.mkString("\n")
     errput should equal("")
