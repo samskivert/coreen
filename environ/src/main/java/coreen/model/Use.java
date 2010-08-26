@@ -11,12 +11,16 @@ public class Use extends Span
     /** A unique identifier for this use (1 or higher). */
     public final int id;
 
-    /** The definition id of the referent of this use. */
-    public final int referent;
+    /** The immediately enclosing definition in which this use occurs. */
+    public final Def owner;
 
-    public Span (int id, int referent, int start, int length) {
+    /** The definition of the referent of this use. */
+    public final Def referent;
+
+    public Span (int id, Def owner, Def referent, int start, int length) {
         super(start, length);
         this.id = id;
+        this.owner = owner;
         this.referent = referent;
     }
 }

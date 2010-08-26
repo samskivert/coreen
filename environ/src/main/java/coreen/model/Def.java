@@ -19,26 +19,35 @@ public class Def extends Span
     };
 
     /** A unique identifier for this definition (1 or higher). */
-    public int id;
+    public final int id;
 
-    /** The id of this definitions enclosing definition, or 0 if none. */
-    public int parentId;
+    /** This definition's enclosing definition, or null if none. */
+    public final Def parent;
 
     /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
-    public String name;
+    public final String name;
 
     /** The type of this definition (function, term, etc.). */
-    public Type type;
+    public final Type type;
+
+    /** Definitions nested within this one. */
+    public final Def[] defs;
 
     /** The character offset in the file at which this definition's body starts. */
-    public int bodyStart;
+    public final int bodyStart;
 
-    public Def (int id, int parentId, String name, Type type, int bodyStart, int start, int length) {
+    /** Uses that occur immediately within this definition (i.e. not in nested definitions). */
+    public final Use[] uses;
+
+    public Def (int id, Def parent, String name, Type type, Def[] defs, int bodyStart, Use[] uses,
+                int start, int length) {
         super(start, length);
         this.id = id;
-        this.parentId = parentId;
+        this.parent = parent;
         this.name = name;
         this.type = type;
+        this.defs = defs;
         this.bodyStart = bodyStart;
+        this.uses = uses;
     }
 }
