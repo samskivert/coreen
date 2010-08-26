@@ -5,13 +5,15 @@ package coreen.java
 
 import java.util.Set
 
+import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.{
-  AbstractProcessor, ProcessingEnvironment, RoundEnvironment,
-  SupportedAnnotationTypes, SupportedSourceVersion}
+  ProcessingEnvironment, SupportedAnnotationTypes, SupportedSourceVersion}
 import javax.tools.Diagnostic
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.{Element, PackageElement, TypeElement}
+import javax.lang.model.element.TypeElement
 
+import com.sun.source.util.AbstractTypeProcessor
+import com.sun.source.util.TreePath
 import com.sun.source.util.Trees
 import com.sun.tools.javac.processing.JavacProcessingEnvironment
 import com.sun.tools.javac.tree.JCTree._
@@ -23,7 +25,7 @@ import scalaj.collection.Imports._
  */
 @SupportedAnnotationTypes(Array("*"))
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-class Processor extends AbstractProcessor
+class Processor extends AbstractTypeProcessor
 {
   override def init (procenv :ProcessingEnvironment) {
     super.init(procenv)
@@ -40,22 +42,9 @@ class Processor extends AbstractProcessor
     }
   }
 
-  def process (annotations :Set[_ <: TypeElement], roundEnv :RoundEnvironment) :Boolean = {
-    // if we were about to initialize ourselves in init() then stop here
-    if (_trees == null) return false
-
-    // javac gives us Element which we want to convert to JCompilationUnit (internal API)
-    val elems = roundEnv.getRootElements.asScala
-    // we get an Element for every top-level class in a compilation unit, but we only want to
-    // process each compilation unit once, so we rely on elems being a Set to filter duplicates
-    elems map(toUnit) flatten foreach { tree =>
-      println(_scanner.scan(tree))
-    }
-    false
+  override def typeProcess (elem :TypeElement, tree :TreePath) {
+    println(_scanner(tree.getCompilationUnit.asInstanceOf[JCCompilationUnit]))
   }
-
-  protected def toUnit (element :Element) =
-    Option(_trees.getPath(element)) map(_.getCompilationUnit.asInstanceOf[JCCompilationUnit])
 
   protected var _trees :Trees = _
   protected var _scanner :Scanner = _
