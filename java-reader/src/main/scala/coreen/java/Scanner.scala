@@ -3,6 +3,7 @@
 
 package coreen.java
 
+import com.sun.tools.javac.tree.JCTree
 import com.sun.tools.javac.tree.JCTree._
 import com.sun.tools.javac.tree.TreeInfo
 import com.sun.tools.javac.tree.TreeScanner
@@ -29,8 +30,8 @@ object Scanner
 
 class Scanner (ctx :Context) extends TreeScanner
 {
-  def scan (tree :JCCompilationUnit) = {
-    tree.accept(this)
+  def apply (tree :JCTree) :Seq[Elem] = {
+    scan(tree)
     _result
   }
 
@@ -42,14 +43,33 @@ class Scanner (ctx :Context) extends TreeScanner
   }
 
   override def visitClassDef (tree :JCClassDecl) {
-    super.visitClassDef(tree)
-    _result = <def name={tree.name.toString}
-                   start={tree.getStartPosition.toString}
-                   end={tree.getEndPosition(_curunit.endPositions).toString}>
-      {_result}
-    </def>
+    _result += <def name={tree.name.toString}
+                    start={tree.getStartPosition.toString}
+                    end={tree.getEndPosition(_curunit.endPositions).toString}>
+                 {capture(super.visitClassDef(tree))}
+               </def>
+  }
+
+  override def visitVarDef (tree :JCVariableDecl) {
+    _result += <def name={tree.name.toString}
+                    start={tree.getStartPosition.toString}
+                    end={tree.getEndPosition(_curunit.endPositions).toString}>
+                 <ref target={tree.sym.`type`.toString}
+                      start={tree.vartype.getStartPosition.toString}
+                      end={tree.vartype.getEndPosition(_curunit.endPositions).toString}/>
+               </def>
+  }
+
+  // boy Java's AST walking API makes translating a JCTree into something else cumbersome
+  def capture (call : =>Unit) = {
+    val oresult = _result
+    _result = collection.mutable.ArrayBuffer[Elem]()
+    call
+    val nresult = _result
+    _result = oresult
+    nresult
   }
 
   protected var _curunit :JCCompilationUnit = _
-  protected var _result :Elem = <noop/>
+  protected var _result = collection.mutable.ArrayBuffer[Elem]()
 }
