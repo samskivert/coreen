@@ -17,7 +17,7 @@ public class Use extends Span
     /** The definition of the referent of this use. */
     public final Def referent;
 
-    public Span (int id, Def owner, Def referent, int start, int length) {
+    public Use (int id, Def owner, Def referent, int start, int length) {
         super(start, length);
         this.id = id;
         this.owner = owner;
