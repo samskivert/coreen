@@ -11,8 +11,7 @@ import org.scalatest.matchers.ShouldMatchers
  */
 class ReaderSpec extends FlatSpec with ShouldMatchers
 {
-  "Reader" should "handle this code" in {
-    println(Reader.process("TestA.java", """
+  val testA = """
     public class TestA {
         public static class A {
             public int value;
@@ -26,6 +25,20 @@ class ReaderSpec extends FlatSpec with ShouldMatchers
             B b = new B();
             b.noop();
         }
-    }"""))
+    }"""
+
+  "Reader" should "handle this code" in {
+    val outer = Reader.process("TestA.java", testA).head
+    println(outer)
+    (outer \ "@name").text should equal("TestA")
+
+    val innerA  = (outer \ "def").head
+    (innerA \ "@name").text should equal("A")
+    (innerA \ "def" \ "@name").text should equal("value")
+    (innerA \ "def" \ "ref" \ "@target").text should equal("int")
+
+    val innerB = (outer \ "def").tail.head
+    (innerB \ "@name").text should equal("B")
+    (innerB \ "def" \ "@name").text should equal("noop")
   }
 }

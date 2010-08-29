@@ -11,6 +11,7 @@ import javax.tools.ToolProvider
 
 import com.sun.source.tree.ClassTree
 import com.sun.source.tree.CompilationUnitTree
+import com.sun.source.tree.MethodTree
 import com.sun.source.tree.Tree
 import com.sun.source.tree.VariableTree
 import com.sun.source.util.JavacTask
@@ -27,13 +28,13 @@ import scalaj.collection.Imports._
  */
 object Reader
 {
-  def process (filename :String, content :String) :String =
-    process(List(mkTestObject(filename, content))).head
+  def process (filename :String, content :String) :List[Elem] =
+    process(List(mkTestObject(filename, content))) head
 
-  def process (files :List[JavaFileObject]) :List[String] = {
+  def process (files :List[JavaFileObject]) :List[List[Elem]] = {
     val task = compiler.getTask(null, null, null, null, null, files.asJava).asInstanceOf[JavacTask]
     val asts = task.parse.asScala
-    task.analyze()
+    task.analyze
     asts map(ast => scanner.scan(ast)) toList
   }
 
@@ -43,10 +44,10 @@ object Reader
     }
 
   private val scanner = new TreePathScanner[Unit,ArrayBuffer[Elem]] {
-    def scan (path :Tree) :String = {
+    def scan (path :Tree) :List[Elem] = {
       val buf = ArrayBuffer[Elem]()
       scan(path, buf)
-      buf.toString
+      buf toList
     }
 
     override def visitCompilationUnit (node :CompilationUnitTree, buf :ArrayBuffer[Elem]) {
@@ -61,10 +62,20 @@ object Reader
       buf += <def name={tree.name.toString}
                   start={tree.getStartPosition.toString}
                   end={tree.getEndPosition(_curunit.endPositions).toString}>
-                 {val sbuf = ArrayBuffer[Elem]()
-                  super.visitClass(node, sbuf)
-                  sbuf}
+                 {capture(super.visitClass(node, _))}
                </def>
+    }
+
+    override def visitMethod (node :MethodTree, buf :ArrayBuffer[Elem]) {
+      val tree = node.asInstanceOf[JCMethodDecl]
+      // don't emit a def for synthesized ctors
+      if (tree.getStartPosition != tree.getEndPosition(_curunit.endPositions)) {
+        buf += <def name={tree.name.toString}
+                    start={tree.getStartPosition.toString}
+                    end={tree.getEndPosition(_curunit.endPositions).toString}>
+                   {capture(super.visitMethod(node, _))}
+               </def>
+      }
     }
 
     override def visitVariable (node :VariableTree, buf :ArrayBuffer[Elem]) {
@@ -76,6 +87,12 @@ object Reader
                     start={tree.vartype.getStartPosition.toString}
                     end={tree.vartype.getEndPosition(_curunit.endPositions).toString}/>
              </def>
+    }
+
+    protected def capture (call :ArrayBuffer[Elem] => Unit) = {
+      val sbuf = ArrayBuffer[Elem]()
+      call(sbuf)
+      sbuf
     }
 
     protected var _curunit :JCCompilationUnit = _
