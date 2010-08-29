@@ -83,7 +83,7 @@ object Reader
       buf += <def name={tree.name.toString}
                   start={tree.getStartPosition.toString}
                   end={tree.getEndPosition(_curunit.endPositions).toString}>
-               <ref target={tree.sym.`type`.toString}
+               <use target={tree.sym.`type`.toString}
                     start={tree.vartype.getStartPosition.toString}
                     end={tree.vartype.getEndPosition(_curunit.endPositions).toString}/>
              </def>
