@@ -21,8 +21,8 @@ public class Def extends Span
     /** A unique identifier for this definition (1 or higher). */
     public final int id;
 
-    /** This definition's enclosing definition, or null if none. */
-    public final Def parent;
+    /** The id of this definition's enclosing definition, or null if none. */
+    public final int parentId;
 
     /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
     public final String name;
@@ -30,24 +30,25 @@ public class Def extends Span
     /** The type of this definition (function, term, etc.). */
     public final Type type;
 
-    /** Definitions nested within this one. */
-    public final Def[] defs;
-
     /** The character offset in the file at which this definition's body starts. */
     public final int bodyStart;
 
-    /** Uses that occur immediately within this definition (i.e. not in nested definitions). */
-    public final Use[] uses;
-
-    public Def (int id, Def parent, String name, Type type, Def[] defs, int bodyStart, Use[] uses,
+    public Def (int id, int parentId, String name, Type type, int bodyStart,
                 int start, int length) {
         super(start, length);
         this.id = id;
-        this.parent = parent;
+        this.parentId = parentId;
         this.name = name;
         this.type = type;
-        this.defs = defs;
         this.bodyStart = bodyStart;
-        this.uses = uses;
+    }
+
+    @Override // from Object
+    protected StringBuffer toString (StringBuffer buf) {
+        return super.toString(buf.append("id=").append(id).
+                              append(", parent=").append(parentId).
+                              append(", name=").append(name).
+                              append(", type=").append(type).
+                              append(", bstart=").append(bodyStart).append(", "));
     }
 }
