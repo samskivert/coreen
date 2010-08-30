@@ -24,8 +24,7 @@ object Model
   case class Def (id :Int, parent :Def, name :String, typ :JDef.Type, defs :Seq[Def],
                   bodyStart :Int, uses :Seq[Use], start :Int, end :Int) extends Span {
     /** Converts this Scala model class into its Java equivalent (for interop with GWT). */
-    def toJava :JDef = new JDef(id, parent.toJava, name, typ, defs map(_.toJava) toArray,
-                                bodyStart, uses map(_.toJava) toArray, start, end)
+    def toJava :JDef = new JDef(id, parent.id, name, typ, bodyStart, start, end)
 
     override def toString = name + "(" + defs.mkString(", ") + " // " + uses.mkString(", ") + ")"
   }
@@ -33,7 +32,7 @@ object Model
   /** Models the use of a name somewhere in a source file. */
   case class Use (id :Int, owner :Def, referent :Def, start :Int, end :Int) extends Span {
     /** Converts this Scala model class into its Java equivalent (for interop with GWT). */
-    def toJava :JUse = new JUse(id, owner.toJava, referent.toJava, start, end)
+    def toJava :JUse = new JUse(id, owner.id, referent.id, start, end)
     // override def toString = name
   }
 
@@ -47,7 +46,7 @@ object Model
             intAttr(e, "start"), intAttr(e, "end"))
       }
       case "use" => Use(0, null, null, intAttr(e, "start"), intAttr(e, "end"))
-      case x => println("Hrm " + x); null
+      case x => null // println("Hrm " + x)
     })
   }
 
