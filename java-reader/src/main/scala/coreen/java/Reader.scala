@@ -3,6 +3,7 @@
 
 package coreen.java
 
+import java.io.File
 import java.net.URI
 
 import javax.tools.JavaFileObject
@@ -29,10 +30,17 @@ import scalaj.collection.Imports._
 object Reader
 {
   def process (filename :String, content :String) :List[Elem] =
-    process(List(mkTestObject(filename, content))) head
+    process0(List(mkTestObject(filename, content))) head
 
-  def process (files :List[JavaFileObject]) :List[List[Elem]] = {
-    val task = compiler.getTask(null, null, null, null, null, files.asJava).asInstanceOf[JavacTask]
+  def process (files :List[File]) :List[List[Elem]] = {
+    val fm = compiler.getStandardFileManager(null, null, null) // TODO: args?
+    process0(fm.getJavaFileObjects(files.toArray :_*).asScala.toList)
+  }
+
+  private def process0 (files :List[JavaFileObject]) :List[List[Elem]] = {
+    val options = null // List("-Xjcov").asJava
+    val task = compiler.getTask(null, null, null, options, null,
+                                files.asJava).asInstanceOf[JavacTask]
     val asts = task.parse.asScala
     task.analyze
     asts map(ast => scanner.scan(ast)) toList
@@ -60,7 +68,7 @@ object Reader
     override def visitClass (node :ClassTree, buf :ArrayBuffer[Elem]) {
       val tree = node.asInstanceOf[JCClassDecl]
       buf += <def name={tree.name.toString}
-                  start={tree.getStartPosition.toString}
+                  start={tree.pos.toString}
                   end={tree.getEndPosition(_curunit.endPositions).toString}>
                  {capture(super.visitClass(node, _))}
                </def>

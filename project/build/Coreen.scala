@@ -8,7 +8,7 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
 
   lazy val environ = project("environ", "Environment", new DefaultProject(_) {
     // nothing special yet
-  }, util)
+  }, util, javaReader)
 
   lazy val javaReader = project("java-reader", "Java Reader", new DefaultProject(_) {
     // nothing special yet

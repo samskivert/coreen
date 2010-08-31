@@ -34,7 +34,13 @@ class ModelSpec extends FlatSpec with ShouldMatchers
                  </def>
                </def>
 
-  "Model" should "parse XML properly" in {
-    println(Model.parse(sample))
+  "Model" should "parse some simple XML" in {
+    val d = Model.parse(sample)
+    d.getDef("TestA.A").get.name should equal("A")
+    d.getDef("TestA.A.value").get.name should equal("value")
+    d.getDef("TestA.A.oops") should equal(None)
+    d.getDef("TestA.B").get.name should equal("B")
+    d.getDef("TestA.B.noop").get.name should equal("noop")
+    d.getDef("TestA.main.args").get.name should equal("args")
   }
 }
