@@ -11,24 +11,24 @@ import org.scalatest.matchers.ShouldMatchers
  */
 class ModelSpec extends FlatSpec with ShouldMatchers
 {
-  val sample = <def start="5" end="12" name="TestA">
-                 <def start="34" end="48" name="A">
-                   <def start="70" end="81" name="value">
+  val sample = <def start="5" end="12" name="TestA" type="TYPE">
+                 <def start="34" end="48" name="A" type="TYPE">
+                   <def start="70" end="81" name="value" type="TERM">
                      <use start="77" end="77" target="int"></use>
                    </def>
                  </def>
-                 <def start="106" end="120" name="B">
-                   <def start="142" end="154" name="noop">
+                 <def start="106" end="120" name="B" type="TYPE">
+                   <def start="142" end="154" name="noop" type="FUNC">
                    </def>
                  </def>
-                 <def start="196" end="215" name="main">
-                   <def start="221" end="230" name="args">
+                 <def start="196" end="215" name="main" type="FUNC">
+                   <def start="221" end="230" name="args" type="TERM">
                      <use start="221" end="227" target="java.lang.String[]"></use>
                    </def>
-                   <def start="250" end="254" name="av">
+                   <def start="250" end="254" name="av" type="TERM">
                      <use start="250" end="250" target="int"></use>
                    </def>
-                   <def start="286" end="288" name="b">
+                   <def start="286" end="288" name="b" type="TERM">
                      <use start="286" end="286" target="TestA.B"></use>
                    </def>
                  </def>

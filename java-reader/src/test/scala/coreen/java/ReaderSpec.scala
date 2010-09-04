@@ -12,6 +12,7 @@ import org.scalatest.matchers.ShouldMatchers
 class ReaderSpec extends FlatSpec with ShouldMatchers
 {
   val testA = """
+    package foo.bar;
     public class TestA {
         public static class A {
             public int value;
@@ -28,8 +29,11 @@ class ReaderSpec extends FlatSpec with ShouldMatchers
     }"""
 
   "Reader" should "handle this code" in {
-    val outer = Reader.process("TestA.java", testA).head
-    // println(outer)
+    val pkg = Reader.process("TestA.java", testA).head
+    // println(new scala.xml.PrettyPrinter(100, 2).format(pkg))
+    (pkg \ "@name").text should equal("foo.bar")
+
+    val outer = (pkg \ "def").head
     (outer \ "@name").text should equal("TestA")
 
     val innerA  = (outer \ "def").head

@@ -8,6 +8,7 @@ import _root_.java.io.File
 import scala.io.Source
 
 import coreen.java.Reader
+import coreen.Model._
 
 /**
  * A simple test program that parses a Java file and renders it to HTML with defs and uses
@@ -21,9 +22,18 @@ object Formatter
       val tree = Model.parse(xml)
 
       val source = Source.fromFile(file).getLines.mkString("\n")
+      val edits = tree.toEdits(source).sortBy(_.start).toList
+
       println("<pre>")
-      println(source.substring(0, tree.start) + "<b>" + source.substring(tree.start, tree.end) + "</b>" + source.substring(tree.end))
+      println(applyEdits(source, 0, edits))
       println("</pre>")
     }
+  }
+
+  def applyEdits (source :String, last :Int, edits :List[Edit]) :String = edits match {
+    case Nil => source.substring(last)
+    case h :: t => (source.substring(last, h.start) +
+                    "<u>" + source.substring(h.start, h.end) + "</u>" +
+                    applyEdits(source, h.end, t))
   }
 }

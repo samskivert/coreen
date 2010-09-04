@@ -15,7 +15,9 @@ public class Def extends Span
         /** A procedure, method or other function definition. */
         FUNC,
         /** A parameter, field, local variable or other term definition. */
-        TERM
+        TERM,
+        /** Used when parsing fails or something is otherwise amiss. */
+        UNKNOWN
     };
 
     /** A unique identifier for this definition (1 or higher). */

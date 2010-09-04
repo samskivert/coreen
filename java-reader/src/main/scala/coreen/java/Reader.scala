@@ -25,7 +25,7 @@ import scala.collection.mutable.ArrayBuffer
 import scalaj.collection.Imports._
 
 /**
- * Provides an API for convering Java source to name-resolved source (NRS).
+ * Provides an API for convering Java source to name-resolved source.
  */
 object Reader
 {
@@ -61,40 +61,41 @@ object Reader
     override def visitCompilationUnit (node :CompilationUnitTree, buf :ArrayBuffer[Elem]) {
       val oldunit = _curunit
       _curunit = node.asInstanceOf[JCCompilationUnit]
-      super.visitCompilationUnit(node, buf)
+      buf += <def name={_curunit.packge.toString} type="type"
+                  id={_curunit.packge.toString}
+                  start={_curunit.pos.toString}
+             >{capture(super.visitCompilationUnit(node, _))}</def>
       _curunit = oldunit
     }
 
     override def visitClass (node :ClassTree, buf :ArrayBuffer[Elem]) {
-      val tree = node.asInstanceOf[JCClassDecl]
-      buf += <def name={tree.name.toString}
-                  start={tree.pos.toString}
-                  end={tree.getEndPosition(_curunit.endPositions).toString}>
-                 {capture(super.visitClass(node, _))}
-               </def>
+      val otree = _curclass
+      _curclass = node.asInstanceOf[JCClassDecl]
+      buf += <def name={_curclass.name.toString} type="type"
+                  id={_curclass.name.toString}
+                  start={_curclass.pos.toString}
+             >{capture(super.visitClass(node, _))}</def>
+      _curclass = otree
     }
 
     override def visitMethod (node :MethodTree, buf :ArrayBuffer[Elem]) {
       val tree = node.asInstanceOf[JCMethodDecl]
       // don't emit a def for synthesized ctors
       if (tree.getStartPosition != tree.getEndPosition(_curunit.endPositions)) {
-        buf += <def name={tree.name.toString}
+        val name = if (tree.name.toString == "<init>") _curclass.name else tree.name
+        buf += <def name={name.toString} type="func"
                     start={tree.getStartPosition.toString}
-                    end={tree.getEndPosition(_curunit.endPositions).toString}>
-                   {capture(super.visitMethod(node, _))}
-               </def>
+               >{capture(super.visitMethod(node, _))}</def>
       }
     }
 
     override def visitVariable (node :VariableTree, buf :ArrayBuffer[Elem]) {
       val tree = node.asInstanceOf[JCVariableDecl]
-      buf += <def name={tree.name.toString}
+      buf += <def name={tree.name.toString} type="term"
                   start={tree.getStartPosition.toString}
-                  end={tree.getEndPosition(_curunit.endPositions).toString}>
-               <use target={tree.sym.`type`.toString}
-                    start={tree.vartype.getStartPosition.toString}
-                    end={tree.vartype.getEndPosition(_curunit.endPositions).toString}/>
-             </def>
+             ><use name={tree.vartype.toString}
+                   target={tree.sym.`type`.toString}
+                   start={tree.vartype.getStartPosition.toString}/></def>
     }
 
     protected def capture (call :ArrayBuffer[Elem] => Unit) = {
@@ -104,6 +105,7 @@ object Reader
     }
 
     protected var _curunit :JCCompilationUnit = _
+    protected var _curclass :JCClassDecl = _
   }
 
   private val compiler = ToolProvider.getSystemJavaCompiler
