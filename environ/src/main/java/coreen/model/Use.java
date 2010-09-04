@@ -3,24 +3,39 @@
 
 package coreen.model;
 
+import java.io.Serializable;
+
 /**
  * Identifies the use of a definition that exists in a source file.
  */
-public class Use extends Span
+public class Use
+    implements Serializable
 {
     /** A unique identifier for this use (1 or higher). */
-    public final int id;
+    public final long id;
 
     /** The id of the immediately enclosing definition in which this use occurs. */
-    public final int ownerId;
+    public final long ownerId;
 
     /** The id of the definition of the referent of this use. */
-    public final int referentId;
+    public final long referentId;
 
-    public Use (int id, int ownerId, int referentId, int start, int length) {
-        super(start, length);
+    /** The location in the source file of this use. */
+    public final Span loc;
+
+    public Use (long id, long ownerId, long referentId, Span loc) {
         this.id = id;
         this.ownerId = ownerId;
         this.referentId = referentId;
+        this.loc = loc;
+    }
+
+    @Override // from Object
+    public String toString () {
+        return new StringBuffer("[id=").append(id).
+            append(", owner=").append(ownerId).
+            append(", referent=").append(referentId).
+            append(", loc=").append(loc).
+            append("]").toString();
     }
 }

@@ -1,17 +1,17 @@
 //
 // $Id$
 
-package coreen
+package coreen.nml
 
 import scala.xml.Node
 import scala.xml.NodeSeq
 
-import model.{Def => JDef, Use => JUse}
+import coreen.model.{Def, Use}
 
 /**
  * Models a source file as a nested collection of definitions and uses.
  */
-object Model
+object SourceModel
 {
   /** Tracks a span of characters in a source file. */
   trait Span {
@@ -30,11 +30,11 @@ object Model
   case class Edit (start :Int, end :Int)
 
   /** Models a definition (e.g. class, field, function, method, variable). */
-  case class Def (name :String, id :String, typ :JDef.Type, defs :Seq[Def], uses :Seq[Use],
-                  start :Int) extends Span {
-    def getDef (path :String) :Option[Def] = getDef(path split("\\.") toList)
+  case class DefElem (name :String, id :String, typ :Def.Type, defs :Seq[DefElem],
+                      uses :Seq[UseElem], start :Int) extends Span {
+    def getDef (path :String) :Option[DefElem] = getDef(path split("\\.") toList)
 
-    def getDef (path :List[String]) :Option[Def] = path match {
+    def getDef (path :List[String]) :Option[DefElem] = path match {
       case h :: Nil => if (h == name) Some(this) else None
       case h :: t => if (h == name) defs flatMap(_.getDef(t)) headOption else None
       case _ => None
@@ -45,11 +45,11 @@ object Model
   }
 
   /** Models the use of a name somewhere in a source file. */
-  case class Use (name :String, target :String, start :Int) extends Span {
+  case class UseElem (name :String, target :String, start :Int) extends Span {
     override def toString = "@" + super.toString
   }
 
-  def parse (elem :NodeSeq) :Def = {
+  def parse (elem :NodeSeq) :DefElem = {
     assert(elem.size == 1 && elem.head.label == "def",
            "DOM must be rooted in a single <def> element")
     mkDef(elem.head, parse0(elem.head.child))
@@ -59,22 +59,23 @@ object Model
   protected def parse0 (elem :NodeSeq) :Seq[AnyRef] = {
     elem map(e => e.label match {
       case "def" => mkDef(e, parse0(e.child))
-      case "use" => Use((e \ "@name").text, (e \ "@target").text, intAttr(e, "start"))
+      case "use" => UseElem((e \ "@name").text, (e \ "@target").text, intAttr(e, "start"))
       case x => null // should only ever be #PCDATA, TODO: assert something to that effect
     })
   }
 
-  protected def mkDef (elem :Node, children :Seq[AnyRef]) :Def =
-    Def((elem \ "@name").text, (elem \ "@id").text, parseType(elem),
-        children.filter(_.isInstanceOf[Def]).map(_.asInstanceOf[Def]),
-        children.filter(_.isInstanceOf[Use]).map(_.asInstanceOf[Use]), intAttr(elem, "start"))
+  protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
+    DefElem((elem \ "@name").text, (elem \ "@id").text, parseType(elem),
+            children.filter(_.isInstanceOf[DefElem]).map(_.asInstanceOf[DefElem]),
+            children.filter(_.isInstanceOf[UseElem]).map(_.asInstanceOf[UseElem]),
+            intAttr(elem, "start"))
 
   protected def parseType (elem :Node) = {
     val text = (elem \ "@type").text
     try {
-      Enum.valueOf(classOf[JDef.Type], text.toUpperCase)
+      Enum.valueOf(classOf[Def.Type], text.toUpperCase)
     } catch {
-        case e => println(elem + " -> " + e); JDef.Type.UNKNOWN
+        case e => println(elem + " -> " + e); Def.Type.UNKNOWN
     }
   }
 

@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Identifies a span of characters in a source file.
  */
-public abstract class Span
+public class Span
     implements Serializable
 {
     /** The character offset in the source file at which this span starts. */
@@ -17,17 +17,13 @@ public abstract class Span
     /** The length of this span in characters. */
     public final int length;
 
-    @Override // from Object
-    public String toString () {
-        return toString(new StringBuffer("[")).append("]").toString();
-    }
-
-    protected Span (int start, int length) {
+    public Span (int start, int length) {
         this.start = start;
         this.length = length;
     }
 
-    protected StringBuffer toString (StringBuffer buf) {
-        return buf.append("start=").append(start).append(", length=").append(length);
+    @Override // from Object
+    public String toString () {
+        return start + ":" + length;
     }
 }

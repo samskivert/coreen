@@ -7,6 +7,7 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
   })
 
   lazy val environ = project("environ", "Environment", new DefaultProject(_) {
+    val gwtUser = "com.google.gwt" % "gwt-user" % "2.0.4"
     // nothing special yet
   }, util, javaReader)
 
