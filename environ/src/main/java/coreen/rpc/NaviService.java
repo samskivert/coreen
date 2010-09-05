@@ -3,9 +3,11 @@
 
 package coreen.rpc;
 
-import java.util.List;
-
 import com.google.gwt.user.client.rpc.RemoteService;
+
+import coreen.model.Def;
+import coreen.model.Def;
+import coreen.model.Project;
 
 /**
  * Provides basic navigation services.
@@ -13,11 +15,11 @@ import com.google.gwt.user.client.rpc.RemoteService;
 public interface NaviService extends RemoteService
 {
     /** Returns all projects known to the system. */
-    List<Project> getProjects () throws ServiceException;
+    Project[] getProjects () throws ServiceException;
 
-    /** Returns a list of all module and type definitions for the specified project. */
-    List<Def> getToTypeDefs (long projectId) throws ServiceException;
+    /** Returns all module and type definitions for the specified project. */
+    Def[] getToTypeDefs (long projectId) throws ServiceException;
 
-    /** Returns a list of all module, type and method definitions for the specified project. */
-    List<Def> getToMethodDefs (long projectId) throws ServiceException;
+    /** Returns all module, type and method definitions for the specified project. */
+    Def[] getToMethodDefs (long projectId) throws ServiceException;
 }
