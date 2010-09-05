@@ -8,13 +8,13 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
   })
 
   lazy val environ = project("environ", "Environment", new DefaultProject(_) {
-    // add a custom Ivy repository for gwt-asyncgen
-    val ivyPattern = "[organization]/[module]/[revision]/[type]s/[artifact].[ext]"
-    val gwtAsyncGenRepo = Resolver.url("gwt-asyncgen").artifacts(
-      "http://gwt-asyncgen.googlecode.com/svn/releases/" + ivyPattern)
-
     val gwtUser = "com.google.gwt" % "gwt-user" % "2.0.4"
-    val gwtAsyncGen = "com.samskivert" % "gwt-asyncgen" % "1.0" % "compile"
+
+//     val gwtServices = "src" / "main" / "java" ** "*Service.java"
+//     val gwtAsyncServices = "src" / "main" / "java" ** "*ServiceAsync.java"
+//     lazy val genasync = fileTask("genasync", gwtAsyncServices) {
+//       com.samskivert.asyncgen.AsyncGenTool.main(gwtServices.map(_.toString).toArray)
+//     }
   }, util, javaReader)
 
   lazy val javaReader = project("java-reader", "Java Reader", new DefaultProject(_) {

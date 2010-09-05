@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package coreen
+package coreen.nml
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
@@ -9,7 +9,7 @@ import org.scalatest.matchers.ShouldMatchers
 /**
  * Tests the source code model classes (parsing, etc.).
  */
-class ModelSpec extends FlatSpec with ShouldMatchers
+class SourceModelSpec extends FlatSpec with ShouldMatchers
 {
   val sample = <def start="5" end="12" name="TestA" type="TYPE">
                  <def start="34" end="48" name="A" type="TYPE">
@@ -35,7 +35,7 @@ class ModelSpec extends FlatSpec with ShouldMatchers
                </def>
 
   "Model" should "parse some simple XML" in {
-    val d = Model.parse(sample)
+    val d = SourceModel.parse(sample)
     d.getDef("TestA.A").get.name should equal("A")
     d.getDef("TestA.A.value").get.name should equal("value")
     d.getDef("TestA.A.oops") should equal(None)

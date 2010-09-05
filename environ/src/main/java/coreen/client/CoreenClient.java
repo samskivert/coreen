@@ -11,12 +11,12 @@ import coreen.rpc.NaviService;
 /**
  * The main entry point for the Coreen GWT client.
  */
-public class CoreenClient extends EntryPoint
+public class CoreenClient implements EntryPoint
 {
     // from interface EntryPoint
     public void onModuleLoad () {
         // TODO: things!
     }
 
-    protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
+    // protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
 }
