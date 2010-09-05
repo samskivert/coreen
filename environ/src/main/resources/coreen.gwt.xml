@@ -1,0 +1,12 @@
+<module>
+  <inherits name="com.google.gwt.user.User"/>
+  <!--<inherits name="com.google.gwt.i18n.I18N"/>
+  <inherits name="com.samskivert.Utils"/>
+  <inherits name="com.threerings.gwt.Utils"/>-->
+
+  <source path="coreen"/>
+
+  <entry-point class="coreen.client.CoreenClient"/>
+  <public path="client"/>
+  <!--<stylesheet src="coreen.css"/>-->
+</module>
