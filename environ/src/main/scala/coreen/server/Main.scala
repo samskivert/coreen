@@ -3,7 +3,8 @@
 
 package coreen.server
 
-import com.samskivert.util.SignalUtil
+import sun.misc.Signal
+import sun.misc.SignalHandler
 
 /**
  * The main entry point for the Coreen server.
@@ -20,8 +21,11 @@ object Main
 
     // register a signal handler to shutdown gracefully on ctrl-c
     val pause = new AnyRef
-    SignalUtil.register(SignalUtil.Number.INT, new SignalUtil.Handler {
-      def signalReceived (num :SignalUtil.Number) {
+    val sigint = new Signal("INT")
+    var ohandler :SignalHandler = null
+    ohandler = Signal.handle(sigint, new SignalHandler {
+      def handle (sig :Signal) {
+        Signal.handle(sigint, ohandler) // restore old signal handler
         log.info("Coreen server exiting...")
         httpServer.shutdown
         pause.synchronized { pause.notify }
