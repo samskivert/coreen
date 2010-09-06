@@ -1,4 +1,5 @@
 project/boot
+project/plugins/project/build.properties
 lib_managed
 target
 code
