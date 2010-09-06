@@ -14,6 +14,9 @@ import coreen.model.Project;
  */
 public interface NaviService extends RemoteService
 {
+    /** The path at which this service's servlet is mapped. */
+    public static final String ENTRY_POINT = "navi";
+
     /** Returns all projects known to the system. */
     Project[] getProjects () throws ServiceException;
 

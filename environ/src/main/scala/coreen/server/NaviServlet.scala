@@ -3,13 +3,15 @@
 
 package coreen.server
 
+import com.google.gwt.user.server.rpc.RemoteServiceServlet
+
 import coreen.model.{Def, Project}
 import coreen.rpc.NaviService
 
 /**
  * The implementation of navigation services provided by {@link NaviService}.
  */
-class NaviServlet extends NaviService
+class NaviServlet extends RemoteServiceServlet with NaviService
 {
   // from interface NaviService
   def getProjects :Array[Project] = {
