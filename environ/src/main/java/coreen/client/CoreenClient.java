@@ -10,6 +10,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.Label;
 
 import coreen.rpc.NaviService;
+import coreen.rpc.NaviServiceAsync;
 
 /**
  * The main entry point for the Coreen GWT client.
@@ -33,6 +34,6 @@ public class CoreenClient implements EntryPoint
 
     protected Widget _content;
 
-    // protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
+    protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
     protected static final String CLIENT_DIV = "client";
 }

@@ -37,11 +37,14 @@ class HttpServer extends Server
 
     // wire up our management servlet
     val ctx = new Context
-    ctx.setContextPath("/coreen")
-    // ctx.setResourceBase(_config.getDocumentRoot.getPath) // TODO
+    ctx.setContextPath("/")
+    // locate our sentinal resource and use that to compute our document root
+    val stlurl = classOf[HttpServer].getClassLoader.getResource(SENTINAL).toExternalForm
+    ctx.setResourceBase(stlurl.substring(0, stlurl.length-SENTINAL.length))
     ctx.setWelcomeFiles(Array[String]("index.html"))
+    // wire up our servlets
     ctx.addServlet(new ServletHolder(_naviServlet), "/"+NaviService.ENTRY_POINT)
-    ctx.addServlet(new ServletHolder(new CoreenDefaultServlet()), "/*")
+    ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
     addHandler(ctx)
   }
 
@@ -77,5 +80,6 @@ class HttpServer extends Server
   }
   protected var _naviServlet :NaviServlet = new NaviServlet
 
-  protected val ONE_YEAR :Long = 365*24*60*60*1000L
+  protected val ONE_YEAR = 365*24*60*60*1000L
+  protected val SENTINAL = "coreen/index.html"
 }

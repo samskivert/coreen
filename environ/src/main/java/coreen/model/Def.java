@@ -26,22 +26,22 @@ public class Def
     };
 
     /** A unique identifier for this definition (1 or higher). */
-    public final long id;
+    public long id;
 
     /** The id of this definition's enclosing definition, or null if none. */
-    public final long parentId;
+    public long parentId;
 
     /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
-    public final String name;
+    public String name;
 
     /** The type of this definition (function, term, etc.). */
-    public final Type type;
+    public Type type;
 
     /** The character offset in the file at which this definition's body starts. */
-    public final int bodyStart;
+    public int bodyStart;
 
     /** The location in the source file of this definition. */
-    public final Span loc;
+    public Span loc;
 
     public Def (long id, long parentId, String name, Type type, int bodyStart, Span loc) {
         this.id = id;
@@ -51,6 +51,9 @@ public class Def
         this.bodyStart = bodyStart;
         this.loc = loc;
     }
+
+    // used when unserializing
+    public Def () {}
 
     @Override // from Object
     public String toString () {

@@ -12,16 +12,16 @@ public class Use
     implements Serializable
 {
     /** A unique identifier for this use (1 or higher). */
-    public final long id;
+    public long id;
 
     /** The id of the immediately enclosing definition in which this use occurs. */
-    public final long ownerId;
+    public long ownerId;
 
     /** The id of the definition of the referent of this use. */
-    public final long referentId;
+    public long referentId;
 
     /** The location in the source file of this use. */
-    public final Span loc;
+    public Span loc;
 
     public Use (long id, long ownerId, long referentId, Span loc) {
         this.id = id;
@@ -29,6 +29,9 @@ public class Use
         this.referentId = referentId;
         this.loc = loc;
     }
+
+    // used when unserializing
+    public Use () {}
 
     @Override // from Object
     public String toString () {
