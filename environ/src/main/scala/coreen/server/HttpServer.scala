@@ -39,8 +39,13 @@ class HttpServer extends Server
     val ctx = new Context
     ctx.setContextPath("/")
     // locate our sentinal resource and use that to compute our document root
-    val stlurl = classOf[HttpServer].getClassLoader.getResource(SENTINAL).toExternalForm
-    ctx.setResourceBase(stlurl.substring(0, stlurl.length-SENTINAL.length))
+    val stlurl = classOf[HttpServer].getClassLoader.getResource(SENTINAL)
+    if (stlurl == null) {
+      log.warning("Unable to infer document root from location of '" + SENTINAL + "'.")
+    } else {
+      val stlpath = stlurl.toExternalForm
+      ctx.setResourceBase(stlpath.substring(0, stlpath.length-SENTINAL.length))
+    }
     ctx.setWelcomeFiles(Array[String]("index.html"))
     // wire up our servlets
     ctx.addServlet(new ServletHolder(_naviServlet), "/"+NaviService.ENTRY_POINT)
