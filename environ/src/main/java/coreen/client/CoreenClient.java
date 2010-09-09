@@ -5,9 +5,11 @@ package coreen.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.user.client.ui.Label;
+
+import com.threerings.gwt.ui.Widgets;
 
 import coreen.rpc.NaviService;
 import coreen.rpc.NaviServiceAsync;
@@ -19,7 +21,7 @@ public class CoreenClient implements EntryPoint
 {
     // from interface EntryPoint
     public void onModuleLoad () {
-        setContent(new Label("Hello world!")); // TODO
+        setContent(Widgets.newLabel("Hello world!")); // TODO
     }
 
     protected void setContent (Widget content) {
