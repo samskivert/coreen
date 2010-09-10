@@ -4,15 +4,10 @@
 package coreen.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import com.threerings.gwt.ui.Widgets;
-
-import coreen.rpc.NaviService;
-import coreen.rpc.NaviServiceAsync;
+import coreen.browse.ProjectsPanel;
 
 /**
  * The main entry point for the Coreen GWT client.
@@ -21,8 +16,7 @@ public class CoreenClient implements EntryPoint
 {
     // from interface EntryPoint
     public void onModuleLoad () {
-        setContent(Widgets.newLabel(_msgs.loading()));
-        // _navisvc.getProjects(
+        setContent(new ProjectsPanel());
     }
 
     protected void setContent (Widget content) {
@@ -36,9 +30,6 @@ public class CoreenClient implements EntryPoint
     }
 
     protected Widget _content;
-
-    protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
-    protected static final ClientMessages _msgs = GWT.create(ClientMessages.class);
 
     protected static final String CLIENT_DIV = "client";
 }

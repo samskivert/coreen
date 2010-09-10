@@ -1,11 +1,13 @@
 //
 // $Id$
 
-package coreen.client;
+package coreen.util;
 
 import java.util.MissingResourceException;
 
 import com.google.gwt.core.client.GWT;
+
+import coreen.client.DynamicLookup;
 
 /**
  * Handles the translation of server errors.
