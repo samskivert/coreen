@@ -1,8 +1,6 @@
+.ensime
+environ/src/main/java/coreen/client/*Messages.java
+lib_managed
 project/boot
 project/plugins/project/build.properties
-lib_managed
 target
-code
-tcode
-.ensime
-.findclass.*
