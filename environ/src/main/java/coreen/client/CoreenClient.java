@@ -21,7 +21,8 @@ public class CoreenClient implements EntryPoint
 {
     // from interface EntryPoint
     public void onModuleLoad () {
-        setContent(Widgets.newLabel("Hello world!")); // TODO
+        setContent(Widgets.newLabel(_msgs.loading()));
+        // _navisvc.getProjects(
     }
 
     protected void setContent (Widget content) {
@@ -37,5 +38,7 @@ public class CoreenClient implements EntryPoint
     protected Widget _content;
 
     protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
+    protected static final ClientMessages _msgs = GWT.create(ClientMessages.class);
+
     protected static final String CLIENT_DIV = "client";
 }
