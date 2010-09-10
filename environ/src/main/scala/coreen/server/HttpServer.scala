@@ -48,7 +48,7 @@ class HttpServer extends Server
     }
     ctx.setWelcomeFiles(Array[String]("index.html"))
     // wire up our servlets
-    ctx.addServlet(new ServletHolder(_naviServlet), "/"+NaviService.ENTRY_POINT)
+    ctx.addServlet(new ServletHolder(_naviServlet), "/coreen/"+NaviService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
     addHandler(ctx)
   }
