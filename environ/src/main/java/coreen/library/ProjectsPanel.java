@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package coreen.browse;
+package coreen.library;
 
 import com.google.gwt.core.client.GWT;
 

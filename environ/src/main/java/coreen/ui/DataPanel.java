@@ -22,6 +22,15 @@ public abstract class DataPanel<T> extends FlowPanel
         for (String styleName : styleNames) {
             addStyleName(styleName);
         }
+        reset();
+    }
+
+    /**
+     * Clears this panel and adds a "Loading..." display.
+     */
+    protected void reset ()
+    {
+        clear();
         add(Widgets.newLabel(_msgs.loading(), "infoLabel"));
     }
 

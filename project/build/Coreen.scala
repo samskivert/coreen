@@ -17,7 +17,7 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
     val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
     val gwtUser = "com.google.gwt" % "gwt-user" % "2.0.4"
-    val gwtUtils = "com.threerings" % "gwt-utils" % "1.0-SNAPSHOT"
+    val gwtUtils = "com.threerings" % "gwt-utils" % "1.1-SNAPSHOT"
     val jetty = "org.mortbay.jetty" % "jetty" % "6.1.25"
 
     // generates FooServiceAsync classes from FooService classes for GWT RPC
