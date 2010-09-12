@@ -7,18 +7,21 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
     val gwtDev = "com.google.gwt" % "gwt-dev" % "2.0.4"
   })
 
-  lazy val util = project("util", "Util", new DefaultProject(_) {
+  lazy val environ = project("environ", "Environment", new DefaultProject(_) {
     val scalatest = "org.scalatest" % "scalatest" % "1.2" % "test"
     val scalaj_collection = "org.scalaj" %% "scalaj-collection" % "1.0"
-  })
 
-  lazy val environ = project("environ", "Environment", new DefaultProject(_) {
     // TEMP: until our bits are uploaded to Maven Central
     val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
+    // HTTP and GWT depends
     val gwtUser = "com.google.gwt" % "gwt-user" % "2.0.4"
     val gwtUtils = "com.threerings" % "gwt-utils" % "1.1-SNAPSHOT"
     val jetty = "org.mortbay.jetty" % "jetty" % "6.1.25"
+
+    // database depends
+    val h2db = "com.h2database" % "h2" % "1.2.142"
+    val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC1"
 
     // generates FooServiceAsync classes from FooService classes for GWT RPC
     val gwtAsyncGen = "com.samskivert" % "gwt-asyncgen" % "1.0"
@@ -31,9 +34,10 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
                                   mainJavaSourcePath ** "*Messages.properties" getPaths).toList)
 
     override def compileAction = super.compileAction dependsOn(i18nsync) dependsOn(genasync)
-  }, util, javaReader)
+  }, javaReader)
 
   lazy val javaReader = project("java-reader", "Java Reader", new DefaultProject(_) {
-    // nothing special yet
-  }, util)
+    val scalatest = "org.scalatest" % "scalatest" % "1.2" % "test"
+    val scalaj_collection = "org.scalaj" %% "scalaj-collection" % "1.0"
+  })
 }

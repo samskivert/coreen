@@ -21,6 +21,9 @@ public class Project
     /** The path to the root of this project. */
     public String rootPath;
 
+    /** A string identifying the imported version of this project. */
+    public String version;
+
     /** When this project was imported into the library. */
     public Date imported;
 
