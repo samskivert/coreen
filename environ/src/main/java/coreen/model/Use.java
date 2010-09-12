@@ -23,7 +23,8 @@ public class Use
     /** The location in the source file of this use. */
     public Span loc;
 
-    public Use (long id, long ownerId, long referentId, Span loc) {
+    public Use (long id, long ownerId, long referentId, Span loc)
+    {
         this.id = id;
         this.ownerId = ownerId;
         this.referentId = referentId;
@@ -34,7 +35,8 @@ public class Use
     public Use () {}
 
     @Override // from Object
-    public String toString () {
+    public String toString ()
+    {
         return new StringBuffer("[id=").append(id).
             append(", owner=").append(ownerId).
             append(", referent=").append(referentId).

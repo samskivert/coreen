@@ -12,7 +12,8 @@ public class Def
     implements Serializable
 {
     /** Defines various types of definitions. */
-    public static enum Type {
+    public static enum Type
+    {
         /** A package or other module definition. */
         MODULE,
         /** A class, record, object or other type definition. */
@@ -43,7 +44,8 @@ public class Def
     /** The location in the source file of this definition. */
     public Span loc;
 
-    public Def (long id, long parentId, String name, Type type, int bodyStart, Span loc) {
+    public Def (long id, long parentId, String name, Type type, int bodyStart, Span loc)
+    {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -56,7 +58,8 @@ public class Def
     public Def () {}
 
     @Override // from Object
-    public String toString () {
+    public String toString ()
+    {
         return new StringBuffer("[id=").append(id).
             append(", parent=").append(parentId).
             append(", name=").append(name).

@@ -17,7 +17,8 @@ public class Span
     /** The length of this span in characters. */
     public int length;
 
-    public Span (int start, int length) {
+    public Span (int start, int length)
+    {
         this.start = start;
         this.length = length;
     }
@@ -26,7 +27,8 @@ public class Span
     public Span () {}
 
     @Override // from Object
-    public String toString () {
+    public String toString ()
+    {
         return start + ":" + length;
     }
 }
