@@ -14,7 +14,7 @@ import org.squeryl.adapters.H2Adapter
 import org.squeryl.PrimitiveTypeMode._
 
 /**
- * Tests the source code model classes (parsing, etc.).
+ * Tests the database subsystem.
  */
 class RepositorySpec extends FlatSpec with ShouldMatchers
 {

@@ -8,8 +8,8 @@ import com.google.gwt.core.client.GWT;
 import com.threerings.gwt.ui.FluentTable;
 
 import coreen.model.Project;
-import coreen.rpc.NaviService;
-import coreen.rpc.NaviServiceAsync;
+import coreen.rpc.LibraryService;
+import coreen.rpc.LibraryServiceAsync;
 import coreen.ui.DataPanel;
 
 /**
@@ -19,7 +19,7 @@ public class ProjectsPanel extends DataPanel<Project[]>
 {
     public ProjectsPanel () {
         super("projects");
-        _navisvc.getProjects(createCallback());
+        _libsvc.getProjects(createCallback());
     }
 
     @Override // from DataPanel
@@ -33,5 +33,5 @@ public class ProjectsPanel extends DataPanel<Project[]>
         add(table);
     }
 
-    protected static final NaviServiceAsync _navisvc = GWT.create(NaviService.class);
+    protected static final LibraryServiceAsync _libsvc = GWT.create(LibraryService.class);
 }

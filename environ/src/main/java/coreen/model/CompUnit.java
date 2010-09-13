@@ -12,20 +12,24 @@ public class CompUnit
     implements Serializable
 {
     /** A unique identifier for this compilation unit (1 or higher). */
-    public final long id;
+    public long id;
 
     /** The id of the project to which this compilation unit belongs. */
-    public final long projectId;
+    public long projectId;
 
     /** The path (relative to the project root) to this compilation unit. */
-    public final String path;
+    public String path;
 
+    /** Creates and initializes this instance. */
     public CompUnit (long id, long projectId, String path)
     {
         this.id = id;
         this.projectId = projectId;
         this.path = path;
     }
+
+    /** Used when unserializing. */
+    public CompUnit () {}
 
     @Override // from Object
     public String toString ()

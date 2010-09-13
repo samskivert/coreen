@@ -5,7 +5,7 @@ package coreen.server
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
-import coreen.model.{Def, Project}
+import coreen.model.Def
 import coreen.rpc.NaviService
 
 /**
@@ -13,11 +13,6 @@ import coreen.rpc.NaviService
  */
 class NaviServlet extends RemoteServiceServlet with NaviService
 {
-  // from interface NaviService
-  def getProjects :Array[Project] = {
-    List(new Project(1, "/home/mdb/projects/samskivert", "samskivert")).toArray
-  }
-
   // from interface NaviService
   def  getToTypeDefs (projectId :Long) :Array[Def] = {
     null // TODO

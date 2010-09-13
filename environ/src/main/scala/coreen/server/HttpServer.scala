@@ -15,6 +15,7 @@ import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.DefaultServlet
 import org.mortbay.jetty.servlet.ServletHolder
 
+import coreen.rpc.LibraryService
 import coreen.rpc.NaviService
 import Main.log
 
@@ -49,6 +50,7 @@ class HttpServer extends Server
     ctx.setWelcomeFiles(Array[String]("index.html"))
     // wire up our servlets
     ctx.addServlet(new ServletHolder(_naviServlet), "/coreen/"+NaviService.ENTRY_POINT)
+    ctx.addServlet(new ServletHolder(_libServlet), "/coreen/"+LibraryService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
     addHandler(ctx)
   }
@@ -84,6 +86,7 @@ class HttpServer extends Server
     def getHttpPort = 8080
   }
   protected var _naviServlet :NaviServlet = new NaviServlet
+  protected var _libServlet :LibraryServlet = new LibraryServlet
 
   protected val ONE_YEAR = 365*24*60*60*1000L
   protected val SENTINEL = "coreen/index.html"

@@ -31,6 +31,12 @@ public class LibraryPage extends AbstractPage
     }
 
     @Override // from AbstractPage
+    public Page getId ()
+    {
+        return Page.LIBRARY;
+    }
+
+    @Override // from AbstractPage
     public void setArgs (Args args)
     {
         String action = args.get(0, "");

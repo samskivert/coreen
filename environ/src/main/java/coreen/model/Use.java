@@ -23,6 +23,7 @@ public class Use
     /** The location in the source file of this use. */
     public Span loc;
 
+    /** Creates and initializes this instance. */
     public Use (long id, long ownerId, long referentId, Span loc)
     {
         this.id = id;
@@ -31,7 +32,7 @@ public class Use
         this.loc = loc;
     }
 
-    // used when unserializing
+    /** Used when unserializing. */
     public Use () {}
 
     @Override // from Object

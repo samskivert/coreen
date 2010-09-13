@@ -29,7 +29,7 @@ class Project (
   /** When this project was imported into the library. */
   val imported :Long,
   /** When this project was last updated. */
-  val lastUpdate :Long) extends KeyedEntity[Long]
+  val lastUpdated :Long) extends KeyedEntity[Long]
 {
   /** A unique identifier for this project (1 or higher). */
   val id :Long = 0L

@@ -44,6 +44,7 @@ public class Def
     /** The location in the source file of this definition. */
     public Span loc;
 
+    /** Creates and initializes this instance. */
     public Def (long id, long parentId, String name, Type type, int bodyStart, Span loc)
     {
         this.id = id;
@@ -54,7 +55,7 @@ public class Def
         this.loc = loc;
     }
 
-    // used when unserializing
+    /** Used when unserializing. */
     public Def () {}
 
     @Override // from Object

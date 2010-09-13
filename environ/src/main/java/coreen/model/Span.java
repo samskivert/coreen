@@ -17,13 +17,14 @@ public class Span
     /** The length of this span in characters. */
     public int length;
 
+    /** Creates and initializes this instance. */
     public Span (int start, int length)
     {
         this.start = start;
         this.length = length;
     }
 
-    // used when unserializing
+    /** Used when unserializing. */
     public Span () {}
 
     @Override // from Object

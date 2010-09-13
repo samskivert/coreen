@@ -30,14 +30,19 @@ public class Project
     /** When this project was last updated. */
     public Date lastUpdated;
 
-    public Project (long id, String name, String rootPath)
+    /** Creates and initializes this instance. */
+    public Project (long id, String name, String rootPath, String version,
+                    Date imported, Date lastUpdated)
     {
         this.id = id;
         this.name = name;
         this.rootPath = rootPath;
+        this.version = version;
+        this.imported = imported;
+        this.lastUpdated = lastUpdated;
     }
 
-    // used when unserializing
+    /** Used when unserializing. */
     public Project () {}
 
     @Override // from Object
@@ -46,6 +51,7 @@ public class Project
         return new StringBuffer("[id=").append(id).
             append(", name=").append(name).
             append(", rootPath=").append(rootPath).
+            append(", version=").append(version).
             append(", imported=").append(imported).
             append(", lastUpdated=").append(lastUpdated).
             append("]").toString();
