@@ -7,6 +7,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
 
+import coreen.ingress.Importer
 import coreen.model.{Convert, PendingProject, Project => JProject}
 import coreen.persist.Repository
 import coreen.persist.Project
@@ -28,12 +29,8 @@ class LibraryServlet extends RemoteServiceServlet with LibraryService
   }
 
   // from interface LibraryService
-  def getPendingProjects :Array[PendingProject] = {
-    null
-  }
+  def getPendingProjects :Array[PendingProject] = Importer.getPendingProjects
 
   // from interface LibraryService
-  def  importProject (source :String) :PendingProject = {
-    null
-  }
+  def  importProject (source :String) :PendingProject = Importer.importProject(source)
 }
