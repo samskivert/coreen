@@ -11,7 +11,7 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
     val scalatest = "org.scalatest" % "scalatest" % "1.2" % "test"
     val scalaj_collection = "org.scalaj" %% "scalaj-collection" % "1.0"
 
-    // TEMP: until our bits are uploaded to Maven Central
+    // need our local repository for gwt-utils snapshot
     val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
     // HTTP and GWT depends
