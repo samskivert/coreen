@@ -12,7 +12,7 @@ import org.squeryl.KeyedEntity
 /**
  * Handles our persistence needs.
  */
-object Repository extends Schema
+object DB extends Schema
 {
   /** Provides access to the projects repository. */
   val projects = table[Project]

@@ -12,8 +12,8 @@ import org.squeryl.{Session, SessionFactory}
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.ingress.Importer
-import coreen.persist.Repository
+import coreen.project.Importer
+import coreen.persist.DB
 
 /**
  * The main entry point for the Coreen server.
@@ -44,7 +44,7 @@ object Main
 
     // TODO: squeryl doesn't support any sort of schema migration; sigh
     // transaction {
-    //   Repository.create // ensure that our schemas are created
+    //   DB.create // ensure that our schemas are created
     // }
 
     // initialize our Jetty http server
