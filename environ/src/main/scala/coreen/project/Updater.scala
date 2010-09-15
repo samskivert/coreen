@@ -22,9 +22,17 @@ object Updater
    *  <li>loading the name-resolved metadata into the database</li>
    * </ul>
    * This is very disk and compute intensive and should be done on a background thread.
+   *
+   * @param sfunc a callback function which will be passed status strings.
    */
-  def update (p :Project) {
+  def update (p :Project, sfunc :String=>Unit = noop => ()) {
+    sfunc("Finding compilation units...")
+
     val units = findCompUnits(new File(p.rootPath))
+    val umap = units groupBy(_.lang)
+    println("Found " + umap)
+
+    sfunc("Processing " + units.size + " compilation units...")
   }
 
   private[project] def findCompUnits (file :File) :List[CompUnit] = {

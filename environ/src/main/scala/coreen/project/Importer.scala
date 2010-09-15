@@ -38,7 +38,7 @@ object Importer
         try {
           processImport(source)
         } catch {
-          case e => updatePending(source, e.getMessage, true)
+          case e => updatePending(source, "Error: " + e.getMessage, true)
         }
       }
     })
@@ -94,8 +94,9 @@ object Importer
     // create the project metadata
     val p = createProject(source, name, file, "0.0")
 
-    // TODO: find all the compilation units and process them
-    updatePending(source, "Inferring project name and version...", false)
+    // update the project for the first time
+    updatePending(source, "Processing project contents...", false)
+    Updater.update(p, updatePending(source, _, false))
 
     // finally, report that the import is complete
     updatePending(source, "Import complete.", true)
@@ -106,9 +107,11 @@ object Importer
   }
 
   private[project] def createProject (
-    source :String, name :String, rootPath :File, version :String) {
+    source :String, name :String, rootPath :File, version :String) = {
     val now = System.currentTimeMillis
-    DB.projects.insert(new Project(name, rootPath.getAbsolutePath, version, now, now))
+    transaction {
+      DB.projects.insert(new Project(name, rootPath.getAbsolutePath, version, now, now))
+    }
   }
 
   /** Attempts to extract a name and version from file or directory names like:
