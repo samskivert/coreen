@@ -32,6 +32,11 @@ object Importer
     pp
   }
 
+  /** Instructs the importer to shut down its executor (TODO: and any pending imports). */
+  def shutdown {
+    _executor.shutdown
+  }
+
   private def updateProject (source :String, status :String, complete :Boolean) {
     _projects.get(source) match {
       case Some(pp) => {

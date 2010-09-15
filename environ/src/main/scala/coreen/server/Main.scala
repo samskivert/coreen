@@ -12,6 +12,7 @@ import org.squeryl.{Session, SessionFactory}
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.PrimitiveTypeMode._
 
+import coreen.ingress.Importer
 import coreen.persist.Repository
 
 /**
@@ -59,6 +60,7 @@ object Main
         log.info("Coreen server exiting...")
         Signal.handle(sigint, ohandler) // restore old signal handler
         httpServer.shutdown // shutdown the http server
+        Importer.shutdown // shutdown the importer executors
         sigint.synchronized { sigint.notify } // notify the main thread that it's OK to exit
       }
     })
