@@ -33,7 +33,20 @@ class Coreen (info :ProjectInfo) extends ParentProject(info) {
                                 mainJavaSourcePath.absolutePath :: (
                                   mainJavaSourcePath ** "*Messages.properties" getPaths).toList)
 
+    // run our generators every time we compile
     override def compileAction = super.compileAction dependsOn(i18nsync) dependsOn(genasync)
+
+    // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
+    // sync) all of our resources to a target/../war directory and remove target/../resources to
+    // avoid seeing everything twice
+    def warResourcesOutputPath = outputPath / "war"
+    def copyWarResourcesAction = copyTask(mainResources, warResourcesOutputPath)
+    override def runClasspath =
+      super.runClasspath --- testResourcesOutputPath +++ warResourcesOutputPath
+    override protected def runAction = task { args =>
+      runTask(getMainClass(true), runClasspath, args) dependsOn(
+        compile, copyResources) dependsOn(copyWarResourcesAction)
+    }
   }, javaReader)
 
   lazy val javaReader = project("java-reader", "Java Reader", new DefaultProject(_) {
