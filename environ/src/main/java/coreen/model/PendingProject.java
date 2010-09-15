@@ -24,13 +24,19 @@ public class PendingProject
     /** The time at which this import last made progress. */
     public long lastUpdated;
 
+    /** True if this project is fully imported (but is lingering in the list because it was
+     * imported recently). */
+    public boolean complete;
+
     /** Creates and initializes this instance. */
-    public PendingProject (String source, String status, long started, long lastUpdated)
+    public PendingProject (String source, String status, long started, long lastUpdated,
+                           boolean complete)
     {
         this.source = source;
         this.status = status;
         this.started = started;
         this.lastUpdated = lastUpdated;
+        this.complete = complete;
     }
 
     /** Used when unserializing. */

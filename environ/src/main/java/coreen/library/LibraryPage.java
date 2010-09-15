@@ -48,7 +48,7 @@ public class LibraryPage extends AbstractPage
     }
 
     @UiHandler("_search")
-    protected void onValueChange (ValueChangeEvent<String> event)
+    protected void onSearchValueChange (ValueChangeEvent<String> event)
     {
         if (event.getValue().trim().equals("")) {
             Link.go(Page.LIBRARY);

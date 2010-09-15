@@ -21,7 +21,7 @@ object Importer
   /** Requests that the project at the specified source be imported. */
   def importProject (source :String) :PendingProject = {
     val now = System.currentTimeMillis
-    val pp = new PendingProject(source, "Starting...", now, now)
+    val pp = new PendingProject(source, "Starting...", now, now, false)
     _projects += (source -> (pp, new Importer(source)))
     pp
   }
@@ -46,6 +46,10 @@ object Importer
 private class Importer (source :String) extends Thread
 {
   import Importer._
+
+  /* ctor */ {
+    start
+  }
 
   override def run {
     updateProject(source, "Identifying source...")
