@@ -1,5 +1,5 @@
 .ensime
-environ/src/main/java/coreen/client/*Messages.java
+environ/src/main/java/coreen/*/*Messages.java
 lib_managed
 project/boot
 project/plugins/project/build.properties
