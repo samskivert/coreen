@@ -1,0 +1,41 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style>
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    .header {
+      border-bottom: 1px solid;
+      padding-bottom: 5px;
+      width: 800px;
+    }
+    .title {
+      font-family: Trebuchet MS, serif;
+      font-size: 24px;
+    }
+  </ui:style>
+
+  <g:HTMLPanel>
+    <div class="{style.header}">
+      <div class="{style.title}"><ui:msg>Import Project</ui:msg></div>
+      <div style="padding: 10px 0 0 100px">
+        <ui:msg>Source:</ui:msg><br/>
+        <g:TextBox ui:field="_source" visibleLength="60"/>
+        <g:Button ui:field="_go"><ui:msg>Import</ui:msg></g:Button><br/>
+        <div style="font-size: small; padding-top: 5px"><ui:msg>
+          Examples:<br/>
+          - /some/local/directory<br/>
+          - <strike>/some/local/archive_file.tgz (or .zip, .tar.gz, .jar)</strike><br/>
+          - <strike>http://some/remote/archive_file.tgz (or .zip, .tar.gz, .jar)</strike><br/>
+          - <strike>version control URL (svn, git, mercurial)</strike><br/>
+        </ui:msg></div>
+      </div>
+    </div>
+
+    <g:SimplePanel ui:field="_contents"/>
+  </g:HTMLPanel>
+</ui:UiBinder>
