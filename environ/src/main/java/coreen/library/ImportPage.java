@@ -119,7 +119,7 @@ public class ImportPage extends AbstractPage
     protected FlowPanel _penders;
 
     protected interface Binder extends UiBinder<Widget, ImportPage> {}
-    protected static Binder _binder = GWT.create(Binder.class);
-    protected static LibraryServiceAsync _libsvc = GWT.create(LibraryService.class);
-    protected static LibraryMessages _msgs = GWT.create(LibraryMessages.class);
+    protected static final Binder _binder = GWT.create(Binder.class);
+    protected static final LibraryServiceAsync _libsvc = GWT.create(LibraryService.class);
+    protected static final LibraryMessages _msgs = GWT.create(LibraryMessages.class);
 }

@@ -1,0 +1,41 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style>
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    .header {
+      border-bottom: 1px solid;
+      padding-bottom: 5px;
+      width: 800px;
+    }
+    .title {
+      font-family: Trebuchet MS, serif;
+      font-size: 24px;
+    }
+  </ui:style>
+
+  <g:HTMLPanel>
+    <table class="{style.header}" cellpadding="0" cellspacing="0">
+    <tr><td class="{style.title}">
+          <ui:msg>Project: <g:InlineLabel ui:field="_name"/></ui:msg></td>
+        <td align="right">
+          <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
+    <tr><td></td>
+        <td align="right">
+          <ui:msg>Last updated:</ui:msg>
+          <g:InlineLabel ui:field="_lastUpdated"/></td></tr>
+    <tr><td><ui:msg>Search:</ui:msg>
+          <g:TextBox ui:field="_search" visibleLength="30"/>
+          <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
+        <td align="right">
+          <g:Button ui:field="_update"><ui:msg>Update</ui:msg></g:Button></td></tr>
+    </table>
+
+    <g:SimplePanel ui:field="_contents"/>
+  </g:HTMLPanel>
+</ui:UiBinder>

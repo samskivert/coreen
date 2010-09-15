@@ -63,7 +63,7 @@ public class LibraryPage extends AbstractPage
     protected ProjectsPanel _projects = new ProjectsPanel();
 
     protected interface Binder extends UiBinder<Widget, LibraryPage> {}
-    protected static Binder _binder = GWT.create(Binder.class);
+    protected static final Binder _binder = GWT.create(Binder.class);
 
     protected static final String SEARCH = "search";
 }

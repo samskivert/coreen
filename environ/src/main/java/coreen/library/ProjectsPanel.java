@@ -7,6 +7,8 @@ import com.google.gwt.core.client.GWT;
 
 import com.threerings.gwt.ui.FluentTable;
 
+import coreen.client.Link;
+import coreen.client.Page;
 import coreen.model.Project;
 import coreen.rpc.LibraryService;
 import coreen.rpc.LibraryServiceAsync;
@@ -26,8 +28,7 @@ public class ProjectsPanel extends DataPanel<Project[]>
     protected void init (Project[] data) {
         FluentTable table = new FluentTable(5, 0);
         for (Project p : data) {
-            table.add().setText(""+ p.id).
-                right().setText(p.name).
+            table.add().setWidget(Link.create(p.name, Page.PROJECT, p.id)).
                 right().setText(p.rootPath);
         }
         add(table);
