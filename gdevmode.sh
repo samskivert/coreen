@@ -1,9 +1,12 @@
 #!/bin/sh
 
+GWT_UTILS_HOME=$HOME/projects/gwt-utils
+
 CLASSPATH=`echo gdevmode/lib_managed/scala_2.8.0/compile/gwt-dev-*.jar \
     environ/lib_managed/scala_2.8.0/compile/gwt-user-*.jar \
     environ/lib_managed/scala_2.8.0/compile/samskivert-*.jar \
-    environ/lib_managed/scala_2.8.0/compile/gwt-utils-*.jar \
+    $GWT_UTILS_HOME/target/classes \
+    $GWT_UTILS_HOME/src/main/java \
     environ/src/main/resources \
     environ/src/main/java | sed 's/ /:/g'`
 
