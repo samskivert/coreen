@@ -83,6 +83,7 @@ public class ProjectPage extends AbstractPage
             public void onSuccess (Project p) {
                 _proj.update(p);
                 _name.setText(p.name);
+                _version.setText(p.version);
                 _imported.setText(DateUtil.formatDateTime(p.imported));
                 _lastUpdated.setText(DateUtil.formatDateTime(p.lastUpdated));
                 _contents.setWidget(Widgets.newLabel("")); // TODO
@@ -91,7 +92,7 @@ public class ProjectPage extends AbstractPage
     }
 
     protected @UiField HTMLPanel _header;
-    protected @UiField Label _name, _imported, _lastUpdated;
+    protected @UiField Label _name, _version, _imported, _lastUpdated;
     protected @UiField TextBox _search;
     protected @UiField Button _update, _go;
     protected @UiField SimplePanel _contents;

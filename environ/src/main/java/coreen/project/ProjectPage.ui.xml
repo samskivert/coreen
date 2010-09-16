@@ -26,7 +26,7 @@
             <ui:msg>Project: <g:InlineLabel ui:field="_name"/></ui:msg></td>
           <td align="right">
             <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
-      <tr><td></td>
+      <tr><td><ui:msg>Version:</ui:msg> <g:InlineLabel ui:field="_version"/></td>
           <td align="right">
             <ui:msg>Last updated:</ui:msg>
             <g:InlineLabel ui:field="_lastUpdated"/></td></tr>
