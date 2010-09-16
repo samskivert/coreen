@@ -28,7 +28,7 @@ class ProjectServlet extends RemoteServiceServlet with ProjectService
         try {
           Updater.update(p)
         } catch {
-          case e => Main.log.warning("Update failed", "proj", p, e)
+          case t => Main.log.warning("Update failed", "proj", p, t)
         }
       }
     })

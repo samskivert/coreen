@@ -37,7 +37,7 @@ object Importer
         try {
           processImport(source)
         } catch {
-          case e => updatePending(source, "Error: " + e.getMessage, true)
+          case t => updatePending(source, "Error: " + t.getMessage, true)
         }
       }
     })
