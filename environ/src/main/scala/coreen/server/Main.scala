@@ -5,6 +5,7 @@ package coreen.server
 
 import java.io.File
 import java.sql.DriverManager
+import java.util.concurrent.Executors
 
 import sun.misc.{Signal, SignalHandler}
 
@@ -21,6 +22,8 @@ import coreen.persist.DB
 object Main
 {
   val log = com.samskivert.util.Logger.getLogger("coreen")
+
+  val exec = Executors.newFixedThreadPool(4) // TODO: configurable
 
   def main (args :Array[String]) {
     // create the Coreen data directory if necessary
@@ -60,7 +63,7 @@ object Main
         log.info("Coreen server exiting...")
         Signal.handle(sigint, ohandler) // restore old signal handler
         httpServer.shutdown // shutdown the http server
-        Importer.shutdown // shutdown the importer executors
+        exec.shutdown // shutdown the executors
         sigint.synchronized { sigint.notify } // notify the main thread that it's OK to exit
       }
     })

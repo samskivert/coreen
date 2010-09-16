@@ -5,7 +5,6 @@ package coreen.project
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
 import java.util.regex.Pattern
 
 import org.squeryl.PrimitiveTypeMode._
@@ -14,7 +13,7 @@ import scala.collection.JavaConversions._
 import coreen.model.PendingProject
 import coreen.persist.{DB, Project}
 import coreen.rpc.ServiceException
-import coreen.server.Main.log
+import coreen.server.Main.{log, exec}
 
 /**
  * Handles the importation of projects into Coreen.
@@ -33,7 +32,7 @@ object Importer
     val now = System.currentTimeMillis
     val pp = new PendingProject(source, "Starting...", now, now, false)
     _projects += (source -> pp)
-    _executor.execute(new Runnable {
+    exec.execute(new Runnable {
       override def run = {
         try {
           processImport(source)
@@ -43,11 +42,6 @@ object Importer
       }
     })
     pp
-  }
-
-  /** Instructs the importer to shut down its executor (TODO: and any pending imports). */
-  def shutdown {
-    _executor.shutdown
   }
 
   // this method is called from all sorts of threads and is (mostly) safe
@@ -73,7 +67,7 @@ object Importer
     // see if we can figure out where the data is
     (source, new File(source)) match {
       case (_, f) if (f.isDirectory) => localProjectImport(source, f)
-      case (_, f) if (f.exists && ArchiveSuffsRE.matcher(f.getName()).matches) =>
+      case (_, f) if (f.exists && ArchSuffsRE.matcher(f.getName()).matches) =>
         localArchiveImport(source, f)
       // case GitRepoRE => gitRepoImport(source)
       // case SvnRepoRE => hgRepoImport(source)/
@@ -81,10 +75,6 @@ object Importer
       case _ => updatePending(source, "Unable to identify source", true)
     }
   }
-  private[project] val ArchiveSuffsRE = Pattern.compile("(.tgz|.tar.gz|.zip|.jar)$")
-  // private[project] val GitRepoRE = """https?://.*\.git""".r
-  // private[project] val SvnRepoRE = """svn://.*""".r
-
 
   private def localProjectImport (source :String, file :File) {
     // try deducing the name and version from the project directory name
@@ -120,9 +110,12 @@ object Importer
     case NameVersionRE(name, vers) => (name, vers)
     case _ => (name, "1.0")
   }
-  private[project] val NameVersionRE = """(.*)[_-](r?[0-9]+.*)""".r
 
   private val _projects :collection.mutable.Map[String,PendingProject] =
     new ConcurrentHashMap[String,PendingProject]()
-  private val _executor = Executors.newFixedThreadPool(4) // TODO: configurable
+
+  private[project] val NameVersionRE = """(.*)[_-](r?[0-9]+.*)""".r
+  private[project] val ArchSuffsRE = Pattern.compile("(.tgz|.tar.gz|.zip|.jar)$")
+  // private[project] val GitRepoRE = """https?://.*\.git""".r
+  // private[project] val SvnRepoRE = """svn://.*""".r
 }

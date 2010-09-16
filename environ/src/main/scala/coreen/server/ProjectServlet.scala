@@ -21,7 +21,18 @@ class ProjectServlet extends RemoteServiceServlet with ProjectService
   def getProject (id :Long) :JProject = Convert.toJava(requireProject(id))
 
   // from interface ProjectService
-  def updateProject (id :Long) = Updater.update(requireProject(id))
+  def updateProject (id :Long) {
+    val p = requireProject(id)
+    Main.exec.execute(new Runnable {
+      override def run = {
+        try {
+          Updater.update(p)
+        } catch {
+          case e => Main.log.warning("Update failed", "proj", p, e)
+        }
+      }
+    })
+  }
 
   private[server] def requireProject (id :Long) = transaction {
     DB.projects.lookup(id) match {
