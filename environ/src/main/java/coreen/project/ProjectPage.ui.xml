@@ -20,21 +20,23 @@
   </ui:style>
 
   <g:HTMLPanel>
-    <table class="{style.header}" cellpadding="0" cellspacing="0">
-    <tr><td class="{style.title}">
-          <ui:msg>Project: <g:InlineLabel ui:field="_name"/></ui:msg></td>
-        <td align="right">
-          <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
-    <tr><td></td>
-        <td align="right">
-          <ui:msg>Last updated:</ui:msg>
-          <g:InlineLabel ui:field="_lastUpdated"/></td></tr>
-    <tr><td><ui:msg>Search:</ui:msg>
-          <g:TextBox ui:field="_search" visibleLength="30"/>
-          <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
-        <td align="right">
-          <g:Button ui:field="_update"><ui:msg>Update</ui:msg></g:Button></td></tr>
-    </table>
+    <g:HTMLPanel ui:field="_header">
+      <table class="{style.header}" cellpadding="0" cellspacing="0">
+      <tr><td class="{style.title}">
+            <ui:msg>Project: <g:InlineLabel ui:field="_name"/></ui:msg></td>
+          <td align="right">
+            <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
+      <tr><td></td>
+          <td align="right">
+            <ui:msg>Last updated:</ui:msg>
+            <g:InlineLabel ui:field="_lastUpdated"/></td></tr>
+      <tr><td><ui:msg>Search:</ui:msg>
+            <g:TextBox ui:field="_search" visibleLength="30"/>
+            <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
+          <td align="right">
+            <g:Button ui:field="_update"><ui:msg>Update</ui:msg></g:Button></td></tr>
+      </table>
+    </g:HTMLPanel>
 
     <g:SimplePanel ui:field="_contents"/>
   </g:HTMLPanel>

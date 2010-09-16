@@ -17,6 +17,11 @@ public interface ProjectService extends RemoteService
     /** The path at which this service's servlet is mapped. */
     public static final String ENTRY_POINT = "project";
 
-    /** Returns metadata for the specified project. */
+    /** Returns metadata for the specified project.
+     * @throws ServiceException with e.no_such_project if project unknown. */
     Project getProject (long id) throws ServiceException;
+
+    /** Requests that the specified project be updated.
+     * @throws ServiceException with e.no_such_project if project unknown. */
+    void updateProject (long id) throws ServiceException;
 }

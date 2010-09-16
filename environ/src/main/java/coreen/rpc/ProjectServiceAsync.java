@@ -15,4 +15,9 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getProject}.
      */
     void getProject (long id, AsyncCallback<Project> callback);
+
+    /**
+     * The async version of {@link ProjectService#updateProject}.
+     */
+    void updateProject (long id, AsyncCallback<Void> callback);
 }

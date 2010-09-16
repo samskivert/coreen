@@ -9,20 +9,24 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject}
 import coreen.persist.DB
-import coreen.rpc.ProjectService
+import coreen.project.Updater
+import coreen.rpc.{ProjectService, ServiceException}
 
 /**
  * The implementation of project services provided by {@link ProjectService}.
  */
 class ProjectServlet extends RemoteServiceServlet with ProjectService
 {
-  // from interface LibraryService
-  def getProject (id :Long) :JProject = {
-    transaction {
-      DB.projects.lookup(id) match {
-        case Some(p) => Convert.toJava(p)
-        case None => null // oh the huge manatee
-      }
+  // from interface ProjectService
+  def getProject (id :Long) :JProject = Convert.toJava(requireProject(id))
+
+  // from interface ProjectService
+  def updateProject (id :Long) = Updater.update(requireProject(id))
+
+  private[server] def requireProject (id :Long) = transaction {
+    DB.projects.lookup(id) match {
+      case Some(p) => p
+      case None => throw new ServiceException("e.no_such_project")
     }
   }
 }
