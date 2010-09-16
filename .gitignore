@@ -1,6 +1,6 @@
 .ensime
-environ/src/main/java/coreen/*/*Messages.java
 lib_managed
 project/boot
 project/plugins/project/build.properties
+src/main/java/coreen/*/*Messages.java
 target
