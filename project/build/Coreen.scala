@@ -41,7 +41,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
   def warResourcesOutputPath = outputPath / "war"
   def copyWarResourcesAction = copyTask(mainResources, warResourcesOutputPath)
   override def runClasspath =
-    super.runClasspath --- testResourcesOutputPath +++ warResourcesOutputPath
+    super.runClasspath --- mainResourcesOutputPath +++ warResourcesOutputPath
   override protected def runAction = task { args =>
     runTask(getMainClass(true), runClasspath, args) dependsOn(
       compile, copyResources) dependsOn(copyWarResourcesAction)
