@@ -22,22 +22,24 @@ import coreen.persist.DB
 object Main
 {
   val log = com.samskivert.util.Logger.getLogger("coreen")
-
   val exec = Executors.newFixedThreadPool(4) // TODO: configurable
+
+  // TODO: move into injected ServerConfig, or something
+  val coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
+  def projectDir (project :String) = new File(new File(coreenDir, "projects"), project)
 
   def main (args :Array[String]) {
     // create the Coreen data directory if necessary
-    val codir = new File(System.getProperty("user.home") + File.separator + ".coreen")
-    if (!codir.isDirectory) {
-      if (!codir.mkdir) {
-        System.err.println("Failed to create: " + codir.getAbsolutePath)
+    if (!coreenDir.isDirectory) {
+      if (!coreenDir.mkdir) {
+        System.err.println("Failed to create: " + coreenDir.getAbsolutePath)
         System.exit(255)
       }
     }
 
     // initialize the H2 database
     Class.forName("org.h2.Driver")
-    val dburl = "jdbc:h2:" + new File(codir, "repository").getAbsolutePath
+    val dburl = "jdbc:h2:" + new File(coreenDir, "repository").getAbsolutePath
     SessionFactory.concreteFactory = Some(() => {
       // TODO: use connection pools as Squeryl creates and closes a connection on every query
       val sess = Session.create(DriverManager.getConnection(dburl, "sa", ""), new H2Adapter)

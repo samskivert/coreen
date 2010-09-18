@@ -46,6 +46,7 @@ class HttpServer extends Server
       log.warning("Unable to infer document root from location of '" + SENTINEL + "'.")
     } else {
       val stlpath = stlurl.toExternalForm
+      log.info(stlpath)
       ctx.setResourceBase(stlpath.substring(0, stlpath.length-SENTINEL.length))
     }
     ctx.setWelcomeFiles(Array[String]("index.html"))

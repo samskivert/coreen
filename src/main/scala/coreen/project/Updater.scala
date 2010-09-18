@@ -4,8 +4,11 @@
 package coreen.project
 
 import java.io.File
+import scala.io.Source
 
 import coreen.persist.Project
+import coreen.server.Main
+import coreen.server.Main.log
 
 /**
  * Handles the scanning of a project directory for compilation units and the processing thereof.
@@ -30,9 +33,27 @@ object Updater
 
     val units = findCompUnits(new File(p.rootPath))
     val umap = units groupBy(_.lang)
-    println("Found " + umap)
 
     sfunc("Processing " + units.size + " compilation units...")
+
+    // create a directory in which to hold our temporary bits
+    val uproot = new File(Main.projectDir(p.name), "update")
+    uproot.mkdirs()
+
+    // TODO: this is all a giant hack!
+    execJava("coreen.java.Main",
+             List(System.getProperty("java.home") + "/../lib/tools.jar",
+                  "java-reader/target/scala_2.8.0/coreen-java-reader_2.8.0-0.1.min.jar"),
+             "--out" :: uproot.getAbsolutePath :: (umap("java") map(_.file.getAbsolutePath)))
+  }
+
+  private[project] def execJava (classname :String, classpath :List[String], args :List[String]) {
+    val cmd = "java" :: "-classpath" :: classpath.mkString(File.pathSeparator) :: classname :: args
+    log.info("Running " + cmd)
+    val proc = Runtime.getRuntime.exec(cmd.toArray)
+    log.info("stderr " + Source.fromInputStream(proc.getErrorStream).getLines.mkString("\n"))
+    log.info("stdout " + Source.fromInputStream(proc.getInputStream).getLines.mkString("\n"))
+    log.info("Updater " + proc.waitFor)
   }
 
   private[project] def findCompUnits (file :File) :List[CompUnit] = {
