@@ -35,15 +35,9 @@ object Updater
     // first figure out what sort of source files we see in the project
     val types = collectFileTypes(new File(p.rootPath))
 
-    // now create readers for all of the supported types
+    // fire up readers to handle all types of files we find in the project
     val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
     log("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
-
-    // // create a directory in which to hold our temporary bits
-    // val uproot = new File(Main.projectDir(p.name), "update")
-    // uproot.mkdirs()
-
-    // TODO: abstract out the interface to readers
     readers.values map(_.invoke(p, log))
   }
 
@@ -89,7 +83,7 @@ object Updater
         println("TODO " + compunit \ "@src")
     }
 
-    protected def args :List[String]
+    def args :List[String]
   }
 
   abstract class JavaReader (
