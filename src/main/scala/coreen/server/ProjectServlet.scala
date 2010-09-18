@@ -26,7 +26,7 @@ class ProjectServlet extends RemoteServiceServlet with ProjectService
     Main.exec.execute(new Runnable {
       override def run = {
         try {
-          Updater.update(p)
+          Updater.update(p, println)
         } catch {
           case t => Main.log.warning("Update failed", "proj", p, t)
         }

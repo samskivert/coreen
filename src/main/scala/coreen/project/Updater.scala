@@ -3,8 +3,9 @@
 
 package coreen.project
 
-import java.io.File
+import java.io.{File, StringReader}
 import scala.io.Source
+import scala.xml.{XML, Node}
 
 import coreen.persist.Project
 import coreen.server.Main
@@ -26,44 +27,97 @@ object Updater
    * </ul>
    * This is very disk and compute intensive and should be done on a background thread.
    *
-   * @param sfunc a callback function which will be passed status strings.
+   * @param log a callback function which will be passed log messages to communicate status.
    */
-  def update (p :Project, sfunc :String=>Unit = noop => ()) {
-    sfunc("Finding compilation units...")
+  def update (p :Project, log :String=>Unit = noop => ()) {
+    log("Finding compilation units...")
 
-    val units = findCompUnits(new File(p.rootPath))
-    val umap = units groupBy(_.lang)
+    // first figure out what sort of source files we see in the project
+    val types = collectFileTypes(new File(p.rootPath))
 
-    sfunc("Processing " + units.size + " compilation units...")
+    // now create readers for all of the supported types
+    val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
+    log("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
 
-    // create a directory in which to hold our temporary bits
-    val uproot = new File(Main.projectDir(p.name), "update")
-    uproot.mkdirs()
+    // // create a directory in which to hold our temporary bits
+    // val uproot = new File(Main.projectDir(p.name), "update")
+    // uproot.mkdirs()
 
-    // TODO: this is all a giant hack!
-    execJava("coreen.java.Main",
-             List(System.getProperty("java.home") + "/../lib/tools.jar",
-                  "java-reader/target/scala_2.8.0/coreen-java-reader_2.8.0-0.1.min.jar"),
-             "--out" :: uproot.getAbsolutePath :: (umap("java") map(_.file.getAbsolutePath)))
+    // TODO: abstract out the interface to readers
+    readers.values map(_.invoke(p, log))
   }
 
-  private[project] def execJava (classname :String, classpath :List[String], args :List[String]) {
-    val cmd = "java" :: "-classpath" :: classpath.mkString(File.pathSeparator) :: classname :: args
-    log.info("Running " + cmd)
-    val proc = Runtime.getRuntime.exec(cmd.toArray)
-    log.info("stderr " + Source.fromInputStream(proc.getErrorStream).getLines.mkString("\n"))
-    log.info("stdout " + Source.fromInputStream(proc.getInputStream).getLines.mkString("\n"))
-    log.info("Updater " + proc.waitFor)
-  }
+  abstract class Reader {
+    def invoke (p :Project, log :String=>Unit) {
+      println("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
+      val proc = Runtime.getRuntime.exec((args :+ p.rootPath).toArray)
+      var accum = new StringBuilder
+      var accmode = false
 
-  private[project] def findCompUnits (file :File) :List[CompUnit] = {
-    def suffix (name :String) = name.substring(name.lastIndexOf(".")+1)
-    if (file.isDirectory) file.listFiles.toList flatMap(findCompUnits)
-    else suffix(file.getName) match {
-      case "java" => List(CompUnit(file, "java"))
-      case _ => List()
+      // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
+      // and processing each complete unit that we receive; anything in between compunit elements
+      // is reported verbatim to the status log
+      for (line <- Source.fromInputStream(proc.getInputStream).getLines) {
+        accmode = accmode || line.trim.startsWith("<compunit");
+        if (!accmode) log(line)
+        else {
+          accum.append(line)
+          accmode = !line.trim.startsWith("</compunit>")
+          if (!accmode) {
+            try {
+              process(XML.load(new StringReader(accum.toString)))
+            } catch {
+              case e => log("Error parsing reader output [" + e + "]: " +
+                            truncate(accum.toString, 100))
+            }
+            accum.setLength(0)
+          }
+        }
+      }
+
+      // copy any output from stderr to the status log now that stdout is closed (TODO: really this
+      // should happen on another thread because it's possible for the reader to fill up its stderr
+      // buffer and block, and we'll deadlock waiting for stdout to close)
+      Source.fromInputStream(proc.getErrorStream).getLines.foreach(log)
+
+      // report any error status code (TODO: we probably don't really need to do this)
+      val ecode = proc.waitFor
+      if (ecode != 0) log("Reader exited with status: " + ecode)
     }
+
+    def process (compunit :Node) {
+        println("TODO " + compunit \ "@src")
+    }
+
+    protected def args :List[String]
   }
 
-  private[project] case class CompUnit (file :File, lang :String)
+  abstract class JavaReader (
+    classname :String, classpath :List[String], javaArgs :List[String]
+  ) extends Reader {
+    def args = ("java" :: "-classpath" :: classpath.mkString(File.pathSeparator) ::
+                classname :: javaArgs)
+  }
+
+  // TODO: get these paths from a config file
+  class JavaJavaReader extends JavaReader(
+    "coreen.java.Main",
+    List(System.getProperty("java.home") + "/../lib/tools.jar",
+         "java-reader/target/scala_2.8.0/coreen-java-reader_2.8.0-0.1.min.jar"),
+    List())
+
+  def readerForType (typ :String) :Option[Reader] = typ match {
+    case "java" => Some(new JavaJavaReader)
+    case _ => None
+  }
+
+  def collectFileTypes (file :File) :Set[String] = {
+    def suffix (name :String) = name.substring(name.lastIndexOf(".")+1)
+    if (file.isDirectory) file.listFiles.toSet flatMap(collectFileTypes)
+    else Set(suffix(file.getName))
+  }
+
+  def truncate (text :String, length :Int) =
+    if (text.length <= length) text
+    else text.substring(0, length) + "..."
 }
