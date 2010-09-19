@@ -19,10 +19,17 @@ object DB extends Schema
 
   /** Provides access to the compilation units repository. */
   val compunits = table[CompUnit]
+
+  /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
+   * supported by Squeryl. */
+  def reinitSchema {
+    drop
+    create
+  }
 }
 
 /** Contains project metadata. */
-class Project (
+case class Project (
   /** The (human readable) name of this project. */
   val name :String,
   /** The path to the root of this project. */
@@ -34,6 +41,8 @@ class Project (
   /** When this project was last updated. */
   val lastUpdated :Long) extends KeyedEntity[Long]
 {
+  /* ctor */ { assert(!rootPath.endsWith("/")) }
+
   /** A unique identifier for this project (1 or higher). */
   val id :Long = 0L
 
@@ -44,13 +53,13 @@ class Project (
 }
 
 /** Contains metadata for a single compilation unit. */
-class CompUnit (
+case class CompUnit (
   /** The id of the project to which this compilation unit belongs. */
   val projectId :Long,
   /** The path (relative to the project root) to this compilation unit. */
   val path :String,
-  /** The time at which this compilation unit was imported into the library. */
-  val imported :Long)
+  /** The time at which this compilation unit was last updated. */
+  val lastUpdated :Long)
 {
   /** Zero args ctor for use when unserializing. */
   def this () = this(0L, "", 0L)

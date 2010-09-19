@@ -100,7 +100,7 @@ object Importer
     source :String, name :String, rootPath :File, version :String) = {
     val now = System.currentTimeMillis
     transaction {
-      DB.projects.insert(new Project(name, rootPath.getAbsolutePath, version, now, now))
+      DB.projects.insert(Project(name, rootPath.getAbsolutePath, version, now, now))
     }
   }
 

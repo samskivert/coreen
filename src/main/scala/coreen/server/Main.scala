@@ -47,9 +47,9 @@ object Main
       sess
     })
 
-    // TODO: squeryl doesn't support any sort of schema migration; sigh
+    // // TODO: squeryl doesn't support any sort of schema migration; sigh
     // transaction {
-    //   DB.create // ensure that our schemas are created
+    //   DB.reinitSchema
     // }
 
     // initialize our Jetty http server

@@ -4,10 +4,16 @@
 package coreen.project
 
 import java.io.{File, StringReader}
-import scala.io.Source
-import scala.xml.{XML, Node}
 
-import coreen.persist.Project
+import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
+import scala.xml.{XML, Elem}
+
+import org.squeryl.PrimitiveTypeMode._
+
+import coreen.nml.SourceModel
+import coreen.nml.SourceModel._
+import coreen.persist.{DB, Project, CompUnit}
 import coreen.server.Main
 import coreen.server.Main.log
 
@@ -43,10 +49,12 @@ object Updater
 
   abstract class Reader {
     def invoke (p :Project, log :String=>Unit) {
-      println("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
+      Main.log.info("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
       val proc = Runtime.getRuntime.exec((args :+ p.rootPath).toArray)
       var accum = new StringBuilder
       var accmode = false
+
+      val cubuf = ArrayBuffer[CompUnitElem]()
 
       // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
       // and processing each complete unit that we receive; anything in between compunit elements
@@ -59,7 +67,9 @@ object Updater
           accmode = !line.trim.startsWith("</compunit>")
           if (!accmode) {
             try {
-              process(p, XML.load(new StringReader(accum.toString)))
+              val cu = SourceModel.parse(XML.load(new StringReader(accum.toString)))
+              if (cu.src.startsWith(p.rootPath)) cu.src = cu.src.substring(p.rootPath.length+1)
+              cubuf += cu
             } catch {
               case e => log("Error parsing reader output [" + e + "]: " +
                             truncate(accum.toString, 100))
@@ -76,11 +86,37 @@ object Updater
 
       // report any error status code (TODO: we probably don't really need to do this)
       val ecode = proc.waitFor
-      if (ecode != 0) log("Reader exited with status: " + ecode)
-    }
+      if (ecode != 0) {
+        log("Reader exited with status: " + ecode)
+        return // leave the project as is; TODO: maybe not if this is the first import...
+      }
 
-    def process (p :Project, compunit :Node) {
-        println("TODO " + compunit \ "@src")
+      // determine which CUs we knew about before
+      val cus = cubuf.toList
+      val oldPaths = transaction {
+        from(DB.compunits)(cu => where(cu.projectId === p.id) select(cu.path)) toSet
+      }
+
+      val newPaths = Set() ++ (cus map(_.src))
+      val toDelete = oldPaths -- newPaths
+      val toAdd = newPaths -- oldPaths
+      val toUpdate = newPaths -- toAdd
+      transaction {
+        if (!toDelete.isEmpty) {
+          DB.compunits.deleteWhere(cu => cu.path in toDelete)
+          log("Removed " + toDelete.size + " obsolete compunits.")
+        }
+        val now = System.currentTimeMillis
+        if (!toAdd.isEmpty) {
+          DB.compunits.insert(toAdd.map(CompUnit(p.id, _, now)))
+          log("Added " + toAdd.size + " new compunits.")
+        }
+        if (!toUpdate.isEmpty) {
+          DB.compunits.update(cu =>
+            where(cu.path in toUpdate) set(cu.lastUpdated := now))
+          log("Updated " + toUpdate.size + " compunits.")
+        }
+      }
     }
 
     def args :List[String]

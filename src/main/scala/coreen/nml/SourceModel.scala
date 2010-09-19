@@ -29,7 +29,7 @@ object SourceModel
   case class Edit (start :Int, end :Int)
 
   /** Models a compilation unit. */
-  case class CompUnitElem (src :String, defs :Seq[DefElem]) {
+  case class CompUnitElem (var src :String, defs :Seq[DefElem]) {
     def getDef (path :String) :Option[DefElem] = getDef(path split("\\.") toList)
     def getDef (path :List[String]) :Option[DefElem] = defs flatMap(_.getDef(path)) headOption
   }
