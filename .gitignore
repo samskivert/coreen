@@ -3,4 +3,5 @@ lib_managed
 project/boot
 project/plugins/project/build.properties
 src/main/java/coreen/*/*Messages.java
+src_managed
 target

@@ -2,7 +2,7 @@
 
 GWT_UTILS_HOME=$HOME/projects/gwt-utils
 
-CLASSPATH=`echo gdevmode/lib_managed/scala_2.8.0/compile/gwt-dev-*.jar \
+CLASSPATH=`echo lib_managed/scala_2.8.0/system/gwt-dev-*.jar \
     lib_managed/scala_2.8.0/compile/gwt-user-*.jar \
     lib_managed/scala_2.8.0/compile/samskivert-*.jar \
     $GWT_UTILS_HOME/target/classes \

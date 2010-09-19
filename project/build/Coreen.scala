@@ -1,11 +1,6 @@
 import sbt._
 
 class Coreen (info :ProjectInfo) extends DefaultProject(info) {
-  // this project only exists to download gwt-dev, but keep it out of our normal classpaths
-  lazy val gdevmode = project("gdevmode", "GWT Dev Mode", new DefaultProject(_) {
-    val gwtDev = "com.google.gwt" % "gwt-dev" % "2.0.4"
-  })
-
   // need our local repository for gwt-utils snapshot
   val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
@@ -18,13 +13,21 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
   val gwtUtils = "com.threerings" % "gwt-utils" % "1.1-SNAPSHOT"
   val jetty = "org.mortbay.jetty" % "jetty" % "6.1.25"
 
+  // we don't want these on any of our classpaths, so we make them "system" deps
+  val gwtDev = "com.google.gwt" % "gwt-dev" % "2.0.4" % "system"
+  val gwtServlet = "com.google.gwt" % "gwt-servlet" % "2.0.4" % "system"
+  val gwtAsyncGen = "com.samskivert" % "gwt-asyncgen" % "1.0" % "system"
+
   // database depends
   val h2db = "com.h2database" % "h2" % "1.2.142"
   val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC1"
 
+  // used to add a specific dependency jar file to a path
+  def plusDep (name :String) = managedDependencyRootPath ** (name+"*")
+
   // generates FooServiceAsync classes from FooService classes for GWT RPC
-  val gwtAsyncGen = "com.samskivert" % "gwt-asyncgen" % "1.0"
-  lazy val genasync = runTask(Some("com.samskivert.asyncgen.AsyncGenTool"), compileClasspath,
+  lazy val genasync = runTask(Some("com.samskivert.asyncgen.AsyncGenTool"),
+                              compileClasspath +++ plusDep("gwt-asyncgen"),
                               (mainJavaSourcePath ** "*Service.java" getPaths).toList)
 
   // generates FooMessages.java from FooMessages.properties for GWT i18n
@@ -32,7 +35,20 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
                               mainJavaSourcePath.absolutePath :: (
                                 mainJavaSourcePath ** "*Messages.properties" getPaths).toList)
 
-  // run our generators every time we compile
+  // compiles our GWT client
+  lazy val gwtc = runTask(
+    Some("com.google.gwt.dev.Compiler"),
+    compileClasspath +++ plusDep("gwt-dev") +++ mainJavaSourcePath +++ mainResourcesPath,
+    List("-war", "target/scala_2.8.0/gwtc", "coreen")) dependsOn(copyResources)
+
+  // packages the output of our GWT client into a jar file
+  lazy val gwtjar = packageTask(mainResources +++ (outputPath / "gwtc" ##) ** "*",
+                                defaultJarPath("-gwt.jar"), Nil) dependsOn(gwtc)
+
+  // we include our resources in the -gwt.jar so we exclude them from the main jar
+  override def packagePaths = super.packagePaths --- mainResources
+
+  // regenerate our i18n classes every time we compile
   override def compileAction = super.compileAction dependsOn(i18nsync)
 
   // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
