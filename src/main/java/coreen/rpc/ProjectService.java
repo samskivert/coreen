@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import coreen.model.CompUnit;
+import coreen.model.CompUnitDetail;
 import coreen.model.Project;
 
 /**
@@ -28,4 +29,8 @@ public interface ProjectService extends RemoteService
 
     /** Returns all compilation units associated with the specified project. */
     CompUnit[] getCompUnits (long projectId) throws ServiceException;
+
+    /** Returns details for the specified compilation unit.
+     * @throws ServiceException with e.no_such_unit if the unit is unknown. */
+    CompUnitDetail getCompUnit (long unitId) throws ServiceException;
 }

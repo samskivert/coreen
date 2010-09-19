@@ -5,6 +5,7 @@ package coreen.rpc;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import coreen.model.CompUnit;
+import coreen.model.CompUnitDetail;
 import coreen.model.Project;
 
 /**
@@ -26,4 +27,9 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getCompUnits}.
      */
     void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
 }

@@ -64,7 +64,8 @@ public class CompUnitsPanel extends Composite
                 gap.addStyleName(_styles.Gap());
                 files.add(gap);
             }
-            files.add(Link.createInline(uname, Page.PROJECT, p.id, unit.id));
+            files.add(Link.createInline(uname, Page.PROJECT, p.id,
+                                        ProjectPage.Detail.SRC, unit.id));
         }
         if (files != null) {
             table.add().setText(dir).alignTop().right().setWidget(files);
@@ -72,7 +73,8 @@ public class CompUnitsPanel extends Composite
         return table;
     }
 
-    protected interface Styles extends CssResource {
+    protected interface Styles extends CssResource
+    {
         String bydir ();
         String Path ();
         String Gap ();

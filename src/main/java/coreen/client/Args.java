@@ -32,7 +32,7 @@ public class Args
     {
         String[] args = token.split(SEPARATOR);
         if (args.length > 0) {
-            this.page = parsePage(args[0]);
+            this.page = parseEnum(args[0], Page.class, Page.LIBRARY);
             _args = new String[args.length-1];
             System.arraycopy(args, 1, _args, 0, _args.length);
         } else {
@@ -63,12 +63,34 @@ public class Args
         }
     }
 
-    protected static Page parsePage (String pagestr)
+    /**
+     * Returns the argument at the specified index or the default value if no argument or a
+     * non-numeric argument was provided at that index.
+     */
+    public long get (int index, long defval)
     {
         try {
-            return Page.valueOf(pagestr);
+            return (index < _args.length) ? Long.parseLong(_args[index]) : defval;
         } catch (Exception e) {
-            return Page.LIBRARY;
+            return defval;
+        }
+    }
+
+    /**
+     * Returns the argument at the specified index converted to an enum of the specified type, or
+     * the default value if no (or an invalid) argument was provided at that index.
+     */
+    public <T extends Enum<T>> T get (int index, Class<T> etype, T defval)
+    {
+        return parseEnum(get(index, ""), etype, defval);
+    }
+
+    protected static <T extends Enum<T>> T parseEnum (String val, Class<T> etype, T defval)
+    {
+        try {
+            return Enum.valueOf(etype, val);
+        } catch (Exception e) {
+            return defval;
         }
     }
 

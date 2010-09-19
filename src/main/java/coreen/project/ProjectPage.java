@@ -36,6 +36,9 @@ import coreen.util.PanelCallback;
  */
 public class ProjectPage extends AbstractPage
 {
+    /** Enumerates the different project detail pages. */
+    public static enum Detail { CUS, SRC; }
+
     public ProjectPage ()
     {
         initWidget(_binder.createAndBindUi(this));
@@ -75,20 +78,34 @@ public class ProjectPage extends AbstractPage
     }
 
     @Override // from AbstractPage
-    public void setArgs (Args args)
+    public void setArgs (final Args args)
     {
-        _proj.update(null);
-        _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
-        _projsvc.getProject(args.get(0, 0), new PanelCallback<Project>(_contents) {
-            public void onSuccess (Project p) {
-                _proj.update(p);
-                _name.setText(p.name);
-                _version.setText(p.version);
-                _imported.setText(DateUtil.formatDateTime(p.imported));
-                _lastUpdated.setText(DateUtil.formatDateTime(p.lastUpdated));
-                _contents.setWidget(new CompUnitsPanel(p)); // TODO: tabs
-            }
-        });
+        // if we have no project, or the wrong project, we must load the right project
+        long projectId = args.get(0, 0L);
+        if (_proj.get() == null || _proj.get().id != projectId) {
+            _proj.update(null);
+            _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
+            _projsvc.getProject(projectId, new PanelCallback<Project>(_contents) {
+                public void onSuccess (Project p) {
+                    _proj.update(p);
+                    _name.setText(p.name);
+                    _version.setText(p.version);
+                    _imported.setText(DateUtil.formatDateTime(p.imported));
+                    _lastUpdated.setText(DateUtil.formatDateTime(p.lastUpdated));
+                    setArgs(args);
+                }
+            });
+            return;
+        }
+
+        switch (args.get(1, Detail.class, Detail.CUS)) {
+        case CUS:
+            _contents.setWidget(new CompUnitsPanel(_proj.get()));
+            break;
+        case SRC:
+            _contents.setWidget(new SourcePanel(args.get(2, 0L)));
+            break;
+        }
     }
 
     protected @UiField HTMLPanel _header;
