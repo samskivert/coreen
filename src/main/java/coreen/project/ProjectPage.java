@@ -10,6 +10,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -81,7 +82,7 @@ public class ProjectPage extends AbstractPage
     public void setArgs (final Args args)
     {
         // if we have no project, or the wrong project, we must load the right project
-        long projectId = args.get(0, 0L);
+        final long projectId = args.get(0, 0L);
         if (_proj.get() == null || _proj.get().id != projectId) {
             _proj.update(null);
             _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
@@ -89,6 +90,7 @@ public class ProjectPage extends AbstractPage
                 public void onSuccess (Project p) {
                     _proj.update(p);
                     _name.setText(p.name);
+                    _name.setTargetHistoryToken(Args.createToken(Page.PROJECT, projectId));
                     _version.setText(p.version);
                     _imported.setText(DateUtil.formatDateTime(p.imported));
                     _lastUpdated.setText(DateUtil.formatDateTime(p.lastUpdated));
@@ -109,7 +111,8 @@ public class ProjectPage extends AbstractPage
     }
 
     protected @UiField HTMLPanel _header;
-    protected @UiField Label _name, _version, _imported, _lastUpdated;
+    protected @UiField Hyperlink _name;
+    protected @UiField Label _version, _imported, _lastUpdated;
     protected @UiField TextBox _search;
     protected @UiField Button _update, _go;
     protected @UiField SimplePanel _contents;
