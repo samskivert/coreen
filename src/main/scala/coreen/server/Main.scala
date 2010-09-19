@@ -47,10 +47,8 @@ object Main
       sess
     })
 
-    // // TODO: squeryl doesn't support any sort of schema migration; sigh
-    // transaction {
-    //   DB.reinitSchema
-    // }
+    // TODO: squeryl doesn't support any sort of schema migration; sigh
+    if (false) transaction { DB.reinitSchema }
 
     // initialize our Jetty http server
     val httpServer = new HttpServer

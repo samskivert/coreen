@@ -93,17 +93,15 @@ object Updater
 
       // determine which CUs we knew about before
       val cus = cubuf.toList
-      val oldPaths = transaction {
-        from(DB.compunits)(cu => where(cu.projectId === p.id) select(cu.path)) toSet
-      }
+      val oldCUs = transaction { DB.compunits where(cu => cu.projectId === p.id) toList }
 
       val newPaths = Set() ++ (cus map(_.src))
-      val toDelete = oldPaths -- newPaths
-      val toAdd = newPaths -- oldPaths
-      val toUpdate = newPaths -- toAdd
+      val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
+      val toAdd = newPaths -- (oldCUs map(_.path))
+      val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id)
       transaction {
         if (!toDelete.isEmpty) {
-          DB.compunits.deleteWhere(cu => cu.path in toDelete)
+          DB.compunits.deleteWhere(cu => cu.id in toDelete)
           log("Removed " + toDelete.size + " obsolete compunits.")
         }
         val now = System.currentTimeMillis
@@ -113,7 +111,7 @@ object Updater
         }
         if (!toUpdate.isEmpty) {
           DB.compunits.update(cu =>
-            where(cu.path in toUpdate) set(cu.lastUpdated := now))
+            where(cu.id in toUpdate) set(cu.lastUpdated := now))
           log("Updated " + toUpdate.size + " compunits.")
         }
       }

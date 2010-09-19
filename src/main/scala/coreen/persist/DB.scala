@@ -31,16 +31,16 @@ object DB extends Schema
 /** Contains project metadata. */
 case class Project (
   /** The (human readable) name of this project. */
-  val name :String,
+  name :String,
   /** The path to the root of this project. */
-  val rootPath :String,
+  rootPath :String,
   /** A string identifying the imported version of this project. */
-  val version :String,
+  version :String,
   /** When this project was imported into the library. */
-  val imported :Long,
+  imported :Long,
   /** When this project was last updated. */
-  val lastUpdated :Long) extends KeyedEntity[Long]
-{
+  lastUpdated :Long
+) extends KeyedEntity[Long] {
   /* ctor */ { assert(!rootPath.endsWith("/")) }
 
   /** A unique identifier for this project (1 or higher). */
@@ -55,14 +55,17 @@ case class Project (
 /** Contains metadata for a single compilation unit. */
 case class CompUnit (
   /** The id of the project to which this compilation unit belongs. */
-  val projectId :Long,
+  projectId :Long,
   /** The path (relative to the project root) to this compilation unit. */
-  val path :String,
+  path :String,
   /** The time at which this compilation unit was last updated. */
-  val lastUpdated :Long)
-{
+  lastUpdated :Long
+) extends KeyedEntity[Long] {
+  /** A unique identifier for this project (1 or higher). */
+  val id :Long = 0L
+
   /** Zero args ctor for use when unserializing. */
   def this () = this(0L, "", 0L)
 
-  override def toString = projectId + ":" + path
+  override def toString = "[id=" + id + ", pid=" + projectId + ", path=" + path + "]"
 }
