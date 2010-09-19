@@ -4,7 +4,7 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style>
+  <ui:style type="coreen.project.ProjectPage.Styles" field="_styles">
     body {
       font-family: Helvetica, Arial, sans-serif;
     }
@@ -17,12 +17,24 @@
       font-family: Trebuchet MS, serif;
       font-size: 24px;
     }
+    .bydir {
+      width: 800px;
+    }
+    .bydir td {
+      border-bottom: 1px solid;
+    }
+    .bydir .Path {
+      white-space: nowrap;
+    }
+    .bydir .Gap {
+      padding-right: 5px;
+    }
   </ui:style>
 
   <g:HTMLPanel>
     <g:HTMLPanel ui:field="_header">
-      <table class="{style.header}" cellpadding="0" cellspacing="0">
-      <tr><td class="{style.title}">
+      <table class="{_styles.header}" cellpadding="0" cellspacing="0">
+      <tr><td class="{_styles.title}">
             <ui:msg>Project: <g:InlineLabel ui:field="_name"/></ui:msg></td>
           <td align="right">
             <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>

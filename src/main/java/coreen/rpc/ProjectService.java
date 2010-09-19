@@ -6,6 +6,7 @@ package coreen.rpc;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
+import coreen.model.CompUnit;
 import coreen.model.Project;
 
 /**
@@ -24,4 +25,7 @@ public interface ProjectService extends RemoteService
     /** Requests that the specified project be updated.
      * @throws ServiceException with e.no_such_project if project unknown. */
     void updateProject (long id) throws ServiceException;
+
+    /** Returns all compilation units associated with the specified project. */
+    CompUnit[] getCompUnits (long projectId) throws ServiceException;
 }

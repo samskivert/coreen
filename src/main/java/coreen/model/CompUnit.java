@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Models a single source file.
  */
 public class CompUnit
-    implements Serializable
+    implements Serializable, Comparable<CompUnit>
 {
     /** A unique identifier for this compilation unit (1 or higher). */
     public long id;
@@ -30,6 +30,12 @@ public class CompUnit
 
     /** Used when unserializing. */
     public CompUnit () {}
+
+    // from Comparable<CompUnit>
+    public int compareTo (CompUnit other)
+    {
+        return path.compareTo(other.path);
+    }
 
     @Override // from Object
     public String toString ()

@@ -7,7 +7,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.{Convert, Project => JProject}
+import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit}
 import coreen.persist.DB
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -32,6 +32,13 @@ class ProjectServlet extends RemoteServiceServlet with ProjectService
         }
       }
     })
+  }
+
+  // from interface ProjectService
+  def getCompUnits (projectId :Long) :Array[JCompUnit] = {
+    transaction {
+      DB.compunits.where(cu => cu.projectId === projectId) map(Convert.toJava) toArray
+    }
   }
 
   private[server] def requireProject (id :Long) = transaction {
