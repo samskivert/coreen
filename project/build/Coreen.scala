@@ -33,7 +33,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
                                 mainJavaSourcePath ** "*Messages.properties" getPaths).toList)
 
   // run our generators every time we compile
-  override def compileAction = super.compileAction dependsOn(i18nsync) dependsOn(genasync)
+  override def compileAction = super.compileAction dependsOn(i18nsync)
 
   // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
   // sync) all of our resources to a target/../war directory and remove target/../resources to
