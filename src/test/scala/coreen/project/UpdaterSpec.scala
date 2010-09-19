@@ -13,7 +13,7 @@ import org.scalatest.matchers.ShouldMatchers
  */
 class UpdaterSpec extends FlatSpec with ShouldMatchers
 {
-  "findCompUnits" should "find compilation units" in {
+  "collectFileTypes" should "find files" in {
     val sentinel = getClass.getClassLoader.getResource("com/test/Test.java")
     sentinel should not equal(null)
     sentinel.getProtocol should equal("file")
@@ -23,6 +23,6 @@ class UpdaterSpec extends FlatSpec with ShouldMatchers
     val root = new File(sentinel.getPath.substring(0, sidx))
     root.isDirectory should equal(true)
 
-    Updater.findCompUnits(root).size should equal(3)
+    Updater.collectFileTypes(root) should equal(Set("java"))
   }
 }

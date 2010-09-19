@@ -3,8 +3,7 @@
 
 package coreen.nml
 
-import scala.xml.Node
-import scala.xml.NodeSeq
+import scala.xml.{Node, NodeSeq, Elem}
 
 import coreen.model.{Def, Use}
 
@@ -29,11 +28,16 @@ object SourceModel
 
   case class Edit (start :Int, end :Int)
 
-  /** Models a definition (e.g. class, field, function, method, variable). */
-  case class DefElem (name :String, id :String, typ :Def.Type, defs :Seq[DefElem],
-                      uses :Seq[UseElem], start :Int) extends Span {
+  /** Models a compilation unit. */
+  case class CompUnitElem (src :String, defs :Seq[DefElem]) {
     def getDef (path :String) :Option[DefElem] = getDef(path split("\\.") toList)
+    def getDef (path :List[String]) :Option[DefElem] = defs flatMap(_.getDef(path)) headOption
+  }
 
+  /** Models a definition (e.g. class, field, function, method, variable). */
+  case class DefElem (
+    name :String, id :String, typ :Def.Type, defs :Seq[DefElem], uses :Seq[UseElem], start :Int
+  ) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
       case h :: Nil => if (h == name) Some(this) else None
       case h :: t => if (h == name) defs flatMap(_.getDef(t)) headOption else None
@@ -49,10 +53,12 @@ object SourceModel
     override def toString = "@" + super.toString
   }
 
-  def parse (elem :NodeSeq) :DefElem = {
-    assert(elem.size == 1 && elem.head.label == "def",
-           "DOM must be rooted in a single <def> element")
-    mkDef(elem.head, parse0(elem.head.child))
+  def parse (elem :Elem) :CompUnitElem = {
+    assert(elem.size == 1 && elem.head.label == "compunit",
+           "DOM must be rooted in a single <compunit> element")
+    CompUnitElem(
+      (elem \ "@src").text,
+      parse0(elem.head.child) filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]))
   }
 
   // TODO: clean up this ugly hack
@@ -66,8 +72,8 @@ object SourceModel
 
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
     DefElem((elem \ "@name").text, (elem \ "@id").text, parseType(elem),
-            children.filter(_.isInstanceOf[DefElem]).map(_.asInstanceOf[DefElem]),
-            children.filter(_.isInstanceOf[UseElem]).map(_.asInstanceOf[UseElem]),
+            children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
+            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]),
             intAttr(elem, "start"))
 
   protected def parseType (elem :Node) = {

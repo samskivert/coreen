@@ -59,7 +59,7 @@ object Updater
           accmode = !line.trim.startsWith("</compunit>")
           if (!accmode) {
             try {
-              process(XML.load(new StringReader(accum.toString)))
+              process(p, XML.load(new StringReader(accum.toString)))
             } catch {
               case e => log("Error parsing reader output [" + e + "]: " +
                             truncate(accum.toString, 100))
@@ -79,7 +79,7 @@ object Updater
       if (ecode != 0) log("Reader exited with status: " + ecode)
     }
 
-    def process (compunit :Node) {
+    def process (p :Project, compunit :Node) {
         println("TODO " + compunit \ "@src")
     }
 

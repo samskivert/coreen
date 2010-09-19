@@ -16,6 +16,9 @@ object DB extends Schema
 {
   /** Provides access to the projects repository. */
   val projects = table[Project]
+
+  /** Provides access to the compilation units repository. */
+  val compunits = table[CompUnit]
 }
 
 /** Contains project metadata. */
@@ -38,4 +41,19 @@ class Project (
   def this () = this("", "", "", 0L, 0L)
 
   override def toString = "[id=" + id + ", name=" + name + ", vers=" + version + "]"
+}
+
+/** Contains metadata for a single compilation unit. */
+class CompUnit (
+  /** The id of the project to which this compilation unit belongs. */
+  val projectId :Long,
+  /** The path (relative to the project root) to this compilation unit. */
+  val path :String,
+  /** The time at which this compilation unit was imported into the library. */
+  val imported :Long)
+{
+  /** Zero args ctor for use when unserializing. */
+  def this () = this(0L, "", 0L)
+
+  override def toString = projectId + ":" + path
 }
