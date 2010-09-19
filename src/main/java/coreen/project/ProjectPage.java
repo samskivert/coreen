@@ -6,7 +6,6 @@ package coreen.project;
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
@@ -87,15 +86,9 @@ public class ProjectPage extends AbstractPage
                 _version.setText(p.version);
                 _imported.setText(DateUtil.formatDateTime(p.imported));
                 _lastUpdated.setText(DateUtil.formatDateTime(p.lastUpdated));
-                _contents.setWidget(new CompUnitsPanel(p, _styles)); // TODO: tabs
+                _contents.setWidget(new CompUnitsPanel(p)); // TODO: tabs
             }
         });
-    }
-
-    protected interface Styles extends CssResource {
-        String bydir ();
-        String Path ();
-        String Gap ();
     }
 
     protected @UiField HTMLPanel _header;
@@ -103,7 +96,6 @@ public class ProjectPage extends AbstractPage
     protected @UiField TextBox _search;
     protected @UiField Button _update, _go;
     protected @UiField SimplePanel _contents;
-    protected @UiField Styles _styles;
 
     protected Value<Project> _proj = Value.create(null);
 
