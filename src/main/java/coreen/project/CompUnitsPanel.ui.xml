@@ -1,0 +1,23 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style type="coreen.project.CompUnitsPanel.Styles" field="_styles">
+    .bydir {
+      width: 800px;
+    }
+    .bydir td {
+      border-bottom: 1px solid;
+    }
+    .bydir .Path {
+      white-space: nowrap;
+    }
+    .bydir .Gap {
+      padding-right: 5px;
+    }
+  </ui:style>
+
+  <g:SimplePanel ui:field="_contents"/>
+</ui:UiBinder>
