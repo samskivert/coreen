@@ -62,4 +62,11 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
     runTask(getMainClass(true), runClasspath, args) dependsOn(
       compile, copyResources) dependsOn(copyWarResourcesAction)
   }
+
+  // copies the necessary files into place for our Getdown client
+  def getdownOutputPath = outputPath / "getdown"
+  lazy val getdown = task {
+    FileUtilities.copyFlat(managedClasspath(Configurations.Compile).get,
+                           getdownOutputPath, log).left.toOption
+  }
 }
