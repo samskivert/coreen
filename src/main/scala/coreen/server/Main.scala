@@ -3,7 +3,7 @@
 
 package coreen.server
 
-import java.io.File
+import java.io.{File, PrintStream, FileOutputStream, IOException}
 import java.sql.DriverManager
 import java.util.concurrent.Executors
 
@@ -29,10 +29,31 @@ object Main
   def projectDir (project :String) = new File(new File(coreenDir, "projects"), project)
 
   def main (args :Array[String]) {
+    // if we're running via Getdown, redirect our log output to a file
+    Option(System.getProperty("appdir")) map(new File(_)) map { appdir =>
+      // first delete any previous previous log file
+      val olog = new File(appdir, "old-coreen.log")
+      if (olog.exists) olog.delete
+
+      // next rename the previous log file
+      val nlog = new File(appdir, "coreen.log")
+      if (nlog.exists) nlog.renameTo(olog)
+
+      // and now redirect our output
+      try {
+        val logOut = new PrintStream(new FileOutputStream(nlog), true)
+        System.setOut(logOut)
+        System.setErr(logOut)
+      } catch {
+        case ioe :IOException =>
+          log.warning("Failed to open debug log", "path", nlog, "error", ioe)
+      }
+    }
+
     // create the Coreen data directory if necessary
     if (!coreenDir.isDirectory) {
       if (!coreenDir.mkdir) {
-        System.err.println("Failed to create: " + coreenDir.getAbsolutePath)
+        log.warning("Failed to create: " + coreenDir.getAbsolutePath)
         System.exit(255)
       }
     }
@@ -56,20 +77,26 @@ object Main
     httpServer.start
 
     // register a signal handler to shutdown gracefully on ctrl-c
-    val sigint = new Signal("INT")
     var ohandler :SignalHandler = null
-    ohandler = Signal.handle(sigint, new SignalHandler {
+    ohandler = Signal.handle(_sigint, new SignalHandler {
       def handle (sig :Signal) {
-        log.info("Coreen server exiting...")
-        Signal.handle(sigint, ohandler) // restore old signal handler
-        httpServer.shutdown // shutdown the http server
-        exec.shutdown // shutdown the executors
-        sigint.synchronized { sigint.notify } // notify the main thread that it's OK to exit
+        shutdown
       }
     })
     log.info("Coreen server running. Ctrl-c to exit.")
 
     // block the main thread until our signal is received
-    sigint.synchronized { sigint.wait }
+    _sigint.synchronized { _sigint.wait }
+
+    log.info("Coreen server exiting...")
+    Signal.handle(_sigint, ohandler) // restore old signal handler
+    httpServer.shutdown // shutdown the http server
+    exec.shutdown // shutdown the executors
   }
+
+  def shutdown {
+    _sigint.synchronized { _sigint.notify } // notify the main thread that it's OK to exit
+  }
+
+  private val _sigint = new Signal("INT")
 }

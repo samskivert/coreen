@@ -4,9 +4,9 @@
 package coreen.server
 
 import java.io.File
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import scala.io.Source
 
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.ContextHandlerCollection
@@ -51,10 +51,23 @@ class HttpServer extends Server
     }
     ctx.setWelcomeFiles(Array[String]("index.html"))
     // wire up our servlets
+    ctx.addServlet(new ServletHolder(_shutdownServlet), "/coreen/shutdown")
     ctx.addServlet(new ServletHolder(_libServlet), "/coreen/"+LibraryService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(_projServlet), "/coreen/"+ProjectService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
     addHandler(ctx)
+
+    // if there's another Coreen running, tell it to step aside
+    try {
+      val locurl = "http://" + _config.getBindHostname + ":" + _config.getHttpPort
+      val rsp = Source.fromURL(locurl + "/coreen/shutdown").getLines.mkString("\n")
+      if (!rsp.equals("byebye")) {
+        log.warning("Got weird repsonse when shutting down existing server: " + rsp)
+      }
+    } catch {
+      case ce :java.net.ConnectException => // no other server, no problem!
+      case e => log.warning("Not able to shutdown local server: " + e)
+    }
   }
 
   def shutdown {
@@ -83,12 +96,21 @@ class HttpServer extends Server
   }
 
   // TODO: inject these?
-  protected var _config :ServerConfig = new ServerConfig {
+  protected val _config :ServerConfig = new ServerConfig {
     def getBindHostname = "localhost"
     def getHttpPort = 8080
   }
-  protected var _libServlet :LibraryServlet = new LibraryServlet
-  protected var _projServlet :ProjectServlet = new ProjectServlet
+  protected val _libServlet :LibraryServlet = new LibraryServlet
+  protected val _projServlet :ProjectServlet = new ProjectServlet
+
+  protected val _shutdownServlet = new HttpServlet() {
+    override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
+      val out = rsp.getWriter
+      out.write("byebye")
+      out.close
+      Main.shutdown
+    }
+  }
 
   protected val ONE_YEAR = 365*24*60*60*1000L
   protected val SENTINEL = "coreen/index.html"
