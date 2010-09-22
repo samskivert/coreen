@@ -1,3 +1,4 @@
+import java.io.File
 import sbt._
 
 class Coreen (info :ProjectInfo) extends DefaultProject(info) {
@@ -21,6 +22,9 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
   // database depends
   val h2db = "com.h2database" % "h2" % "1.2.142"
   val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC1"
+
+  // depends for our auto-updating client
+  val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"
 
   // used to obtain the path for a specific dependency jar file
   def depPath (name :String) = managedDependencyRootPath ** (name+"*")
@@ -61,34 +65,37 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
     super.runClasspath --- mainResourcesOutputPath +++ warResourcesOutputPath
   override protected def runAction = task { args =>
     runTask(getMainClass(true), runClasspath, args) dependsOn(
-      compile, copyResources) dependsOn(copyWarResourcesAction)
+      compile, copyResources, copyWarResourcesAction)
   }
+
+  // TODO: is there a less hacky way to get this?
+  def scalaLibraryPath = "project" / "boot" / "scala-2.8.0" / "lib" / "scala-library.jar"
 
   // copies the necessary files into place for our Getdown client
   def clientPath = ("client" :Path)
   def clientCodePath = clientPath / "code"
-  lazy val client = task {
+  lazy val prepclient = task {
     // clean out any previous code bits
     FileUtilities.clean(clientCodePath, log)
 
     // copy all of the appropriate jars into the target directory
-    val clientJars = managedClasspath(Configurations.Compile) --- depPath("gwt-user") ---
-      depPath("gwt-utils")
+    val clientJars = managedClasspath(Configurations.Compile) +++ scalaLibraryPath +++
+      depPath("gwt-servlet") --- depPath("gwt-user") --- depPath("gwt-utils")
     FileUtilities.copyFlat(clientJars.get, clientCodePath, log)
     FileUtilities.copyFlat(jarPath.get, clientCodePath, log)
     FileUtilities.copyFlat(packageGwtJar.get, clientCodePath, log)
 
-    // now sanitize their names, the version numbers will just get in the way of patching
-    (clientCodePath ** "*.jar").get foreach { f =>
-      val jar = f.asFile
-      val name = jar.getName.
-        replaceAll("""_2.\d[^-]*-""", "-"). // strip _2.n.xx-xx Scala versions
-        replaceAll("""-\d\.\d.*\.jar""", ".jar"); // strip Maven and other versions
-      jar.renameTo(new java.io.File(jar.getParentFile, name))
+    // sanitize coreen.jar and getdown.jar, version numbers just get in the way of patching
+    def sanitize (jar :File) = {
+      val sname = jar.getName.replaceAll("""(_2.\d+.\d+)?-\d+.\d+(-SNAPSHOT)?""", "")
+      jar.renameTo(new File(jar.getParentFile, sname))
     }
+    ((clientCodePath ** "coreen_*.jar") +++
+     (clientCodePath ** "getdown-*.jar")).get foreach(f => sanitize(f.asFile))
 
-    // TODO: generate the digest file
-
-    Some("Success.")
-  } // dependsOn(packageAction) dependsOn(gwtjar)
+    None
+  }
+  lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
+                                  compileClasspath, List("client"))
+  lazy val client =  task { None } dependsOn(packageAction, gwtjar, prepclient, digest)
 }
