@@ -46,7 +46,7 @@ public class CompUnitsPanel extends Composite
         Arrays.sort(units);
         FluentTable table = new FluentTable(5, 0, _styles.bydir());
         FlowPanel files = null;
-        String dir = "";
+        String dir = null;
         for (CompUnit unit : units) {
             int nidx = unit.path.lastIndexOf("/");
             String uname = unit.path.substring(nidx+1);
