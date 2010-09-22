@@ -74,6 +74,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
   // copies the necessary files into place for our Getdown client
   def clientPath = ("client" :Path)
   def clientCodePath = clientPath / "code"
+  def javaReaderJarPath = "java-reader" / "target" / "scala_2.8.0" ** "coreen-java-reader_*.min.jar"
   lazy val prepclient = task {
     // clean out any previous code bits
     FileUtilities.clean(clientCodePath, log)
@@ -84,18 +85,18 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
     FileUtilities.copyFlat(clientJars.get, clientCodePath, log)
     FileUtilities.copyFlat(jarPath.get, clientCodePath, log)
     FileUtilities.copyFlat(packageGwtJar.get, clientCodePath, log)
+    FileUtilities.copyFlat(javaReaderJarPath.get, clientCodePath, log)
 
-    // sanitize coreen.jar and getdown.jar, version numbers just get in the way of patching
+    // sanitize our project jar files, version numbers will get in the way of patching
     def sanitize (jar :File) = {
-      val sname = jar.getName.replaceAll("""(_2.\d+.\d+)?-\d+.\d+(-SNAPSHOT)?""", "")
+      val sname = jar.getName.replaceAll("""(_2.\d+.\d+)?-\d+.\d+(-SNAPSHOT)?(.min)?""", "")
       jar.renameTo(new File(jar.getParentFile, sname))
     }
-    ((clientCodePath ** "coreen_*.jar") +++
+    ((clientCodePath ** "coreen_*.jar") +++ (clientCodePath ** "coreen-java-reader_*.jar") +++
      (clientCodePath ** "getdown-*.jar")).get foreach(f => sanitize(f.asFile))
 
     None
-  }
-  lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
-                                  compileClasspath, List("client"))
-  lazy val client =  task { None } dependsOn(packageAction, gwtjar, prepclient, digest)
+  } dependsOn(packageAction, gwtjar)
+  lazy val client =  runTask(Some("com.threerings.getdown.tools.Digester"),
+                             compileClasspath, List("client")) dependsOn(prepclient)
 }
