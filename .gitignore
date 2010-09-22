@@ -1,7 +1,9 @@
 .ensime
-lib_managed
-project/boot
+client/
+java-reader/
+lib_managed/
+project/boot/
 project/plugins/project/build.properties
 src/main/java/coreen/*/*Messages.java
-src_managed
-target
+src_managed/
+target/
