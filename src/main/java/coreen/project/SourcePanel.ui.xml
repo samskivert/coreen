@@ -5,11 +5,14 @@
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
   <ui:style type="coreen.project.SourcePanel.Styles" field="_styles">
+    .contents {
+      padding-top: 5px;
+    }
     .code {
       font-family: Courier;
       white-space: pre;
     }
   </ui:style>
 
-  <g:SimplePanel ui:field="_contents"/>
+  <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
 </ui:UiBinder>

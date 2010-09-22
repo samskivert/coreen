@@ -4,13 +4,12 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style field="styles">
+  <ui:style type="coreen.project.ProjectPage.Styles" field="_styles">
     body {
       font-family: Helvetica, Arial, sans-serif;
     }
     .header {
       border-bottom: 1px solid;
-      padding-bottom: 5px;
       width: 800px;
     }
     .title {
@@ -20,14 +19,25 @@
     .inline {
       display: inline;
     }
+    .navbar {
+      padding-top: 5px;
+      font-size: small;
+    }
+    .navbar a {
+      text-decoration: none;
+    }
+    .navbar .SelTitle {
+      font-weight: bold;
+    }
   </ui:style>
 
   <g:HTMLPanel>
-    <g:HTMLPanel ui:field="_header">
-      <table class="{styles.header}" cellpadding="0" cellspacing="0">
-      <tr><td class="{styles.title}">
-            <g:Hyperlink targetHistoryToken="" styleName="{styles.inline}">Projects</g:Hyperlink> - 
-            <g:Hyperlink ui:field="_name" styleName="{styles.inline}"/></td>
+    <g:HTMLPanel styleName="{_styles.header}" ui:field="_header">
+      <table cellpadding="0" cellspacing="0" width="100%">
+      <tr><td class="{_styles.title}">
+            <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">
+              Projects</g:Hyperlink> -
+            <g:Hyperlink ui:field="_name" styleName="{_styles.inline}"/></td>
           <td align="right">
             <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
       <tr><td><ui:msg>Version:</ui:msg> <g:InlineLabel ui:field="_version"/></td>
@@ -40,6 +50,7 @@
           <td align="right">
             <g:Button ui:field="_update"><ui:msg>Update</ui:msg></g:Button></td></tr>
       </table>
+      <g:FlowPanel styleName="{_styles.navbar}" ui:field="_navbar"/>
     </g:HTMLPanel>
 
     <g:SimplePanel ui:field="_contents"/>
