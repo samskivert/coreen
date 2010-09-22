@@ -1,7 +1,7 @@
 import java.io.File
 import sbt._
 
-class Coreen (info :ProjectInfo) extends DefaultProject(info) {
+class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProject {
   // need our local repository for gwt-utils snapshot
   val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
@@ -56,6 +56,23 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
   // regenerate our i18n classes every time we compile
   override def compileAction = super.compileAction dependsOn(i18nsync)
 
+  // our GWT client code gets compiled as part of the standard build, but we don't really want that
+  // code packaged with our server jar as it causes Proguard to link in a bunch of useless GWT crap
+  // from gwt-servlet; so we prune said code out prior to building our jar
+  lazy val pruneClient = task {
+    val srcroot = mainJavaSourcePath.asFile.getPath
+    val destdir = mainCompilePath.asFile
+    (mainJavaSourcePath ** "*.java").get map(_.asFile) foreach { src =>
+      if (!src.getPath.matches(".*coreen/(model|rpc).*")) {
+        val cldir = new File(destdir, src.getParent.substring(srcroot.length))
+        FileUtilities.clean(
+          (Path.fromFile(cldir) ** src.getName.replaceAll(".java", "*")).get, true, log)
+      }
+    }
+    None
+  }
+  override def packageAction = pruneClient && super.packageAction
+
   // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
   // sync) all of our resources to a target/../war directory and remove target/../resources to
   // avoid seeing everything twice
@@ -68,8 +85,16 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
       compile, copyResources, copyWarResourcesAction)
   }
 
-  // TODO: is there a less hacky way to get this?
-  def scalaLibraryPath = "project" / "boot" / "scala-2.8.0" / "lib" / "scala-library.jar"
+  // proguard plugin configurations
+  override def proguardInJars = super.proguardInJars +++ scalaLibraryPath +++
+    depPath("gwt-servlet") --- depPath("gwt-user") --- depPath("gwt-utils")
+  override def proguardOptions = List(
+    "-dontnote !coreen.**",
+    "-keep class coreen.** { *; }",
+    "-keep class com.google.gwt.** { *; }",
+    "-keep class org.squeryl.** { *; }",
+    "-keep class net.sf.cglib.** { *; }"
+  )
 
   // copies the necessary files into place for our Getdown client
   def clientPath = ("client" :Path)
@@ -80,11 +105,9 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
     FileUtilities.clean(clientCodePath, log)
 
     // copy all of the appropriate jars into the target directory
-    val clientJars = managedClasspath(Configurations.Compile) +++ scalaLibraryPath +++
-      depPath("gwt-servlet") --- depPath("gwt-user") --- depPath("gwt-utils")
-    FileUtilities.copyFlat(clientJars.get, clientCodePath, log)
-    FileUtilities.copyFlat(jarPath.get, clientCodePath, log)
+    FileUtilities.copyFlat(minJarPath.get, clientCodePath, log)
     FileUtilities.copyFlat(packageGwtJar.get, clientCodePath, log)
+    FileUtilities.copyFlat(depPath("getdown").get, clientCodePath, log)
     FileUtilities.copyFlat(javaReaderJarPath.get, clientCodePath, log)
 
     // sanitize our project jar files, version numbers will get in the way of patching
@@ -92,11 +115,11 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) {
       val sname = jar.getName.replaceAll("""(_2.\d+.\d+)?-\d+.\d+(-SNAPSHOT)?(.min)?""", "")
       jar.renameTo(new File(jar.getParentFile, sname))
     }
-    ((clientCodePath ** "coreen_*.jar") +++ (clientCodePath ** "coreen-java-reader_*.jar") +++
-     (clientCodePath ** "getdown-*.jar")).get foreach(f => sanitize(f.asFile))
+    (clientCodePath ** "*.jar").get foreach(f => sanitize(f.asFile))
 
     None
-  } dependsOn(packageAction, gwtjar)
-  lazy val client =  runTask(Some("com.threerings.getdown.tools.Digester"),
-                             compileClasspath, List("client")) dependsOn(prepclient)
+  }
+  lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
+                            compileClasspath, List("client"))
+  lazy val client = packageAction && proguard && gwtjar && prepclient && digest
 }
