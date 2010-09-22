@@ -68,7 +68,7 @@ public class CompUnitsPanel extends Composite
                                         ProjectPage.Detail.SRC, unit.id));
         }
         if (files != null) {
-            table.add().setText(dir).alignTop().right().setWidget(files);
+            table.add().setText(dir, _styles.Path()).alignTop().right().setWidget(files);
         }
         return table;
     }

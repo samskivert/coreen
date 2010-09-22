@@ -31,6 +31,9 @@ public class ProjectsPanel extends DataPanel<Project[]>
             table.add().setWidget(Link.create(p.name, Page.PROJECT, p.id)).
                 right().setText(p.rootPath);
         }
+        if (data.length == 0) {
+            table.add().setText("You have no projects. You should import some.");
+        }
         add(table);
     }
 
