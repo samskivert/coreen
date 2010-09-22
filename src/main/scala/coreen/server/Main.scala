@@ -21,16 +21,24 @@ import coreen.persist.DB
  */
 object Main
 {
+  /** For great logging. */
   val log = com.samskivert.util.Logger.getLogger("coreen")
+
+  /** An executor for invoking background tasks. */
   val exec = Executors.newFixedThreadPool(4) // TODO: configurable
 
-  // TODO: move into injected ServerConfig, or something
+  /** Our application install directory iff we're running in app mode. */
+  val appdir = Option(System.getProperty("appdir")) map(new File(_))
+
+  /** Our local data directory. */ // TODO: move into injected ServerConfig, or something
   val coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
+
+  /** Returns the local data directory for a project with the supplied identifier. */
   def projectDir (project :String) = new File(new File(coreenDir, "projects"), project)
 
   def main (args :Array[String]) {
     // if we're running via Getdown, redirect our log output to a file
-    Option(System.getProperty("appdir")) map(new File(_)) map { appdir =>
+    appdir map { appdir =>
       // first delete any previous previous log file
       val olog = new File(appdir, "old-coreen.log")
       if (olog.exists) olog.delete

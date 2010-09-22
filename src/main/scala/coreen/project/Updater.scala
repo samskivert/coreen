@@ -120,22 +120,41 @@ object Updater
     def args :List[String]
   }
 
-  abstract class JavaReader (
-    classname :String, classpath :List[String], javaArgs :List[String]
+  class JavaReader (
+    classname :String, classpath :List[File], javaArgs :List[String]
   ) extends Reader {
-    def args = ("java" :: "-classpath" :: classpath.mkString(File.pathSeparator) ::
+    def args = ("java" :: "-classpath" ::
+                classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
                 classname :: javaArgs)
   }
 
-  // TODO: get these paths from a config file
-  class JavaJavaReader extends JavaReader(
-    "coreen.java.Main",
-    List(System.getProperty("java.home") + "/../lib/tools.jar",
-         "java-reader/target/scala_2.8.0/coreen-java-reader_2.8.0-0.1.min.jar"),
-    List())
+  def file (root :File, path :String*) = (root /: path)(new File(_, _))
+
+  // TODO: remove file separator assumptions from the below
+  def getToolsJar = {
+    val jhome = new File(System.getProperty("java.home"))
+    val tools = file(jhome.getParentFile, "lib", "tools.jar")
+    val classes = file(jhome.getParentFile, "lib", "tools.jar")
+    if (tools.exists) tools
+    else if (classes.exists) classes
+    else error("Can't find tools.jar or classes.jar")
+  }
+
+  def createJavaJavaReader = Main.appdir match {
+    case Some(appdir) => new JavaReader(
+      "coreen.java.Main",
+      List(getToolsJar, file(appdir, "code", "coreen-java-reader.jar")),
+      List())
+    case None => new JavaReader(
+      "coreen.java.Main",
+      List(getToolsJar,
+           file(new File("java-reader"), "target", "scala_2.8.0",
+                "coreen-java-reader_2.8.0-0.1.min.jar")),
+      List())
+  }
 
   def readerForType (typ :String) :Option[Reader] = typ match {
-    case "java" => Some(new JavaJavaReader)
+    case "java" => Some(createJavaJavaReader)
     case _ => None
   }
 
