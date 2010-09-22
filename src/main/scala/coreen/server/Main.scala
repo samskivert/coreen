@@ -93,6 +93,11 @@ object Main
     })
     log.info("Coreen server running. Ctrl-c to exit.")
 
+    // if we're running in app mode, open a web browser
+    if (appdir.isDefined) {
+      LaunchCmds find(cmd => Runtime.getRuntime.exec((cmd :+ LaunchURL).toArray).waitFor != 0)
+    }
+
     // block the main thread until our signal is received
     _sigint.synchronized { _sigint.wait }
 
@@ -107,4 +112,10 @@ object Main
   }
 
   private val _sigint = new Signal("INT")
+
+  private val LaunchCmds = List(
+    List("xdg-open"), // gnome
+    List("open"), // mac os x
+    List("cmd.exe", "/c", "start")) // vinders
+  private val LaunchURL = "http://localhost:8080/coreen/"
 }
