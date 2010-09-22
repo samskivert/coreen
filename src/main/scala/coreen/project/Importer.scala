@@ -30,14 +30,14 @@ object Importer
       throw new ServiceException("Already importing a project with source '" + source + "'")
     }
     val now = System.currentTimeMillis
-    val pp = new PendingProject(source, "Starting...", now, now, false)
+    val pp = new PendingProject(source, "Starting...", now, now, 0L)
     _projects += (source -> pp)
     exec.execute(new Runnable {
       override def run = {
         try {
           processImport(source)
         } catch {
-          case t => updatePending(source, "Error: " + t.getMessage, true)
+          case t => updatePending(source, "Error: " + t.getMessage, -1L)
         }
       }
     })
@@ -45,14 +45,14 @@ object Importer
   }
 
   // this method is called from all sorts of threads and is (mostly) safe
-  private def updatePending (source :String, status :String, complete :Boolean) {
+  private def updatePending (source :String, status :String, projectId :Long) {
     _projects.get(source) match {
       case Some(pp) => {
         // this instance may be going out over the wire as this update happens, but even in the
         // event of such a race, nothing especially bad is going to happen
         pp.status = status
         pp.lastUpdated = System.currentTimeMillis
-        pp.complete = complete
+        pp.projectId = projectId
       }
       case None => {
         log.warning("Requested to update unknown project", "source", source, "status", status);
@@ -62,7 +62,7 @@ object Importer
 
   // methods from here down are invoked on a separate worker thread; be careful!
   private def processImport (source :String) {
-    updatePending(source, "Identifying source...", false)
+    updatePending(source, "Identifying source...", 0L)
 
     // see if we can figure out where the data is
     (source, new File(source)) match {
@@ -72,28 +72,28 @@ object Importer
       // case GitRepoRE => gitRepoImport(source)
       // case SvnRepoRE => hgRepoImport(source)/
       // case URLRE => see what's on the other end of the URL...
-      case _ => updatePending(source, "Unable to identify source", true)
+      case _ => updatePending(source, "Unable to identify source", -1L)
     }
   }
 
   private def localProjectImport (source :String, file :File) {
     // try deducing the name and version from the project directory name
-    updatePending(source, "Inferring project name and version...", false)
+    updatePending(source, "Inferring project name and version...", 0L)
     val (name, vers) = inferNameAndVersion(file.getName)
 
     // create the project metadata
     val p = createProject(source, name, file, "0.0")
 
     // update the project for the first time
-    updatePending(source, "Processing project contents...", false)
-    Updater.update(p, updatePending(source, _, false))
+    updatePending(source, "Processing project contents...", 0L)
+    Updater.update(p, updatePending(source, _, 0L))
 
     // finally, report that the import is complete
-    updatePending(source, "Import complete.", true)
+    updatePending(source, "Import complete.", p.id)
   }
 
   private def localArchiveImport (source :String, file :File) {
-    updatePending(source, "TODO: local archive import...", false)
+    updatePending(source, "TODO: local archive import...", 0L)
   }
 
   private[project] def createProject (

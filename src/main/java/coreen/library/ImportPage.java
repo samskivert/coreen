@@ -3,6 +3,8 @@
 
 package coreen.library;
 
+import java.util.Date;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -18,9 +20,11 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.DateUtil;
 
 import coreen.client.AbstractPage;
 import coreen.client.Args;
+import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.PendingProject;
 import coreen.rpc.LibraryService;
@@ -83,7 +87,7 @@ public class ImportPage extends AbstractPage
                 boolean incomplete = false;
                 for (PendingProject pp : pps) {
                     _penders.add(toWidget(pp));
-                    incomplete |= !pp.complete;
+                    incomplete |= !pp.isComplete();
                 }
                 _contents.setWidget(_penders);
 
@@ -105,10 +109,15 @@ public class ImportPage extends AbstractPage
 
     protected Widget toWidget (PendingProject pp)
     {
+        Widget status = Widgets.newLabel(pp.status);
         return new FluentTable().add().setText("Source:").right().setText(pp.source).
-            add().setText("Status:").right().setText(pp.status).
-            add().setText("Started:").right().setText(""+pp.started).
-            add().setText("Last updated:").right().setText(""+pp.lastUpdated).
+            add().setText("Status:").right().setWidget(
+                (pp.isComplete() && !pp.isFailed()) ?
+                Widgets.newRow(status, Link.create("View project", Page.PROJECT, pp.projectId)) :
+                status).
+            add().setText("Started:").right().setText(DateUtil.formatTime(new Date(pp.started))).
+            add().setText("Last updated:").right().setText(
+                DateUtil.formatTime(new Date(pp.lastUpdated))).
             table();
     }
 

@@ -24,21 +24,36 @@ public class PendingProject
     /** The time at which this import last made progress. */
     public long lastUpdated;
 
-    /** True if this project is fully imported (but is lingering in the list because it was
-     * imported recently). */
-    public boolean complete;
+    /** Non-zero once this project is fully imported. */
+    public long projectId;
 
     /** Creates and initializes this instance. */
     public PendingProject (String source, String status, long started, long lastUpdated,
-                           boolean complete)
+                           long projectId)
     {
         this.source = source;
         this.status = status;
         this.started = started;
         this.lastUpdated = lastUpdated;
-        this.complete = complete;
+        this.projectId = projectId;
     }
 
     /** Used when unserializing. */
     public PendingProject () {}
+
+    /**
+     * Returns true if this project import has completed.
+     */
+    public boolean isComplete ()
+    {
+        return projectId != 0L;
+    }
+
+    /**
+     * Returns true of this project import is complete and has failed.
+     */
+    public boolean isFailed ()
+    {
+        return projectId < 0L;
+    }
 }
