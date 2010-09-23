@@ -97,7 +97,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   )
 
   // copies the necessary files into place for our Getdown client
-  def clientPath = ("client" :Path)
+  def clientPath = "client" / "getdown"
   def clientCodePath = clientPath / "code"
   def javaReaderJarPath = "java-reader" / "target" / "scala_2.8.0" ** "coreen-java-reader_*.min.jar"
   lazy val prepclient = task {
@@ -120,6 +120,6 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     None
   }
   lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
-                            compileClasspath, List("client"))
+                            compileClasspath, List(clientPath.asFile.getPath))
   lazy val client = packageAction && proguard && gwtjar && prepclient && digest
 }
