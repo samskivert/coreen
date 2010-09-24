@@ -123,7 +123,8 @@ object Updater
   class JavaReader (
     classname :String, classpath :List[File], javaArgs :List[String]
   ) extends Reader {
-    def args = ("java" :: "-classpath" ::
+    val javabin = file(new File(System.getProperty("java.home")), "bin", "java")
+    def args = (javabin.getCanonicalPath :: "-classpath" ::
                 classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
                 classname :: javaArgs)
   }
@@ -134,7 +135,7 @@ object Updater
   def getToolsJar = {
     val jhome = new File(System.getProperty("java.home"))
     val tools = file(jhome.getParentFile, "lib", "tools.jar")
-    val classes = file(jhome.getParentFile, "lib", "tools.jar")
+    val classes = file(jhome.getParentFile, "Classes", "classes.jar")
     if (tools.exists) tools
     else if (classes.exists) classes
     else error("Can't find tools.jar or classes.jar")
