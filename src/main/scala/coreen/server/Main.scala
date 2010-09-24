@@ -59,7 +59,8 @@ object Main
     }
 
     // create the Coreen data directory if necessary
-    if (!coreenDir.isDirectory) {
+    val firstTime = !coreenDir.isDirectory
+    if (firstTime) {
       if (!coreenDir.mkdir) {
         log.warning("Failed to create: " + coreenDir.getAbsolutePath)
         System.exit(255)
@@ -77,7 +78,7 @@ object Main
     })
 
     // TODO: squeryl doesn't support any sort of schema migration; sigh
-    if (false) transaction { DB.reinitSchema }
+    if (firstTime) transaction { DB.reinitSchema }
 
     // initialize our Jetty http server
     val httpServer = new HttpServer
@@ -95,7 +96,11 @@ object Main
 
     // if we're running in app mode, open a web browser
     if (appdir.isDefined) {
-      LaunchCmds find(cmd => Runtime.getRuntime.exec((cmd :+ LaunchURL).toArray).waitFor != 0)
+      LaunchCmds find(cmd => try {
+        Runtime.getRuntime.exec((cmd :+ LaunchURL).toArray).waitFor != 0
+      } catch {
+        case ex => false // move on to the next command
+      })
     }
 
     // block the main thread until our signal is received
