@@ -78,6 +78,7 @@ object Updater
       // determine which CUs we knew about before
       val oldCUs = transaction { DB.compunits where(cu => cu.projectId === p.id) toList }
 
+      // update compunit data
       val newPaths = Set() ++ (cus map(_.src))
       val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
       val toAdd = newPaths -- (oldCUs map(_.path))
@@ -98,6 +99,9 @@ object Updater
           log("Updated " + toUpdate.size + " compunits.")
         }
       }
+
+      // update def and use data: first resolve the def/use graph
+
     }
 
     def parseCompUnits (p :Project, log :String=>Unit, lines :Iterator[String]) = {

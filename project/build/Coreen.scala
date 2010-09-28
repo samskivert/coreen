@@ -26,6 +26,9 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   // depends for our auto-updating client
   val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"
 
+  // specify our main class
+  override def mainClass = Some("coreen.server.Main")
+
   // used to obtain the path for a specific dependency jar file
   def depPath (name :String) = managedDependencyRootPath ** (name+"*")
 

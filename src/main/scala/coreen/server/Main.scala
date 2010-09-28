@@ -4,37 +4,18 @@
 package coreen.server
 
 import java.io.{File, PrintStream, FileOutputStream, IOException}
-import java.sql.DriverManager
-import java.util.concurrent.Executors
 
 import sun.misc.{Signal, SignalHandler}
 
-import org.squeryl.{Session, SessionFactory}
-import org.squeryl.adapters.H2Adapter
-import org.squeryl.PrimitiveTypeMode._
-
-import coreen.project.Importer
-import coreen.persist.DB
+import Services._
 
 /**
  * The main entry point for the Coreen server.
  */
-object Main
+object Main extends Log with Dirs with Database with Executor with HTTP
 {
-  /** For great logging. */
-  val log = com.samskivert.util.Logger.getLogger("coreen")
-
-  /** An executor for invoking background tasks. */
-  val exec = Executors.newFixedThreadPool(4) // TODO: configurable
-
   /** Our application install directory iff we're running in app mode. */
   val appdir = Option(System.getProperty("appdir")) map(new File(_))
-
-  /** Our local data directory. */ // TODO: move into injected ServerConfig, or something
-  val coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
-
-  /** Returns the local data directory for a project with the supplied identifier. */
-  def projectDir (project :String) = new File(new File(coreenDir, "projects"), project)
 
   def main (args :Array[String]) {
     // if we're running via Getdown, redirect our log output to a file
@@ -58,32 +39,7 @@ object Main
       }
     }
 
-    // create the Coreen data directory if necessary
-    val firstTime = !coreenDir.isDirectory
-    if (firstTime) {
-      if (!coreenDir.mkdir) {
-        log.warning("Failed to create: " + coreenDir.getAbsolutePath)
-        System.exit(255)
-      }
-    }
-
-    // initialize the H2 database
-    Class.forName("org.h2.Driver")
-    val dburl = "jdbc:h2:" + new File(coreenDir, "repository").getAbsolutePath
-    SessionFactory.concreteFactory = Some(() => {
-      // TODO: use connection pools as Squeryl creates and closes a connection on every query
-      val sess = Session.create(DriverManager.getConnection(dburl, "sa", ""), new H2Adapter)
-      sess.setLogger(s=>println(s))
-      sess
-    })
-
-    // TODO: squeryl doesn't support any sort of schema migration; sigh
-    if (firstTime) transaction { DB.reinitSchema }
-
-    // initialize our Jetty http server
-    val httpServer = new HttpServer
-    httpServer.init
-    httpServer.start
+    initServices // initialize our services
 
     // register a signal handler to shutdown gracefully on ctrl-c
     var ohandler :SignalHandler = null
@@ -92,7 +48,8 @@ object Main
         shutdown
       }
     })
-    log.info("Coreen server running. Ctrl-c to exit.")
+
+    startServices // start our services
 
     // if we're running in app mode, open a web browser
     if (appdir.isDefined) {
@@ -103,18 +60,22 @@ object Main
       })
     }
 
+    log.info("Coreen running. Ctrl-c to exit.")
+
     // block the main thread until our signal is received
     _sigint.synchronized { _sigint.wait }
 
-    log.info("Coreen server exiting...")
+    log.info("Coreen exiting...")
     Signal.handle(_sigint, ohandler) // restore old signal handler
-    httpServer.shutdown // shutdown the http server
-    exec.shutdown // shutdown the executors
+    shutdownServices // shutdown our services
   }
 
   def shutdown {
     _sigint.synchronized { _sigint.notify } // notify the main thread that it's OK to exit
   }
+
+  // from trait Database
+  override protected def dblogger = (s :String) => println(s)
 
   private val _sigint = new Signal("INT")
 
