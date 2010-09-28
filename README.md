@@ -7,6 +7,7 @@ That said, Coreen will necessarily overlap with the functionality of various
 IDEs.
 
 Coreen's functionality breaks down into three areas:
+
 * search
 * navigation
 * visualization
