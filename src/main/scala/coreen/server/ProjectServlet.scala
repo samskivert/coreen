@@ -60,7 +60,7 @@ class ProjectServlet extends RemoteServiceServlet with ProjectService
   private def loadCompUnitDetail (p :Project, unit :CompUnit) = {
     val detail = new CompUnitDetail
     detail.unit = Convert.toJava(unit)
-    detail.text = Source.fromFile(p.rootPath + File.separator + unit.path).getLines.toArray
+    detail.text = Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).getLines.toArray
     detail
   }
 }

@@ -4,6 +4,8 @@
 package coreen.project
 
 import java.io.{File, StringReader}
+import java.net.URI
+import java.util.concurrent.Callable
 
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
@@ -51,38 +53,20 @@ object Updater
     def invoke (p :Project, log :String=>Unit) {
       Main.log.info("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
       val proc = Runtime.getRuntime.exec((args :+ p.rootPath).toArray)
-      var accum = new StringBuilder
-      var accmode = false
 
-      val cubuf = ArrayBuffer[CompUnitElem]()
+      // read stderr on a separate thread so that we can ensure that stdout and stderr are both
+      // actively drained, preventing the process from blocking
+      val errLines = Main.exec.submit(new Callable[Array[String]] {
+        def call = Source.fromInputStream(proc.getErrorStream).getLines.toArray
+      })
 
       // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
       // and processing each complete unit that we receive; anything in between compunit elements
       // is reported verbatim to the status log
-      for (line <- Source.fromInputStream(proc.getInputStream).getLines) {
-        accmode = accmode || line.trim.startsWith("<compunit");
-        if (!accmode) log(line)
-        else {
-          accum.append(line)
-          accmode = !line.trim.startsWith("</compunit>")
-          if (!accmode) {
-            try {
-              val cu = SourceModel.parse(XML.load(new StringReader(accum.toString)))
-              if (cu.src.startsWith(p.rootPath)) cu.src = cu.src.substring(p.rootPath.length+1)
-              cubuf += cu
-            } catch {
-              case e => log("Error parsing reader output [" + e + "]: " +
-                            truncate(accum.toString, 100))
-            }
-            accum.setLength(0)
-          }
-        }
-      }
+      val cus = parseCompUnits(p, log, Source.fromInputStream(proc.getInputStream).getLines)
 
-      // copy any output from stderr to the status log now that stdout is closed (TODO: really this
-      // should happen on another thread because it's possible for the reader to fill up its stderr
-      // buffer and block, and we'll deadlock waiting for stdout to close)
-      Source.fromInputStream(proc.getErrorStream).getLines.foreach(log)
+      // now that we've totally drained stdout, we can wait for stderr output and log it
+      errLines.get.foreach(log)
 
       // report any error status code (TODO: we probably don't really need to do this)
       val ecode = proc.waitFor
@@ -92,7 +76,6 @@ object Updater
       }
 
       // determine which CUs we knew about before
-      val cus = cubuf.toList
       val oldCUs = transaction { DB.compunits where(cu => cu.projectId === p.id) toList }
 
       val newPaths = Set() ++ (cus map(_.src))
@@ -117,25 +100,57 @@ object Updater
       }
     }
 
+    def parseCompUnits (p :Project, log :String=>Unit, lines :Iterator[String]) = {
+      // obtain a sane prefix we can use to relativize the comp unit source URIs
+      val uriRoot = new File(p.rootPath).getCanonicalFile.toURI.getPath
+      assert(uriRoot.endsWith("/"))
+
+      var accmode = false
+      var accum = new StringBuilder
+      val cubuf = ArrayBuffer[CompUnitElem]()
+      for (line <- lines) {
+        accmode = accmode || line.trim.startsWith("<compunit");
+        if (!accmode) log(line)
+        else {
+          accum.append(line)
+          accmode = !line.trim.startsWith("</compunit>")
+          if (!accmode) {
+            try {
+              val cu = SourceModel.parse(XML.load(new StringReader(accum.toString)))
+              val curi = new URI(cu.src)
+              if (curi.getPath.startsWith(uriRoot))
+                cu.src = curi.getPath.substring(uriRoot.length)
+              cubuf += cu
+            } catch {
+              case e => log("Error parsing reader output [" + e + "]: " +
+                            truncate(accum.toString, 100))
+            }
+            accum.setLength(0)
+          }
+        }
+      }
+      cubuf.toList
+    }
+
     def args :List[String]
   }
 
   class JavaReader (
     classname :String, classpath :List[File], javaArgs :List[String]
   ) extends Reader {
-    val javabin = file(new File(System.getProperty("java.home")), "bin", "java")
+    val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
     def args = (javabin.getCanonicalPath :: "-classpath" ::
                 classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
                 classname :: javaArgs)
   }
 
-  def file (root :File, path :String*) = (root /: path)(new File(_, _))
+  def mkFile (root :File, path :String*) = (root /: path)(new File(_, _))
 
   // TODO: remove file separator assumptions from the below
   def getToolsJar = {
     val jhome = new File(System.getProperty("java.home"))
-    val tools = file(jhome.getParentFile, "lib", "tools.jar")
-    val classes = file(jhome.getParentFile, "Classes", "classes.jar")
+    val tools = mkFile(jhome.getParentFile, "lib", "tools.jar")
+    val classes = mkFile(jhome.getParentFile, "Classes", "classes.jar")
     if (tools.exists) tools
     else if (classes.exists) classes
     else error("Can't find tools.jar or classes.jar")
@@ -144,13 +159,13 @@ object Updater
   def createJavaJavaReader = Main.appdir match {
     case Some(appdir) => new JavaReader(
       "coreen.java.Main",
-      List(getToolsJar, file(appdir, "code", "coreen-java-reader.jar")),
+      List(getToolsJar, mkFile(appdir, "code", "coreen-java-reader.jar")),
       List())
     case None => new JavaReader(
       "coreen.java.Main",
       List(getToolsJar,
-           file(new File("java-reader"), "target", "scala_2.8.0",
-                "coreen-java-reader_2.8.0-0.1.min.jar")),
+           mkFile(new File("java-reader"), "target", "scala_2.8.0",
+                  "coreen-java-reader_2.8.0-0.1.min.jar")),
       List())
   }
 
