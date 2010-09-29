@@ -12,8 +12,8 @@ import org.squeryl.adapters.H2Adapter
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.persist.DB
-  
+import coreen.persist.DBModule
+
 /**
  * Traits that provide access to useful services.
  */
@@ -27,11 +27,14 @@ object Services
 
   trait Log extends Service {
     /** For great logging. */
-    val log = com.samskivert.util.Logger.getLogger("coreen")
+    val _log = com.samskivert.util.Logger.getLogger("coreen")
   }
 
   trait Dirs extends Service {
     this :Log =>
+
+    /** Our application install directory iff we're running in app mode. */
+    val _appdir = Option(System.getProperty("appdir")) map(new File(_))
 
     /** Our local data directory. */ // TODO: move into injected ServerConfig, or something
     val coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
@@ -49,7 +52,7 @@ object Services
       // create the Coreen data directory if necessary
       if (firstTime) {
         if (!coreenDir.mkdir) {
-          log.warning("Failed to create: " + coreenDir.getAbsolutePath)
+          _log.warning("Failed to create: " + coreenDir.getAbsolutePath)
           System.exit(255)
         }
       }
@@ -57,7 +60,7 @@ object Services
   }
 
   trait Database extends Service {
-    this :Dirs with Log =>
+    this :Dirs with Log with DBModule =>
 
     /** Mixer can override this to log database queries. */
     protected def dblogger :(String => Unit) = null
@@ -76,7 +79,7 @@ object Services
       })
 
       // TODO: squeryl doesn't support any sort of schema migration; sigh
-      if (firstTime) transaction { DB.reinitSchema }
+      if (firstTime) transaction { _db.reinitSchema }
     }
   }
 
@@ -84,16 +87,16 @@ object Services
     this :Log =>
 
     /** An executor for invoking background tasks. */
-    val exec = Executors.newFixedThreadPool(4) // TODO: configurable
+    val _exec = Executors.newFixedThreadPool(4) // TODO: configurable
 
     override protected def shutdownServices {
       super.shutdownServices
-      exec.shutdown
+      _exec.shutdown
     }
   }
 
   trait HTTP extends Service {
-    this :Log =>
+    this :Log with HttpServerModule =>
 
     /** Handles HTTP service. */
     val httpServer = new HttpServer

@@ -8,19 +8,20 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, PendingProject, Project => JProject}
-import coreen.persist.{DB, Project}
-import coreen.project.Importer
+import coreen.persist.{DBModule, Project}
+import coreen.project.ImporterModule
 import coreen.rpc.LibraryService
 
-/**
- * The implementation of library services provided by {@link LibraryService}.
- */
+/** Provides the library servlet. */
+trait LibraryServletModule { this :DBModule with ImporterModule =>
+
+/** The implementation of library services provided by {@link LibraryService}. */
 class LibraryServlet extends RemoteServiceServlet with LibraryService
 {
   // from interface LibraryService
   def getProjects :Array[JProject] = {
     transaction {
-      from(DB.projects) { p =>
+      from(_db.projects) { p =>
         select(p)
 //        orderBy(p.name)
       } map(Convert.toJava) toArray
@@ -28,8 +29,9 @@ class LibraryServlet extends RemoteServiceServlet with LibraryService
   }
 
   // from interface LibraryService
-  def getPendingProjects :Array[PendingProject] = Importer.getPendingProjects
+  def getPendingProjects :Array[PendingProject] = _importer.getPendingProjects
 
   // from interface LibraryService
-  def  importProject (source :String) :PendingProject = Importer.importProject(source)
+  def  importProject (source :String) :PendingProject = _importer.importProject(source)
+}
 }

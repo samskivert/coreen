@@ -7,19 +7,21 @@ import java.io.{File, PrintStream, FileOutputStream, IOException}
 
 import sun.misc.{Signal, SignalHandler}
 
-import Services._
+import coreen.persist.DBModule
+import coreen.project.{ImporterModule, UpdaterModule}
+import coreen.server.Services._
 
 /**
  * The main entry point for the Coreen server.
  */
-object Main extends Log with Dirs with Database with Executor with HTTP
+object Main extends LogModule with ExecutorModule with DBModule with DirsModule
+               with HttpServerModule with ProjectServletModule with LibraryServletModule
+               with UpdaterModule with ImporterModule
+               with Log with Dirs with Database with Executor with HTTP
 {
-  /** Our application install directory iff we're running in app mode. */
-  val appdir = Option(System.getProperty("appdir")) map(new File(_))
-
   def main (args :Array[String]) {
     // if we're running via Getdown, redirect our log output to a file
-    appdir map { appdir =>
+    _appdir map { appdir =>
       // first delete any previous previous log file
       val olog = new File(appdir, "old-coreen.log")
       if (olog.exists) olog.delete
@@ -35,7 +37,7 @@ object Main extends Log with Dirs with Database with Executor with HTTP
         System.setErr(logOut)
       } catch {
         case ioe :IOException =>
-          log.warning("Failed to open debug log", "path", nlog, "error", ioe)
+          _log.warning("Failed to open debug log", "path", nlog, "error", ioe)
       }
     }
 
@@ -52,7 +54,7 @@ object Main extends Log with Dirs with Database with Executor with HTTP
     startServices // start our services
 
     // if we're running in app mode, open a web browser
-    if (appdir.isDefined) {
+    if (_appdir.isDefined) {
       LaunchCmds find(cmd => try {
         Runtime.getRuntime.exec((cmd :+ LaunchURL).toArray).waitFor != 0
       } catch {
@@ -60,12 +62,12 @@ object Main extends Log with Dirs with Database with Executor with HTTP
       })
     }
 
-    log.info("Coreen running. Ctrl-c to exit.")
+    _log.info("Coreen running. Ctrl-c to exit.")
 
     // block the main thread until our signal is received
     _sigint.synchronized { _sigint.wait }
 
-    log.info("Coreen exiting...")
+    _log.info("Coreen exiting...")
     Signal.handle(_sigint, ohandler) // restore old signal handler
     shutdownServices // shutdown our services
   }

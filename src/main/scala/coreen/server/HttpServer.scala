@@ -18,9 +18,8 @@ import org.mortbay.jetty.servlet.ServletHolder
 import coreen.rpc.LibraryService
 import coreen.rpc.ProjectService
 
-/** Defines dependencies needed by the HttpServer. */
-trait HttpServerModule {
-  this :LogModule =>
+/** Provides HTTP services. */
+trait HttpServerModule { this :LogModule with LibraryServletModule with ProjectServletModule =>
 
 /**
  * Customizes a Jetty server and handles HTTP requests.
@@ -45,10 +44,10 @@ class HttpServer extends Server
     // locate our sentinel resource and use that to compute our document root
     val stlurl = classOf[HttpServer].getClassLoader.getResource(SENTINEL)
     if (stlurl == null) {
-      log.warning("Unable to infer document root from location of '" + SENTINEL + "'.")
+      _log.warning("Unable to infer document root from location of '" + SENTINEL + "'.")
     } else {
       val stlpath = stlurl.toExternalForm
-      log.info(stlpath)
+      _log.info(stlpath)
       ctx.setResourceBase(stlpath.substring(0, stlpath.length-SENTINEL.length))
     }
     ctx.setWelcomeFiles(Array[String]("index.html"))
@@ -64,11 +63,11 @@ class HttpServer extends Server
       val locurl = "http://" + _config.getBindHostname + ":" + _config.getHttpPort
       val rsp = Source.fromURL(locurl + "/coreen/shutdown").getLines.mkString("\n")
       if (!rsp.equals("byebye")) {
-        log.warning("Got weird repsonse when shutting down existing server: " + rsp)
+        _log.warning("Got weird repsonse when shutting down existing server: " + rsp)
       }
     } catch {
       case ce :java.net.ConnectException => // no other server, no problem!
-      case e => log.warning("Not able to shutdown local server: " + e)
+      case e => _log.warning("Not able to shutdown local server: " + e)
     }
   }
 
@@ -76,7 +75,7 @@ class HttpServer extends Server
     try {
       stop
     } catch {
-      case e => log.warning("Failed to stop HTTP server.", e)
+      case e => _log.warning("Failed to stop HTTP server.", e)
     }
   }
 

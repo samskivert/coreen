@@ -3,15 +3,21 @@
 
 package coreen.project
 
+import coreen.persist.DBModule
+import coreen.server.{DirsModule, ExecutorModule, LogModule}
+import coreen.server.{HttpServerModule, ProjectServletModule, LibraryServletModule}
+
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.persist.DB
 import coreen.server.Services._
 
 /**
  * A command-line tool for manipulating projects.
  */
-object Tool extends Log with Dirs with Database
+object Tool extends LogModule with ExecutorModule with HttpServerModule with DBModule
+               with DirsModule with UpdaterModule with ImporterModule with ProjectServletModule
+               with LibraryServletModule
+               with Log with Dirs with Database with Executor
 {
   def main (args :Array[String]) :Unit = try {
     args match {
@@ -25,7 +31,7 @@ object Tool extends Log with Dirs with Database
 
   def listProjects {
     transaction {
-      DB.projects foreach { p =>
+      _db.projects foreach { p =>
         println(p.id + " " + p.name)
       }
     }
@@ -33,9 +39,9 @@ object Tool extends Log with Dirs with Database
 
   def updateProject (pid :Long) {
     transaction {
-      DB.projects.lookup(pid) match {
+      _db.projects.lookup(pid) match {
         case None => error("No project with id " + pid)
-        case Some(p) => Updater.update(p, s => println(s))
+        case Some(p) => _updater.update(p, s => println(s))
       }
     }
   }

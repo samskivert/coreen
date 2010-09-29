@@ -11,35 +11,36 @@ import org.squeryl.KeyedEntity
 
 import coreen.model.{Def => JDef}
 
-/**
- * Handles our persistence needs.
- */
-object DB extends Schema
-{
-  /** Provides access to the projects repository. */
-  val projects = table[Project]
+/** Provides database services. */
+trait DBModule {
+  /** Defines our database schemas. */
+  object _db extends Schema
+  {
+    /** Provides access to the projects repository. */
+    val projects = table[Project]
 
-  /** Provides access to the compilation units repository. */
-  val compunits = table[CompUnit]
+    /** Provides access to the compilation units repository. */
+    val compunits = table[CompUnit]
 
-  /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
-  val typeToCode = Map(
-    // these mappings must never change
-    JDef.Type.MODULE -> 1.toByte,
-    JDef.Type.TYPE -> 2.toByte,
-    JDef.Type.FUNC -> 3.toByte,
-    JDef.Type.TERM -> 4.toByte,
-    JDef.Type.UNKNOWN -> 255.toByte
-  )
+    /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
+    val typeToCode = Map(
+      // these mappings must never change
+      JDef.Type.MODULE -> 1.toByte,
+      JDef.Type.TYPE -> 2.toByte,
+      JDef.Type.FUNC -> 3.toByte,
+      JDef.Type.TERM -> 4.toByte,
+      JDef.Type.UNKNOWN -> 255.toByte
+    )
 
-  /** Maps a byte code back to a {@link JDef.Type}. */
-  val codeToType = typeToCode map { case(x, y) => (y, x) }
+    /** Maps a byte code back to a {@link JDef.Type}. */
+    val codeToType = typeToCode map { case(x, y) => (y, x) }
 
-  /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
-   * supported by Squeryl. */
-  def reinitSchema {
-    drop
-    create
+    /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
+     * supported by Squeryl. */
+    def reinitSchema {
+      drop
+      create
+    }
   }
 }
 
