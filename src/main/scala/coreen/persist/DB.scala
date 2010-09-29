@@ -17,8 +17,7 @@ import coreen.server.{Dirs, Log, Component}
 /** Provides database services. */
 trait DB {
   /** Defines our database schemas. */
-  object _db extends Schema
-  {
+  object _db extends Schema {
     /** Provides access to the projects repository. */
     val projects = table[Project]
 
