@@ -22,8 +22,8 @@ trait Dirs {
 }
 
 /** A concrete implementation of {@link Dirs}. */
-trait DirsComponent extends Component {
-  this :Log with Dirs =>
+trait DirsComponent extends Component with Dirs {
+  this :Log =>
 
   val _appdir = Option(System.getProperty("appdir")) map(new File(_))
   val _coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")

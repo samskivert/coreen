@@ -47,8 +47,8 @@ trait DB {
 }
 
 /** A concrete implementation of {@link DB}. */
-trait DBComponent extends Component {
-  this :Dirs with Log with DB =>
+trait DBComponent extends Component with DB {
+  this :Dirs with Log =>
 
   /** Mixer can override this to log database queries. */
   protected def dblogger :(String => Unit) = null

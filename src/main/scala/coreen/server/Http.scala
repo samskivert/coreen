@@ -115,8 +115,8 @@ trait Http {
 }
 
 /** A concrete implementation of {@link Http}. */
-trait HttpComponent extends Component {
-  this :Http =>
+trait HttpComponent extends Component with Http {
+  this :Log with LibraryServlet with ProjectServlet =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer

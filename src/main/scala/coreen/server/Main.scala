@@ -14,12 +14,8 @@ import coreen.project.{Importer, Updater}
  * The main entry point for the Coreen server.
  */
 object Main extends AnyRef
-  with Log with LogComponent
-  with Exec with ExecComponent
-  with DB with DBComponent
-  with Dirs with DirsComponent
-  with Http with HttpComponent
-  with ProjectServlet with LibraryServlet
+  with LogComponent with DirsComponent with ExecComponent with DBComponent
+  with HttpComponent with ProjectServlet with LibraryServlet
   with Updater with Importer
 {
   def main (args :Array[String]) {

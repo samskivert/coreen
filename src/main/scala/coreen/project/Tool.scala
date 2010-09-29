@@ -5,19 +5,14 @@ package coreen.project
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.persist.{DB, DBComponent}
-import coreen.server.{Dirs, DirsComponent}
-import coreen.server.{Exec, ExecComponent}
-import coreen.server.{Log, LogComponent}
+import coreen.persist.DBComponent
+import coreen.server.{DirsComponent, ExecComponent, LogComponent}
 
 /**
  * A command-line tool for manipulating projects.
  */
 object Tool extends AnyRef
-  with Log with LogComponent
-  with Exec with ExecComponent
-  with DB with DBComponent
-  with Dirs with DirsComponent
+  with LogComponent with DirsComponent with ExecComponent with DBComponent
   with Updater with Importer
 {
   def main (args :Array[String]) :Unit = try {

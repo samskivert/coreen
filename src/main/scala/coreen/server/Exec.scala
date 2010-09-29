@@ -12,7 +12,7 @@ trait Exec {
 }
 
 /** A concrete implementation of {@link Exec}. */
-trait ExecComponent extends Component {
+trait ExecComponent extends Component with Exec {
   /** Mixer can override this to customize thread pool size. */
   protected def threadPoolSize = 4
 
