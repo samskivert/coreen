@@ -12,7 +12,7 @@ trait Log {
 }
 
 /** A concrete implementation of {@link Log}. */
-trait LogService extends Service {
+trait LogComponent extends Component {
   /** For great logging. */
   val _log = com.samskivert.util.Logger.getLogger("coreen")
 }

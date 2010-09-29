@@ -115,24 +115,24 @@ trait Http {
 }
 
 /** A concrete implementation of {@link Http}. */
-trait HttpService extends Service {
+trait HttpComponent extends Component {
   this :Http =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer
 
-  override protected def initServices {
-    super.initServices
+  override protected def initComponents {
+    super.initComponents
     httpServer.init
   }
 
-  override protected def startServices {
-    super.startServices
+  override protected def startComponents {
+    super.startComponents
     httpServer.start
   }
 
-  override protected def shutdownServices {
-    super.shutdownServices
+  override protected def shutdownComponents {
+    super.shutdownComponents
     httpServer.shutdown
   }
 }

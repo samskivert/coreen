@@ -12,7 +12,7 @@ import org.squeryl.adapters.H2Adapter
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
 import coreen.model.{Def => JDef}
-import coreen.server.{Dirs, Log, Service}
+import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
 trait DB {
@@ -48,14 +48,14 @@ trait DB {
 }
 
 /** A concrete implementation of {@link DB}. */
-trait DBService extends Service {
+trait DBComponent extends Component {
   this :Dirs with Log with DB =>
 
   /** Mixer can override this to log database queries. */
   protected def dblogger :(String => Unit) = null
 
-  override protected def initServices {
-    super.initServices
+  override protected def initComponents {
+    super.initComponents
 
     // initialize the H2 database
     Class.forName("org.h2.Driver")

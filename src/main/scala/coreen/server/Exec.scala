@@ -12,14 +12,14 @@ trait Exec {
 }
 
 /** A concrete implementation of {@link Exec}. */
-trait ExecService extends Service {
+trait ExecComponent extends Component {
   /** Mixer can override this to customize thread pool size. */
   protected def threadPoolSize = 4
 
   val _exec = Executors.newFixedThreadPool(threadPoolSize)
 
-  override protected def shutdownServices {
-    super.shutdownServices
+  override protected def shutdownComponents {
+    super.shutdownComponents
     _exec.shutdown
   }
 }

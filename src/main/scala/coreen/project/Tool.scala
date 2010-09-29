@@ -5,19 +5,19 @@ package coreen.project
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.persist.{DB, DBService}
-import coreen.server.{Dirs, DirsService}
-import coreen.server.{Exec, ExecService}
-import coreen.server.{Log, LogService}
+import coreen.persist.{DB, DBComponent}
+import coreen.server.{Dirs, DirsComponent}
+import coreen.server.{Exec, ExecComponent}
+import coreen.server.{Log, LogComponent}
 
 /**
  * A command-line tool for manipulating projects.
  */
 object Tool extends AnyRef
-  with Log with LogService
-  with Exec with ExecService
-  with DB with DBService
-  with Dirs with DirsService
+  with Log with LogComponent
+  with Exec with ExecComponent
+  with DB with DBComponent
+  with Dirs with DirsComponent
   with Updater with Importer
 {
   def main (args :Array[String]) :Unit = try {
@@ -48,10 +48,10 @@ object Tool extends AnyRef
   }
 
   protected def invoke (action : =>Unit) {
-    initServices
-    startServices
+    initComponents
+    startComponents
     action
-    shutdownServices
+    shutdownComponents
   }
 
   protected def error (msg :String) {

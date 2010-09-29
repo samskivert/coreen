@@ -22,14 +22,14 @@ trait Dirs {
 }
 
 /** A concrete implementation of {@link Dirs}. */
-trait DirsService extends Service {
+trait DirsComponent extends Component {
   this :Log with Dirs =>
 
   val _appdir = Option(System.getProperty("appdir")) map(new File(_))
   val _coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
 
-  override protected def initServices {
-    super.initServices
+  override protected def initComponents {
+    super.initComponents
 
     // create the Coreen data directory if necessary
     if (_firstTime) {

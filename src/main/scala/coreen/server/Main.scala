@@ -7,18 +7,18 @@ import java.io.{File, PrintStream, FileOutputStream, IOException}
 
 import sun.misc.{Signal, SignalHandler}
 
-import coreen.persist.{DB, DBService}
+import coreen.persist.{DB, DBComponent}
 import coreen.project.{Importer, Updater}
 
 /**
  * The main entry point for the Coreen server.
  */
 object Main extends AnyRef
-  with Log with LogService
-  with Exec with ExecService
-  with DB with DBService
-  with Dirs with DirsService
-  with Http with HttpService
+  with Log with LogComponent
+  with Exec with ExecComponent
+  with DB with DBComponent
+  with Dirs with DirsComponent
+  with Http with HttpComponent
   with ProjectServlet with LibraryServlet
   with Updater with Importer
 {
@@ -44,7 +44,7 @@ object Main extends AnyRef
       }
     }
 
-    initServices // initialize our services
+    initComponents // initialize our components
 
     // register a signal handler to shutdown gracefully on ctrl-c
     var ohandler :SignalHandler = null
@@ -54,7 +54,7 @@ object Main extends AnyRef
       }
     })
 
-    startServices // start our services
+    startComponents // start our components
 
     // if we're running in app mode, open a web browser
     if (_appdir.isDefined) {
@@ -72,7 +72,7 @@ object Main extends AnyRef
 
     _log.info("Coreen exiting...")
     Signal.handle(_sigint, ohandler) // restore old signal handler
-    shutdownServices // shutdown our services
+    shutdownComponents // shutdown our components
   }
 
   def shutdown {
