@@ -3,16 +3,19 @@
 
 package coreen.persist
 
+import java.io.File
+import java.sql.DriverManager
 import java.util.Date
 
 import org.squeryl.PrimitiveTypeMode._
-import org.squeryl.Schema
-import org.squeryl.KeyedEntity
+import org.squeryl.adapters.H2Adapter
+import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
 import coreen.model.{Def => JDef}
+import coreen.server.{Dirs, Log, Service}
 
 /** Provides database services. */
-trait DBModule {
+trait DB {
   /** Defines our database schemas. */
   object _db extends Schema
   {
@@ -41,6 +44,31 @@ trait DBModule {
       drop
       create
     }
+  }
+}
+
+/** A concrete implementation of {@link DB}. */
+trait DBService extends Service {
+  this :Dirs with Log with DB =>
+
+  /** Mixer can override this to log database queries. */
+  protected def dblogger :(String => Unit) = null
+
+  override protected def initServices {
+    super.initServices
+
+    // initialize the H2 database
+    Class.forName("org.h2.Driver")
+    val dburl = "jdbc:h2:" + new File(_coreenDir, "repository").getAbsolutePath
+    SessionFactory.concreteFactory = Some(() => {
+      // TODO: use connection pools as Squeryl creates and closes a connection on every query
+      val sess = Session.create(DriverManager.getConnection(dburl, "sa", ""), new H2Adapter)
+      sess.setLogger(dblogger)
+      sess
+    })
+
+    // TODO: squeryl doesn't support any sort of schema migration; sigh
+    if (_firstTime) transaction { _db.reinitSchema }
   }
 }
 

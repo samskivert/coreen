@@ -11,12 +11,13 @@ import org.squeryl.PrimitiveTypeMode._
 import scala.collection.JavaConversions._
 
 import coreen.model.PendingProject
-import coreen.persist.{DBModule, Project}
+import coreen.persist.{DB, Project}
 import coreen.rpc.ServiceException
-import coreen.server.{LogModule, ExecutorModule}
+import coreen.server.{Log, Exec}
 
 /** Provides project importing services. */
-trait ImporterModule { this :LogModule with ExecutorModule with DBModule with UpdaterModule =>
+trait Importer {
+  this :Log with Exec with DB with Updater =>
 
   /** Handles the importation of projects into Coreen. */
   object _importer {

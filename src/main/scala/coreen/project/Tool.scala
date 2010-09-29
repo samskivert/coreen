@@ -3,21 +3,22 @@
 
 package coreen.project
 
-import coreen.persist.DBModule
-import coreen.server.{DirsModule, ExecutorModule, LogModule}
-import coreen.server.{HttpServerModule, ProjectServletModule, LibraryServletModule}
-
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.server.Services._
+import coreen.persist.{DB, DBService}
+import coreen.server.{Dirs, DirsService}
+import coreen.server.{Exec, ExecService}
+import coreen.server.{Log, LogService}
 
 /**
  * A command-line tool for manipulating projects.
  */
-object Tool extends LogModule with ExecutorModule with HttpServerModule with DBModule
-               with DirsModule with UpdaterModule with ImporterModule with ProjectServletModule
-               with LibraryServletModule
-               with Log with Dirs with Database with Executor
+object Tool extends AnyRef
+  with Log with LogService
+  with Exec with ExecService
+  with DB with DBService
+  with Dirs with DirsService
+  with Updater with Importer
 {
   def main (args :Array[String]) :Unit = try {
     args match {

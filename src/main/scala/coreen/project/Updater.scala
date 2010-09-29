@@ -15,11 +15,12 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
-import coreen.persist.{DBModule, Project, CompUnit}
-import coreen.server.{LogModule, ExecutorModule, DirsModule}
+import coreen.persist.{DB, Project, CompUnit}
+import coreen.server.{Log, Exec, Dirs}
 
 /** Provides project updating services. */
-trait UpdaterModule { this :LogModule with ExecutorModule with DBModule with DirsModule =>
+trait Updater {
+  this :Log with Exec with DB with Dirs =>
 
   /** Handles updating projects. */
   object _updater {

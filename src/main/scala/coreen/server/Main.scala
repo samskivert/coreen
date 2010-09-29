@@ -7,17 +7,20 @@ import java.io.{File, PrintStream, FileOutputStream, IOException}
 
 import sun.misc.{Signal, SignalHandler}
 
-import coreen.persist.DBModule
-import coreen.project.{ImporterModule, UpdaterModule}
-import coreen.server.Services._
+import coreen.persist.{DB, DBService}
+import coreen.project.{Importer, Updater}
 
 /**
  * The main entry point for the Coreen server.
  */
-object Main extends LogModule with ExecutorModule with DBModule with DirsModule
-               with HttpServerModule with ProjectServletModule with LibraryServletModule
-               with UpdaterModule with ImporterModule
-               with Log with Dirs with Database with Executor with HTTP
+object Main extends AnyRef
+  with Log with LogService
+  with Exec with ExecService
+  with DB with DBService
+  with Dirs with DirsService
+  with Http with HttpService
+  with ProjectServlet with LibraryServlet
+  with Updater with Importer
 {
   def main (args :Array[String]) {
     // if we're running via Getdown, redirect our log output to a file
