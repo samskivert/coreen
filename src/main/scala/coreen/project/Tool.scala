@@ -20,22 +20,24 @@ object Tool extends Log with Dirs with Database
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
-      println("Usage: ptool { list | update pid }"); System.exit(255)
+      error("Usage: ptool { list | update pid }")
   }
 
   def listProjects {
     transaction {
-      from(DB.projects) { p =>
-        select(p)
-//        orderBy(p.name)
-      } foreach { p =>
+      DB.projects foreach { p =>
         println(p.id + " " + p.name)
       }
     }
   }
 
   def updateProject (pid :Long) {
-    println("TODO: updateProject " + pid)
+    transaction {
+      DB.projects.lookup(pid) match {
+        case None => error("No project with id " + pid)
+        case Some(p) => Updater.update(p, s => println(s))
+      }
+    }
   }
 
   protected def invoke (action : =>Unit) {
@@ -43,5 +45,10 @@ object Tool extends Log with Dirs with Database
     startServices
     action
     shutdownServices
+  }
+
+  protected def error (msg :String) {
+    println(msg)
+    System.exit(255)
   }
 }

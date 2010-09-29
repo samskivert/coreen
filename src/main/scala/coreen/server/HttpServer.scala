@@ -18,7 +18,9 @@ import org.mortbay.jetty.servlet.ServletHolder
 import coreen.rpc.LibraryService
 import coreen.rpc.ProjectService
 
-import Main.log
+/** Defines dependencies needed by the HttpServer. */
+trait HttpServerModule {
+  this :LogModule =>
 
 /**
  * Customizes a Jetty server and handles HTTP requests.
@@ -51,9 +53,9 @@ class HttpServer extends Server
     }
     ctx.setWelcomeFiles(Array[String]("index.html"))
     // wire up our servlets
+    ctx.addServlet(new ServletHolder(new LibraryServlet), "/coreen/"+LibraryService.ENTRY_POINT)
+    ctx.addServlet(new ServletHolder(new ProjectServlet), "/coreen/"+ProjectService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(_shutdownServlet), "/coreen/shutdown")
-    ctx.addServlet(new ServletHolder(_libServlet), "/coreen/"+LibraryService.ENTRY_POINT)
-    ctx.addServlet(new ServletHolder(_projServlet), "/coreen/"+ProjectService.ENTRY_POINT)
     ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
     addHandler(ctx)
 
@@ -100,8 +102,6 @@ class HttpServer extends Server
     def getBindHostname = "localhost"
     def getHttpPort = 8080
   }
-  protected val _libServlet :LibraryServlet = new LibraryServlet
-  protected val _projServlet :ProjectServlet = new ProjectServlet
 
   protected val _shutdownServlet = new HttpServlet() {
     override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
@@ -114,4 +114,6 @@ class HttpServer extends Server
 
   protected val ONE_YEAR = 365*24*60*60*1000L
   protected val SENTINEL = "coreen/index.html"
+}
+
 }
