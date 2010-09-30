@@ -18,11 +18,17 @@ import coreen.server.{Dirs, Log, Component}
 trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
-    /** Provides access to the projects repository. */
+    /** Provides access to the projects table. */
     val projects = table[Project]
 
-    /** Provides access to the compilation units repository. */
+    /** Provides access to the compilation units table. */
     val compunits = table[CompUnit]
+
+    /** Provides access to the defs table. */
+    val defs = table[Def]
+
+    /** A mapping from fully qualfied def name to id (and vice versa). */
+    val defmap = table[DefName]
 
     /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
     val typeToCode = Map(
@@ -103,7 +109,6 @@ case class CompUnit (
   path :String,
   /** The time at which this compilation unit was last updated. */
   lastUpdated :Long
-
 ) extends KeyedEntity[Long] {
   /** A unique identifier for this project (1 or higher). */
   val id :Long = 0L
@@ -112,6 +117,15 @@ case class CompUnit (
   def this () = this(0L, "", 0L)
 
   override def toString = "[id=" + id + ", pid=" + projectId + ", path=" + path + "]"
+}
+
+/** A mapping from fully qualified name to id for defs. */
+case class DefName (
+  /** The fully qualified name of this def. */
+  fqName :String
+) extends KeyedEntity[Long] {
+  /** A unique identifier for this definition (1 or higher). */
+  val id :Long = 0L
 }
 
 /** Contains metadata for a definition. */

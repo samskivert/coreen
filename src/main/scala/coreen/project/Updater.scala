@@ -78,11 +78,12 @@ trait Updater {
         // determine which CUs we knew about before
         val oldCUs = transaction { _db.compunits where(cu => cu.projectId === p.id) toList }
 
-        // update compunit data
+        // update compunit data, and construct a mapping from compunit path to id
         val newPaths = Set() ++ (cus map(_.src))
         val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
         val toAdd = newPaths -- (oldCUs map(_.path))
-        val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id)
+        val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id) toSet
+        val cuIds = collection.mutable.Map[String,Long]()
         transaction {
           if (!toDelete.isEmpty) {
             _db.compunits.deleteWhere(cu => cu.id in toDelete)
@@ -90,18 +91,37 @@ trait Updater {
           }
           val now = System.currentTimeMillis
           if (!toAdd.isEmpty) {
-            _db.compunits.insert(toAdd.map(CompUnit(p.id, _, now)))
+            val added = toAdd.map(CompUnit(p.id, _, now))
+            _db.compunits.insert(added)
+            // add the ids of the newly inserted units to our (path -> id) mapping
+            added foreach { cu => cuIds += (cu.path -> cu.id) }
             ulog("Added " + toAdd.size + " new compunits.")
           }
           if (!toUpdate.isEmpty) {
             _db.compunits.update(cu =>
               where(cu.id in toUpdate) set(cu.lastUpdated := now))
+            // add the ids of the updated units to our (path -> id) mapping
+            oldCUs filter(cu => toUpdate(cu.id)) foreach { cu => cuIds += (cu.path -> cu.id) }
             ulog("Updated " + toUpdate.size + " compunits.")
           }
         }
 
-        // update def and use data: first resolve the def/use graph
+        // process each compunit individually
+        for (cu <- cus) {
+          processCompUnit(cuIds(cu.src), cu)
+        }
 
+        // // update def and use data: first resolve the def/use graph
+        // cus foreach { cu =>
+        //   println("Source: " + cu.src)
+        //   cu.defs map dumpDef("")
+        // }
+
+      }
+
+      def dumpDef (prefix :String)(df :DefElem) {
+        println(prefix + df.name + " " + df.typ)
+        df.defs map dumpDef(prefix + df.name + ".")
       }
 
       def parseCompUnits (p :Project, ulog :String=>Unit, lines :Iterator[String]) = {
@@ -137,6 +157,10 @@ trait Updater {
       }
 
       def args :List[String]
+    }
+
+    def processCompUnit (cuId :Long, cu :CompUnitElem) {
+      println("Processing " + cuId + " -> " + cu)
     }
 
     class JavaReader (

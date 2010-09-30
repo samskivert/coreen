@@ -76,6 +76,11 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   }
   override def packageAction = pruneClient && super.packageAction
 
+  // runs our project tool with args
+  lazy val ptool = task { args =>
+    runTask(Some("coreen.project.Tool"), runClasspath, args) dependsOn(compile)
+  }
+
   // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
   // sync) all of our resources to a target/../war directory and remove target/../resources to
   // avoid seeing everything twice
