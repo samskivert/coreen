@@ -76,9 +76,12 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   }
   override def packageAction = pruneClient && super.packageAction
 
-  // runs our project tool with args
+  // runs our various tools with args
   lazy val ptool = task { args =>
     runTask(Some("coreen.project.Tool"), runClasspath, args) dependsOn(compile)
+  }
+  lazy val dbtool = task { args =>
+    runTask(Some("coreen.persist.Tool"), runClasspath, args) dependsOn(compile)
   }
 
   // to cooperate nicely with GWT devmode when we run the server from within SBT, we copy (not
