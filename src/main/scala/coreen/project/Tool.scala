@@ -19,6 +19,7 @@ object Tool extends AnyRef
     args match {
       case Array("list") => invoke(listProjects)
       case Array("update", pid) => invoke(updateProject(pid.toInt))
+      case Array("import", dir) => invoke(importProject(dir))
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
@@ -40,6 +41,11 @@ object Tool extends AnyRef
         case Some(p) => _updater.update(p, s => println(s))
       }
     }
+  }
+
+  def importProject (dir :String) {
+    _importer.importProject(dir)
+    Thread.sleep(3000L) // give the async tasks a moment to get queued up
   }
 
   protected def invoke (action : =>Unit) {

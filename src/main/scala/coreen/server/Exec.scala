@@ -3,7 +3,7 @@
 
 package coreen.server
 
-import java.util.concurrent.{ExecutorService, Executors}
+import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 /** Provides a means by which to execute background tasks. */
 trait Exec {
@@ -21,5 +21,6 @@ trait ExecComponent extends Component with Exec {
   override protected def shutdownComponents {
     super.shutdownComponents
     _exec.shutdown
+    _exec.awaitTermination(60, TimeUnit.SECONDS)
   }
 }

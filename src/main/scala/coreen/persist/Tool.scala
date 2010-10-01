@@ -28,7 +28,7 @@ object Tool extends AnyRef
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
-      error("Usage: dbtool { list | schema | dump TABLE LIMIT | clear TABLE }")
+      fail("Usage: dbtool { list | schema | dump TABLE LIMIT | clear TABLE }")
   }
 
   protected def listTables {
@@ -93,7 +93,7 @@ object Tool extends AnyRef
   protected def format (widths :Seq[Int])(data :Seq[String]) =
     data.zip(widths).map(p => String.format("%-" + p._2 + "s", p._1)).mkString(" ")
 
-  protected def error (msg :String) {
+  protected def fail (msg :String) {
     println(msg)
     System.exit(255)
   }

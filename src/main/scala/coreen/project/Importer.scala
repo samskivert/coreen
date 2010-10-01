@@ -38,7 +38,7 @@ trait Importer {
           try {
             processImport(source)
           } catch {
-            case t => updatePending(source, "Error: " + t.getMessage, -1L)
+            case t => t.printStackTrace; updatePending(source, "Error: " + t.getMessage, -1L)
           }
         }
       })

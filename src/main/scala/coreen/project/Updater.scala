@@ -91,10 +91,11 @@ trait Updater {
           }
           val now = System.currentTimeMillis
           if (!toAdd.isEmpty) {
-            val added = toAdd.map(CompUnit(p.id, _, now))
-            _db.compunits.insert(added)
-            // add the ids of the newly inserted units to our (path -> id) mapping
-            added foreach { cu => cuIds += (cu.path -> cu.id) }
+            toAdd.map(CompUnit(p.id, _, now)) foreach { cu =>
+              _db.compunits.insert(cu)
+              // add the id of the newly inserted unit to our (path -> id) mapping
+              cuIds += (cu.path -> cu.id)
+            }
             ulog("Added " + toAdd.size + " new compunits.")
           }
           if (!toUpdate.isEmpty) {
@@ -157,9 +158,9 @@ trait Updater {
         (tmp, _db.defmap.where(dn => dn.id in tmp.keySet) map(dn => (dn.fqName, dn.id)) toMap)
       }
 
-      println("Have " + edefs.size + " existing defs...")
-      println(edefs)
-      println(emap)
+      // println("Have " + edefs.size + " existing defs...")
+      // println(edefs)
+      // println(emap)
 
       // compute the fqName for all new defs and map them to their defelem
       def flattenDefs (pref :String)(out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
@@ -173,9 +174,9 @@ trait Updater {
       val toDelete = oldDefs -- newDefs
       val (toAdd, toUpdate) = (newDefs -- oldDefs, oldDefs -- toDelete)
 
-      println("To add " + toAdd)
-      println("To update " + toUpdate)
-      println("To delete " + toDelete)
+      // println("To add " + toAdd)
+      // println("To update " + toUpdate)
+      // println("To delete " + toDelete)
 
       def processDefs (ids :Map[String,Long], pref :String, parentId :Long)(
         out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
@@ -191,6 +192,8 @@ trait Updater {
         // newly assigned ids when using a batch update
         val nmap = _db.defmap.where(dn => dn.fqName in toAdd) map(dn => (dn.fqName, dn.id)) toMap
 
+        // nmap foreach { p => println(p._1 + " -> " + p._2) }
+
         // now convert the defelems into defs using the fqName to id map
         val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(emap ++ nmap, "", 0L))
 
@@ -198,8 +201,7 @@ trait Updater {
         if (!toAdd.isEmpty) {
           val added = toAdd map(nmap) map(ndefs)
           _db.defs.insert(added)
-          // println("Inserted " + toAdd.size + " new defs")
-          println("Inserted " + added)
+          println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
           _db.defs.update(toUpdate map(emap) map(ndefs))
