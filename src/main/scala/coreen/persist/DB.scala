@@ -23,9 +23,18 @@ trait DB {
 
     /** Provides access to the compilation units table. */
     val compunits = table[CompUnit]
+    on(compunits) { cu => declare(
+      cu.path is(indexed)
+    )}
 
     /** Provides access to the defs table. */
     val defs = table[Def]
+    on(defs) { d => declare(
+      // this index on 'id' magically overrides the primary key index and allows us to insert
+      // defs without having a new id assigned to them
+      d.id is(indexed),
+      d.unitId is(indexed)
+    )}
 
     /** A mapping from fully qualfied def name to id (and vice versa). */
     val defmap = table[DefName]
@@ -130,6 +139,8 @@ case class DefName (
 
 /** Contains metadata for a definition. */
 case class Def (
+  /** A unique identifier for this definition (1 or higher). */
+  id :Long,
   /** The id of this definition's enclosing definition, or 0 if none. */
   parentId :Long,
   /** The id of this definition's enclosing compunit. */
@@ -151,11 +162,9 @@ case class Def (
   /** The character offset in the file at which this definition's body ends. */
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
-  /** A unique identifier for this definition (1 or higher). */
-  val id :Long = 0L
-
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, "", 0, None, None, 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, "", 0, Some(""), Some(""), 0, 0, 0, 0)
 
-  override def toString = "[id=" + id + ", name=" + name + ", type=" + typ + "]"
+  override def toString = ("[id=" + id + ", pid=" + parentId + ", uid=" + unitId +
+                           ", name=" + name + ", type=" + typ + "]")
 }

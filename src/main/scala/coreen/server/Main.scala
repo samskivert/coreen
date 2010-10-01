@@ -76,7 +76,7 @@ object Main extends AnyRef
   }
 
   // from trait Database
-  override protected def dblogger = (s :String) => println(s)
+  // override protected def dblogger = (s :String) => println(s)
 
   private val _sigint = new Signal("INT")
 

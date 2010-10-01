@@ -15,7 +15,7 @@ trait Dirs {
 
   /** Whether or not this is the first time the tool/app has been run on this machine.
    *  We use the non-existence of the .coreen directory as an indicator of first-run-hood. */
-  def _firstTime = !_coreenDir.isDirectory
+  lazy val _firstTime = !_coreenDir.isDirectory
 
   /** Returns the local data directory for a project with the supplied identifier. */
   def _projectDir (project :String) = new File(new File(_coreenDir, "projects"), project)

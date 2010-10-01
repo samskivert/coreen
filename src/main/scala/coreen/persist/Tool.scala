@@ -21,20 +21,18 @@ object Tool extends AnyRef
     Class.forName("org.h2.Driver") // initialize the H2 database
     args match {
       case Array("list") => listTables
-      case Array("dump", table) => dumpTable(table)
       case Array("schema") => printSchema()
+      case Array("dump", table, limit) => dumpTable(table, limit.toInt)
+      case Array("dump", table) => dumpTable(table, -1)
+      case Array("clear", table) => clearTable(table)
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
-      error("Usage: dbtool { list | dump table | schema }")
+      error("Usage: dbtool { list | schema | dump TABLE LIMIT | clear TABLE }")
   }
 
   protected def listTables {
     execute("show tables")
-  }
-
-  protected def dumpTable (table :String) {
-    execute("select * from " + table)
   }
 
   protected def printSchema () {
@@ -44,6 +42,14 @@ object Tool extends AnyRef
       _db.printDdl(println(_))
     }
     shutdownComponents
+  }
+
+  protected def dumpTable (table :String, limit :Int) {
+    execute("select * from " + table + (if (limit > 0) " limit " + limit else ""))
+  }
+
+  protected def clearTable (table :String) {
+    update("delete from " + table)
   }
 
   protected def withConnection (action :(Connection => Unit)) {
@@ -64,7 +70,7 @@ object Tool extends AnyRef
       val cnames = (1 to md.getColumnCount) map(md.getColumnName)
       var cdata = Vector[Seq[String]]()
       while (rs.next) {
-        cdata = (cdata :+ ((1 to md.getColumnCount) map(rs.getObject) map(_.toString)))
+        cdata = (cdata :+ ((1 to md.getColumnCount) map(rs.getObject) map(String.valueOf)))
       }
 
       // format the results in a nice grid
@@ -73,6 +79,14 @@ object Tool extends AnyRef
       println(fmt(cnames))
       println(fmt(cnames).replaceAll("[^ ]", "-"))
       println(cdata.map(fmt).mkString("\n"))
+    }
+  }
+
+  protected def update (sql :String) {
+    withConnection { conn =>
+      val stmt = conn.createStatement
+      val mods = stmt.executeUpdate(sql)
+      println(mods + " rows updated.")
     }
   }
 

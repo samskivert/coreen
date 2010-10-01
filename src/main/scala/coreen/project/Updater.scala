@@ -15,7 +15,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
-import coreen.persist.{DB, Project, CompUnit}
+import coreen.persist.{DB, Project, CompUnit, Def, DefName}
 import coreen.server.{Log, Exec, Dirs}
 
 /** Provides project updating services. */
@@ -107,21 +107,10 @@ trait Updater {
         }
 
         // process each compunit individually
+        println(cuIds)
         for (cu <- cus) {
           processCompUnit(cuIds(cu.src), cu)
         }
-
-        // // update def and use data: first resolve the def/use graph
-        // cus foreach { cu =>
-        //   println("Source: " + cu.src)
-        //   cu.defs map dumpDef("")
-        // }
-
-      }
-
-      def dumpDef (prefix :String)(df :DefElem) {
-        println(prefix + df.name + " " + df.typ)
-        df.defs map dumpDef(prefix + df.name + ".")
       }
 
       def parseCompUnits (p :Project, ulog :String=>Unit, lines :Iterator[String]) = {
@@ -159,8 +148,69 @@ trait Updater {
       def args :List[String]
     }
 
-    def processCompUnit (cuId :Long, cu :CompUnitElem) {
-      println("Processing " + cuId + " -> " + cu)
+    def processCompUnit (unitId :Long, cu :CompUnitElem) = {
+      println("Processing " + unitId + " " + cu.src)
+
+      // load up existing defs for this compunit, and a mapping from fqName to defId
+      val (edefs, emap) = transaction {
+        val tmp = _db.defs.where(d => d.unitId === unitId) map(d => (d.id, d)) toMap; // grumble
+        (tmp, _db.defmap.where(dn => dn.id in tmp.keySet) map(dn => (dn.fqName, dn.id)) toMap)
+      }
+
+      println("Have " + edefs.size + " existing defs...")
+      println(edefs)
+      println(emap)
+
+      // compute the fqName for all new defs and map them to their defelem
+      def flattenDefs (pref :String)(out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
+        val fqName = pref + df.name
+        ((out + (fqName->df)) /: df.defs)(flattenDefs(fqName+"."))
+      }
+      val nelems = (Map[String,DefElem]() /: cu.defs)(flattenDefs(""))
+
+      // figure out which to add, which to update, and which to delete
+      val (newDefs, oldDefs) = (nelems.keySet, emap.keySet)
+      val toDelete = oldDefs -- newDefs
+      val (toAdd, toUpdate) = (newDefs -- oldDefs, oldDefs -- toDelete)
+
+      println("To add " + toAdd)
+      println("To update " + toUpdate)
+      println("To delete " + toDelete)
+
+      def processDefs (ids :Map[String,Long], pref :String, parentId :Long)(
+        out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
+        val ndef = Def(ids(pref + df.name), parentId, unitId, df.name, _db.typeToCode(df.typ),
+                       None, None, df.start, df.start+df.name.length, 0, 0)
+        ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ids, pref + df.name + ".", ndef.id))
+      }
+
+      transaction {
+        // add the new defs to the defname map to assign them ids
+        _db.defmap.insert(toAdd.map(DefName(_)))
+        // we have to load the newly assigned ids back out of the db as there's no way to get the
+        // newly assigned ids when using a batch update
+        val nmap = _db.defmap.where(dn => dn.fqName in toAdd) map(dn => (dn.fqName, dn.id)) toMap
+
+        // now convert the defelems into defs using the fqName to id map
+        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(emap ++ nmap, "", 0L))
+
+        // insert, update, and delete
+        if (!toAdd.isEmpty) {
+          val added = toAdd map(nmap) map(ndefs)
+          _db.defs.insert(added)
+          // println("Inserted " + toAdd.size + " new defs")
+          println("Inserted " + added)
+        }
+        if (!toUpdate.isEmpty) {
+          _db.defs.update(toUpdate map(emap) map(ndefs))
+          println("Updated " + toUpdate.size + " defs")
+        }
+        if (!toDelete.isEmpty) {
+          val toDelIds = toDelete map(emap)
+          _db.defs.deleteWhere(d => d.id in toDelIds)
+          println("Deleted " + toDelete.size + " defs")
+        }
+      }
     }
 
     class JavaReader (
