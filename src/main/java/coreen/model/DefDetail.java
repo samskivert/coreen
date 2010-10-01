@@ -17,6 +17,9 @@ public class DefDetail
     /** The id of the compunit to which this def belongs, or -1 if it's an unknown def. */
     public long unitId;
 
+    /** The id of the def in question. */
+    public long defId;
+
     /** This def's signature. */
     public String signature;
 

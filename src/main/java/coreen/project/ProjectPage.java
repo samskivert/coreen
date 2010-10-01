@@ -133,7 +133,7 @@ public class ProjectPage extends AbstractPage
             _contents.setWidget(_compunits);
             break;
         case SRC:
-            _contents.setWidget(new SourcePanel(args.get(2, 0L)));
+            _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L)));
             break;
         }
     }

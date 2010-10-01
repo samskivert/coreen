@@ -60,6 +60,7 @@ trait ProjectServlet {
         val dd = new DefDetail
         dd.projectId = _db.compunits.lookup(d.unitId).get.projectId
         dd.unitId = d.unitId
+        dd.defId = d.id
         dd.signature = d.name // TODO: much!
         dd
       } getOrElse(throw new ServiceException("e.no_such_def"))
