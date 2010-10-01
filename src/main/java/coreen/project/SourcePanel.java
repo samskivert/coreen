@@ -16,12 +16,12 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.StringUtil;
 
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.util.Edit;
 import coreen.util.PanelCallback;
 
 /**
@@ -40,21 +40,6 @@ public class SourcePanel extends Composite
         });
     }
 
-    protected static class Edit implements Comparable<Edit> {
-        public final int offset;
-        public final String text;
-        public Edit (int offset, String text) {
-            this.offset = offset;
-            this.text = text;
-        }
-        public int compareTo (Edit other) {
-            return offset - other.offset;
-        }
-        public String toString () {
-            return text + ":" + offset;
-        }
-    }
-
     protected Widget createContents (CompUnitDetail detail)
     {
         // turn the defs into edits and sort the edits (TODO: clean up this hackitude)
@@ -65,27 +50,7 @@ public class SourcePanel extends Composite
         }
         Collections.sort(edits);
 
-        StringBuilder text = new StringBuilder();
-        int pos = 0;
-        for (String line : detail.text) {
-            int npos = pos + line.length() + 1; // TODO: crlf will probably screw us here
-            int added = 0;
-            while (edits.size() > 0) {
-                Edit e = edits.get(0);
-                if (e.offset < npos) {
-                    line = line.substring(0, e.offset-pos+added) + e.text +
-                        line.substring(e.offset-pos+added);
-                    added += e.text.length();
-                    edits.remove(0);
-                    GWT.log("Added edit at " + e.offset);
-                } else {
-                    break;
-                }
-            }
-            text.append(line).append("\n");
-            pos = npos;
-        }
-        return Widgets.newHTML(text.toString(), _styles.code());
+        return Widgets.newHTML(Edit.applyEdits(edits, detail.text), _styles.code());
     }
 
     protected interface Styles extends CssResource

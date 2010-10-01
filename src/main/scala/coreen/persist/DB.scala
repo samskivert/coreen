@@ -9,6 +9,7 @@ import java.util.Date
 
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.adapters.H2Adapter
+import org.squeryl.annotations.Column
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
 import coreen.model.{Def => JDef}
@@ -131,7 +132,7 @@ case class CompUnit (
 /** A mapping from fully qualified name to id for defs. */
 case class DefName (
   /** The fully qualified name of this def. */
-  fqName :String
+  @Column(length=1024) fqName :String
 ) extends KeyedEntity[Long] {
   /** A unique identifier for this definition (1 or higher). */
   val id :Long = 0L

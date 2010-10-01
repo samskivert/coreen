@@ -14,8 +14,8 @@ public class CompUnitDetail
     /** The metadata for this unit. */
     public CompUnit unit;
 
-    /** The lines of text of the compilation unit. */
-    public String[] text;
+    /** The text of the compilation unit. */
+    public String text;
 
     /** The defs that occur in this compilation unit (sorted in occurrence order). */
     public Def[] defs;

@@ -162,12 +162,11 @@ trait Updater {
       // println(edefs)
       // println(emap)
 
-      // compute the fqName for all new defs and map them to their defelem
-      def flattenDefs (pref :String)(out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
-        val fqName = pref + df.name
-        ((out + (fqName->df)) /: df.defs)(flattenDefs(fqName+"."))
+      // generate a map from (string) id to all the defelems
+      def flattenDefs (out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
+        ((out + (df.id->df)) /: df.defs)(flattenDefs)
       }
-      val nelems = (Map[String,DefElem]() /: cu.defs)(flattenDefs(""))
+      val nelems = (Map[String,DefElem]() /: cu.defs)(flattenDefs)
 
       // figure out which to add, which to update, and which to delete
       val (newDefs, oldDefs) = (nelems.keySet, emap.keySet)
@@ -178,11 +177,11 @@ trait Updater {
       // println("To update " + toUpdate)
       // println("To delete " + toDelete)
 
-      def processDefs (ids :Map[String,Long], pref :String, parentId :Long)(
+      def processDefs (ids :Map[String,Long], parentId :Long)(
         out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
-        val ndef = Def(ids(pref + df.name), parentId, unitId, df.name, _db.typeToCode(df.typ),
+        val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
                        None, None, df.start, df.start+df.name.length, 0, 0)
-        ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ids, pref + df.name + ".", ndef.id))
+        ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ids, ndef.id))
       }
 
       transaction {
@@ -195,7 +194,7 @@ trait Updater {
         // nmap foreach { p => println(p._1 + " -> " + p._2) }
 
         // now convert the defelems into defs using the fqName to id map
-        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(emap ++ nmap, "", 0L))
+        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(emap ++ nmap, 0L))
 
         // insert, update, and delete
         if (!toAdd.isEmpty) {
