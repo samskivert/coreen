@@ -170,9 +170,9 @@ case class Def (
   /** The nature of this definition (function, term, etc.). See {@link JDef.Type}. */
   typ :Byte,
   /** This definition's (type) signature. */
-  sig :Option[String],
+  @Column(length=1024) sig :Option[String],
   /** This definition's documentation. */
-  doc :Option[String],
+  @Column(length=32768) doc :Option[String],
   /** The character offset in the source file of the start of this definition. */
   defStart :Int,
   /** The character offset in the source file of the end of this definition. */
