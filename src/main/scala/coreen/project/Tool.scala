@@ -5,6 +5,7 @@ package coreen.project
 
 import org.squeryl.PrimitiveTypeMode._
 
+import coreen.model.{Def => JDef}
 import coreen.persist.DBComponent
 import coreen.server.{DirsComponent, ExecComponent, LogComponent}
 
@@ -20,10 +21,11 @@ object Tool extends AnyRef
       case Array("list") => invoke(listProjects)
       case Array("update", pid) => invoke(updateProject(pid.toInt))
       case Array("import", dir) => invoke(importProject(dir))
+      case Array("types", pid) => invoke(dumpTypes(pid.toInt))
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
-      error("Usage: ptool { list | update pid }")
+      error("Usage: ptool { list | update pid | import dir | types pid }")
   }
 
   def listProjects {
@@ -46,6 +48,16 @@ object Tool extends AnyRef
   def importProject (dir :String) {
     _importer.importProject(dir)
     Thread.sleep(3000L) // give the async tasks a moment to get queued up
+  }
+
+  def dumpTypes (pid :Long) {
+    transaction {
+      from(_db.compunits, _db.defs)((cu, d) =>
+        where(cu.projectId === pid and cu.id === d.unitId and
+              d.typ === _db.typeToCode(JDef.Type.TYPE))
+        select(d)
+      ) foreach { d => println(d.typ + " " + d.sig) }
+    }
   }
 
   protected def invoke (action : =>Unit) {

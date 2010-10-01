@@ -34,7 +34,8 @@ trait DB {
       // this index on 'id' magically overrides the primary key index and allows us to insert
       // defs without having a new id assigned to them
       d.id is(indexed),
-      d.unitId is(indexed)
+      d.unitId is(indexed),
+      d.parentId is(indexed)
     )}
 
     /** A mapping from fully qualfied def name to id (and vice versa). */
@@ -62,11 +63,11 @@ trait DB {
     /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
     val typeToCode = Map(
       // these mappings must never change
-      JDef.Type.MODULE -> 1.toByte,
-      JDef.Type.TYPE -> 2.toByte,
-      JDef.Type.FUNC -> 3.toByte,
-      JDef.Type.TERM -> 4.toByte,
-      JDef.Type.UNKNOWN -> 0.toByte
+      JDef.Type.MODULE -> 1,
+      JDef.Type.TYPE -> 2,
+      JDef.Type.FUNC -> 3,
+      JDef.Type.TERM -> 4,
+      JDef.Type.UNKNOWN -> 0
     )
 
     /** Maps a byte code back to a {@link JDef.Type}. */
@@ -168,7 +169,7 @@ case class Def (
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
   name :String,
   /** The nature of this definition (function, term, etc.). See {@link JDef.Type}. */
-  typ :Byte,
+  typ :Int,
   /** This definition's (type) signature. */
   @Column(length=1024) sig :Option[String],
   /** This definition's documentation. */

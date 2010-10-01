@@ -21,7 +21,7 @@ object Convert
   def toJava (cu :SCompUnit) :JCompUnit = new JCompUnit(cu.id, cu.projectId, cu.path)
 
   /** Converts a Scala Def to a Java Def. */
-  def toJava (decode :Map[Byte,JDef.Type])(d :SDef) :JDef = new JDef(
+  def toJava (decode :Map[Int,JDef.Type])(d :SDef) :JDef = new JDef(
     d.id, d.parentId, d.name, decode(d.typ), new Span(d.defStart, d.defEnd-d.defStart))
 
   /** Converts a Scala Use to a Java Use. */

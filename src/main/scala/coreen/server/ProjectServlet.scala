@@ -11,7 +11,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit}
+import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
 import coreen.model.{CompUnitDetail, DefDetail}
 import coreen.persist.{DB, Project, CompUnit}
 import coreen.project.Updater
@@ -55,6 +55,7 @@ trait ProjectServlet {
       } getOrElse(throw new ServiceException("e.no_such_unit"))
     }
 
+    // from interface ProjectService
     def getDef (defId :Long) :DefDetail = transaction {
       _db.defs.lookup(defId) map { d =>
         val dd = new DefDetail
@@ -65,6 +66,19 @@ trait ProjectServlet {
         dd.doc = d.doc.getOrElse(null)
         dd
       } getOrElse(throw new ServiceException("e.no_such_def"))
+    }
+
+    // from interface ProjectService
+    def getTypes (projectId :Long) :Array[JDef] = transaction {
+      from(_db.compunits, _db.defs)((cu, d) =>
+        where(cu.projectId === projectId and cu.id === d.unitId)
+        select(d)
+      ) map(Convert.toJava(_db.codeToType)) toArray
+    }
+
+    // from interface ProjectService
+    def getMembers (defId :Long) :Array[JDef] = transaction {
+      _db.defs.where(d => d.parentId === defId) map(Convert.toJava(_db.codeToType)) toArray
     }
 
     private def requireProject (id :Long) = transaction {
