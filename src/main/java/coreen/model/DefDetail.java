@@ -11,17 +11,18 @@ import java.io.Serializable;
 public class DefDetail
     implements Serializable
 {
+    /** The standard information about this def. */
+    public Def def;
+
     /** The id of the project to which this def belongs, or -1 if it's an unknown def. */
     public long projectId;
 
     /** The id of the compunit to which this def belongs, or -1 if it's an unknown def. */
     public long unitId;
 
-    /** The id of the def in question. */
-    public long defId;
-
     /** This def's signature. */
-    public String signature;
+    public String sig;
 
-    // TODO: a bunch of stuff
+    /** This def's documentation. */
+    public String doc;
 }

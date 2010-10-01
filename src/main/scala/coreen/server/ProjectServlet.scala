@@ -58,10 +58,11 @@ trait ProjectServlet {
     def getDef (defId :Long) :DefDetail = transaction {
       _db.defs.lookup(defId) map { d =>
         val dd = new DefDetail
+        dd.`def` = Convert.toJava(_db.codeToType)(d)
         dd.projectId = _db.compunits.lookup(d.unitId).get.projectId
         dd.unitId = d.unitId
-        dd.defId = d.id
-        dd.signature = d.name // TODO: much!
+        dd.sig = d.sig.getOrElse(null)
+        dd.doc = d.doc.getOrElse(null)
         dd
       } getOrElse(throw new ServiceException("e.no_such_def"))
     }

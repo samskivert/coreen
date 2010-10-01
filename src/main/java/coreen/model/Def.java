@@ -32,26 +32,22 @@ public class Def
     /** The id of this definition's enclosing definition, or null if none. */
     public long parentId;
 
-    /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
+    /** This definition's (unqualified) name (i.e. Foo, not com.bar.Outer.Foo). */
     public String name;
 
     /** The type of this definition (function, term, etc.). */
     public Type type;
 
-    /** The character offset in the file at which this definition's body starts. */
-    public int bodyStart;
-
     /** The location in the source file of this definition. */
     public Span loc;
 
     /** Creates and initializes this instance. */
-    public Def (long id, long parentId, String name, Type type, int bodyStart, Span loc)
+    public Def (long id, long parentId, String name, Type type, Span loc)
     {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
         this.type = type;
-        this.bodyStart = bodyStart;
         this.loc = loc;
     }
 
@@ -65,8 +61,6 @@ public class Def
             append(", parent=").append(parentId).
             append(", name=").append(name).
             append(", type=").append(type).
-            append(", bstart=").append(bodyStart).
-            append(", loc=").append(loc).
             append("]").toString();
     }
 }

@@ -181,7 +181,7 @@ trait Updater {
         def processDefs (parentId :Long)(
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
           val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
-                         None, None, df.start, df.start+df.name.length, 0, 0)
+                         stropt(df.sig), None, df.start, df.start+df.name.length, 0, 0)
           ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
         }
         val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(0L))
@@ -236,6 +236,11 @@ trait Updater {
       def args = (javabin.getCanonicalPath :: "-classpath" ::
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
                   classname :: javaArgs)
+    }
+
+    def stropt (text :String) = text match {
+      case null | "" => None
+      case str => Some(str)
     }
 
     def mkFile (root :File, path :String*) = (root /: path)(new File(_, _))

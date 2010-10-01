@@ -80,10 +80,10 @@ public class UsePopup extends PopupPanel
         _popper.popup = this;
 
         if (deet.projectId > 0) {
-            add(Link.create(deet.signature, Page.PROJECT, deet.projectId,
-                            ProjectPage.Detail.SRC, deet.unitId, deet.defId));
+            add(Link.create(deet.sig, Page.PROJECT, deet.projectId,
+                            ProjectPage.Detail.SRC, deet.unitId, deet.def.id));
         } else {
-            add(Widgets.newLabel(deet.signature));
+            add(Widgets.newLabel(deet.sig));
         }
     }
 
