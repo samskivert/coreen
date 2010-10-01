@@ -66,6 +66,8 @@ trait ProjectServlet {
       val detail = new CompUnitDetail
       detail.unit = Convert.toJava(unit)
       detail.text = Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).getLines.toArray
+      detail.defs = _db.defs.where(d => d.unitId === unit.id).toArray sortBy(_.defStart) map(
+        Convert.toJava(_db.codeToType))
       detail
     }
   }

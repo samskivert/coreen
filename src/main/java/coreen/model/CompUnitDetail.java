@@ -17,9 +17,9 @@ public class CompUnitDetail
     /** The lines of text of the compilation unit. */
     public String[] text;
 
-    /** The defs that occur in this compilation unit. */
+    /** The defs that occur in this compilation unit (sorted in occurrence order). */
     public Def[] defs;
 
-    /** The uses that occur in this compilation unit. */
+    /** The uses that occur in this compilation unit (sorted in occurrence order). */
     public Use[] uses;
 }

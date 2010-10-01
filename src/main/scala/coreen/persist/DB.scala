@@ -46,7 +46,7 @@ trait DB {
       JDef.Type.TYPE -> 2.toByte,
       JDef.Type.FUNC -> 3.toByte,
       JDef.Type.TERM -> 4.toByte,
-      JDef.Type.UNKNOWN -> 255.toByte
+      JDef.Type.UNKNOWN -> 0.toByte
     )
 
     /** Maps a byte code back to a {@link JDef.Type}. */
