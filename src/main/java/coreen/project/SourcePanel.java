@@ -31,6 +31,15 @@ import coreen.util.PanelCallback;
  */
 public class SourcePanel extends Composite
 {
+    public interface Styles extends CssResource
+    {
+        String code ();
+        String def ();
+        String use ();
+
+        String usePopup ();
+    }
+
     public SourcePanel (long unitId)
     {
         initWidget(_binder.createAndBindUi(this));
@@ -52,10 +61,12 @@ public class SourcePanel extends Composite
                 }
             });
         }
-        for (Use use : detail.uses) {
+        for (final Use use : detail.uses) {
             elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
                 public Widget createElement (String text) {
-                    return Widgets.newInlineLabel(text, _styles.use());
+                    Widget span = Widgets.newInlineLabel(text, _styles.use());
+                    new UsePopup.Popper(_styles, use.referentId, span);
+                    return span;
                 }
             });
         }
@@ -90,13 +101,6 @@ public class SourcePanel extends Composite
             this.startPos = startPos;
             this.endPos = endPos;
         }
-    }
-
-    protected interface Styles extends CssResource
-    {
-        String code ();
-        String def ();
-        String use ();
     }
 
     protected @UiField SimplePanel _contents;

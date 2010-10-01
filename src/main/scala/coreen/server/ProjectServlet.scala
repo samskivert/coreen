@@ -11,7 +11,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, CompUnitDetail}
+import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit}
+import coreen.model.{CompUnitDetail, DefDetail}
 import coreen.persist.{DB, Project, CompUnit}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -49,10 +50,19 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def getCompUnit (unitId :Long) :CompUnitDetail = transaction {
-      _db.compunits.lookup(unitId) match {
-        case Some(unit) => loadCompUnitDetail(requireProject(unit.projectId), unit)
-        case None => throw new ServiceException("e.no_such_unit")
-      }
+      _db.compunits.lookup(unitId) map { unit =>
+        loadCompUnitDetail(requireProject(unit.projectId), unit)
+      } getOrElse(throw new ServiceException("e.no_such_unit"))
+    }
+
+    def getDef (defId :Long) :DefDetail = transaction {
+      _db.defs.lookup(defId) map { d =>
+        val dd = new DefDetail
+        dd.projectId = _db.compunits.lookup(d.unitId).get.projectId
+        dd.unitId = d.unitId
+        dd.signature = d.name // TODO: much!
+        dd
+      } getOrElse(throw new ServiceException("e.no_such_def"))
     }
 
     private def requireProject (id :Long) = transaction {

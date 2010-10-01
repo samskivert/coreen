@@ -18,6 +18,12 @@
     .use {
       font-style: italic;
     }
+    .usePopup {
+      padding: 5px;
+      z-index: 5;
+      border: 1px solid black;
+      background: white;
+    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
