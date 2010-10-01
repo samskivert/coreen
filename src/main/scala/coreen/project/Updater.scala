@@ -15,7 +15,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
-import coreen.persist.{DB, Project, CompUnit, Def, DefName}
+import coreen.persist.{DB, Project, CompUnit, Def, DefName, Use}
 import coreen.server.{Log, Exec, Dirs}
 
 /** Provides project updating services. */
@@ -155,12 +155,8 @@ trait Updater {
       // load up existing defs for this compunit, and a mapping from fqName to defId
       val (edefs, emap) = transaction {
         val tmp = _db.defs.where(d => d.unitId === unitId) map(d => (d.id, d)) toMap; // grumble
-        (tmp, _db.defmap.where(dn => dn.id in tmp.keySet) map(dn => (dn.fqName, dn.id)) toMap)
+        (tmp, _db.loadDefNames(tmp.keySet))
       }
-
-      // println("Have " + edefs.size + " existing defs...")
-      // println(edefs)
-      // println(emap)
 
       // generate a map from (string) id to all the defelems
       def flattenDefs (out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
@@ -173,28 +169,22 @@ trait Updater {
       val toDelete = oldDefs -- newDefs
       val (toAdd, toUpdate) = (newDefs -- oldDefs, oldDefs -- toDelete)
 
-      // println("To add " + toAdd)
-      // println("To update " + toUpdate)
-      // println("To delete " + toDelete)
-
-      def processDefs (ids :Map[String,Long], parentId :Long)(
-        out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
-        val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
-                       None, None, df.start, df.start+df.name.length, 0, 0)
-        ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ids, ndef.id))
-      }
-
       transaction {
         // add the new defs to the defname map to assign them ids
         _db.defmap.insert(toAdd.map(DefName(_)))
         // we have to load the newly assigned ids back out of the db as there's no way to get the
         // newly assigned ids when using a batch update
-        val nmap = _db.defmap.where(dn => dn.fqName in toAdd) map(dn => (dn.fqName, dn.id)) toMap
-
-        // nmap foreach { p => println(p._1 + " -> " + p._2) }
+        val nmap = _db.loadDefIds(toAdd)
+        val ids = emap ++ nmap
 
         // now convert the defelems into defs using the fqName to id map
-        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(emap ++ nmap, 0L))
+        def processDefs (parentId :Long)(
+          out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
+          val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
+                         None, None, df.start, df.start+df.name.length, 0, 0)
+          ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
+        }
+        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(0L))
 
         // insert, update, and delete
         if (!toAdd.isEmpty) {
@@ -211,6 +201,31 @@ trait Updater {
           _db.defs.deleteWhere(d => d.id in toDelIds)
           println("Deleted " + toDelete.size + " defs")
         }
+
+        // delete the old uses recorded for this compunit
+        _db.uses.deleteWhere(u => u.unitId === unitId)
+
+        // convert the useelems into (use, referentFqName) pairs
+        def processUses (out :Vector[(Use,String)], df :DefElem) :Vector[(Use,String)] = {
+            val defId = ids(df.id)
+            val nuses = df.uses.map(
+              u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
+            ((out ++ nuses) /: df.defs)(processUses)
+          }
+        val nuses = (Vector[(Use,String)]() /: cu.defs)(processUses)
+
+        // now look up the referents
+        val refFqNames = Set() ++ nuses.map(_._2)
+        val refIds = _db.loadDefIds(refFqNames)
+        // TODO: generate placeholder defs for unknown referents
+        val missingIds = refFqNames -- refIds.keySet
+        println("Need placeholders for " + missingIds)
+        val ruses = ((List[Use](),List[(Use,String)]()) /: nuses)((
+          acc, up) => refIds.get(up._2) match {
+          case Some(id) => ((up._1 copy (referentId = id)) :: acc._1, acc._2)
+          case None => (acc._1, up :: acc._2)
+        })
+        _db.uses.insert(ruses._1)
       }
     }
 

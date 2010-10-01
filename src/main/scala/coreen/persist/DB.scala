@@ -39,6 +39,25 @@ trait DB {
 
     /** A mapping from fully qualfied def name to id (and vice versa). */
     val defmap = table[DefName]
+    on(defmap) { dn => declare(
+      dn.fqName is(indexed)
+    )}
+
+    /** Returns a mapping from fqName to id for all known values in the supplied fqName set. */
+    def loadDefIds (fqNames :scala.collection.Set[String]) :Map[String,Long] =
+      defmap.where(dn => dn.fqName in fqNames) map(dn => (dn.fqName, dn.id)) toMap
+
+    /** Returns a mapping from fqName to id for all known values in the supplied id set. */
+    def loadDefNames (ids :scala.collection.Set[Long]) :Map[String,Long] =
+      defmap.where(dn => dn.id in ids) map(dn => (dn.fqName, dn.id)) toMap
+
+    /** Provides access to the uses table. */
+    val uses = table[Use]
+    on(uses) { u => declare(
+      u.unitId is(indexed),
+      u.ownerId is(indexed),
+      u.referentId is(indexed)
+    )}
 
     /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
     val typeToCode = Map(
@@ -168,4 +187,27 @@ case class Def (
 
   override def toString = ("[id=" + id + ", pid=" + parentId + ", uid=" + unitId +
                            ", name=" + name + ", type=" + typ + "]")
+}
+
+/** Contains metadata for a use. */
+case class Use (
+  /** The id of the compunit in which this use appears. */
+  unitId :Long,
+
+  /** The id of the immediately enclosing definition in which this use occurs. */
+  ownerId :Long,
+
+  /** The id of the definition of the referent of this use. */
+  referentId :Long,
+
+  /** The location in the source file of the start of this use. */
+  useStart :Int,
+
+  /** The location in the source file of the end of this use. */
+  useEnd :Int
+) {
+  /** Zero args ctor for use when unserializing. */
+  def this () = this(0L, 0L, 0L, 0, 0)
+
+  override def toString = ("[owner=" + ownerId + ", ref=" + referentId + "]")
 }

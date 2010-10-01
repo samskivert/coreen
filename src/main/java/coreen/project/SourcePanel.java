@@ -12,6 +12,7 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -19,6 +20,7 @@ import com.threerings.gwt.ui.Widgets;
 
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
+import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.util.Edit;
@@ -42,20 +44,59 @@ public class SourcePanel extends Composite
 
     protected Widget createContents (CompUnitDetail detail)
     {
-        // turn the defs into edits and sort the edits (TODO: clean up this hackitude)
-        List<Edit> edits = new ArrayList<Edit>();
+        List<Elementer> elems = new ArrayList<Elementer>();
         for (Def def : detail.defs) {
-            edits.add(new Edit(def.loc.start, "<b>"));
-            edits.add(new Edit(def.loc.start + def.loc.length, "</b>"));
+            elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
+                public Widget createElement (String text) {
+                    return Widgets.newInlineLabel(text, _styles.def());
+                }
+            });
         }
-        Collections.sort(edits);
+        for (Use use : detail.uses) {
+            elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
+                public Widget createElement (String text) {
+                    return Widgets.newInlineLabel(text, _styles.use());
+                }
+            });
+        }
+        Collections.sort(elems);
 
-        return Widgets.newHTML(Edit.applyEdits(edits, detail.text), _styles.code());
+        int offset = 0;
+        FlowPanel code = Widgets.newFlowPanel(_styles.code());
+        for (Elementer elem : elems) {
+            if (elem.startPos > offset) {
+                code.add(Widgets.newInlineLabel(detail.text.substring(offset, elem.startPos)));
+            }
+            code.add(elem.createElement(detail.text.substring(elem.startPos, elem.endPos)));
+            offset = elem.endPos;
+        }
+        if (offset < detail.text.length()) {
+            code.add(Widgets.newInlineLabel(detail.text.substring(offset), _styles.code()));
+        }
+        return code;
+    }
+
+    protected abstract class Elementer implements Comparable<Elementer> {
+        public final int startPos;
+        public final int endPos;
+
+        public abstract Widget createElement (String text);
+
+        public int compareTo (Elementer other) {
+            return startPos - other.startPos;
+        }
+
+        protected Elementer (int startPos, int endPos) {
+            this.startPos = startPos;
+            this.endPos = endPos;
+        }
     }
 
     protected interface Styles extends CssResource
     {
         String code ();
+        String def ();
+        String use ();
     }
 
     protected @UiField SimplePanel _contents;

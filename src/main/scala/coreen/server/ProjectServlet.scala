@@ -68,6 +68,8 @@ trait ProjectServlet {
       detail.text = Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).mkString("")
       detail.defs = _db.defs.where(d => d.unitId === unit.id).toArray sortBy(_.defStart) map(
         Convert.toJava(_db.codeToType))
+      detail.uses = _db.uses.where(u => u.unitId === unit.id).toArray sortBy(_.useStart) map(
+        Convert.toJava)
       detail
     }
   }
