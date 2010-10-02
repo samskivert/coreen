@@ -159,10 +159,8 @@ trait Updater {
       }
 
       // generate a map from (string) id to all the defelems
-      def flattenDefs (out :Map[String,DefElem], df :DefElem) :Map[String,DefElem] = {
-        ((out + (df.id->df)) /: df.defs)(flattenDefs)
-      }
-      val nelems = (Map[String,DefElem]() /: cu.defs)(flattenDefs)
+      def flattenDefs (df :DefElem) :Seq[DefElem] = df +: df.defs.flatMap(flattenDefs)
+      val nelems = cu.defs flatMap(flattenDefs) map(df => (df.id, df)) toMap
 
       // figure out which to add, which to update, and which to delete
       val (newDefs, oldDefs) = (nelems.keySet, emap.keySet)
@@ -178,8 +176,7 @@ trait Updater {
         val ids = emap ++ nmap
 
         // now convert the defelems into defs using the fqName to id map
-        def processDefs (parentId :Long)(
-          out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
+        def processDefs (parentId :Long)(out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
           val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
                          stropt(df.sig), None, df.start, df.start+df.name.length, 0, 0)
           ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
@@ -207,11 +204,11 @@ trait Updater {
 
         // convert the useelems into (use, referentFqName) pairs
         def processUses (out :Vector[(Use,String)], df :DefElem) :Vector[(Use,String)] = {
-            val defId = ids(df.id)
-            val nuses = df.uses.map(
-              u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
-            ((out ++ nuses) /: df.defs)(processUses)
-          }
+          val defId = ids(df.id)
+          val nuses = df.uses.map(
+            u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
+          ((out ++ nuses) /: df.defs)(processUses)
+        }
         val nuses = (Vector[(Use,String)]() /: cu.defs)(processUses)
 
         // now look up the referents
@@ -219,13 +216,12 @@ trait Updater {
         val refIds = _db.loadDefIds(refFqNames)
         // TODO: generate placeholder defs for unknown referents
         val missingIds = refFqNames -- refIds.keySet
-        println("Need placeholders for " + missingIds)
-        val ruses = ((List[Use](),List[(Use,String)]()) /: nuses)((
+        val (bound, unbound) = ((List[Use](),List[(Use,String)]()) /: nuses)((
           acc, up) => refIds.get(up._2) match {
           case Some(id) => ((up._1 copy (referentId = id)) :: acc._1, acc._2)
           case None => (acc._1, up :: acc._2)
         })
-        _db.uses.insert(ruses._1)
+        _db.uses.insert(bound)
       }
     }
 
