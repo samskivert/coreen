@@ -82,6 +82,7 @@ public class SourcePanel extends Composite
         int offset = 0;
         FlowPanel code = Widgets.newFlowPanel(_styles.code());
         for (Elementer elem : elems) {
+            if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
                 code.add(Widgets.newInlineLabel(detail.text.substring(offset, elem.startPos)));
             }
