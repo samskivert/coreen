@@ -34,15 +34,6 @@ import coreen.util.PanelCallback;
  */
 public class SourcePanel extends Composite
 {
-    public interface Styles extends CssResource
-    {
-        String code ();
-        String def ();
-        String use ();
-
-        String usePopup ();
-    }
-
     public SourcePanel (long unitId, final long scrollToDefId)
     {
         initWidget(_binder.createAndBindUi(this));
@@ -61,7 +52,7 @@ public class SourcePanel extends Composite
         for (Def def : detail.defs) {
             elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
                 public Widget createElement (String text) {
-                    return Widgets.newInlineLabel(text, _styles.def());
+                    return Widgets.newInlineLabel(text, _rsrc.styles().def());
                 }
             });
             if (scrollToDefId == def.id) {
@@ -71,8 +62,8 @@ public class SourcePanel extends Composite
         for (final Use use : detail.uses) {
             elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
                 public Widget createElement (String text) {
-                    Widget span = Widgets.newInlineLabel(text, _styles.use());
-                    new UsePopup.Popper(_styles, use.referentId, span);
+                    Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
+                    new UsePopup.Popper(use.referentId, span);
                     return span;
                 }
             });
@@ -80,7 +71,7 @@ public class SourcePanel extends Composite
         Collections.sort(elems);
 
         int offset = 0;
-        FlowPanel code = Widgets.newFlowPanel(_styles.code());
+        FlowPanel code = Widgets.newFlowPanel(_rsrc.styles().code());
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
@@ -99,7 +90,7 @@ public class SourcePanel extends Composite
             offset = elem.endPos;
         }
         if (offset < detail.text.length()) {
-            code.add(Widgets.newInlineLabel(detail.text.substring(offset), _styles.code()));
+            code.add(Widgets.newInlineLabel(detail.text.substring(offset), _rsrc.styles().code()));
         }
         return code;
     }
@@ -121,9 +112,9 @@ public class SourcePanel extends Composite
     }
 
     protected @UiField SimplePanel _contents;
-    protected @UiField Styles _styles;
 
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

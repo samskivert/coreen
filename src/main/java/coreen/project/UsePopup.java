@@ -26,8 +26,7 @@ public class UsePopup extends PopupPanel
 {
     public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (SourcePanel.Styles styles, long referentId, Widget target) {
-            _styles = styles;
+        public Popper (long referentId, Widget target) {
             _referentId = referentId;
             _target = target;
 
@@ -63,7 +62,7 @@ public class UsePopup extends PopupPanel
             } else {
                 _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
                     public void onSuccess (DefDetail deet) {
-                        Popups.showNear(_popup = new UsePopup(Popper.this, _styles, deet), _target);
+                        Popups.showNear(_popup = new UsePopup(Popper.this, deet), _target);
                     }
                 });
             }
@@ -79,7 +78,6 @@ public class UsePopup extends PopupPanel
             }
         };
 
-        protected SourcePanel.Styles _styles;
         protected long _referentId;
         protected Widget _target;
         protected UsePopup _popup;
@@ -88,10 +86,10 @@ public class UsePopup extends PopupPanel
         protected static final long BOUNCE = 250L;
     }
 
-    protected UsePopup (Popper popper, SourcePanel.Styles styles, DefDetail deet)
+    protected UsePopup (Popper popper, DefDetail deet)
     {
         super(true);
-        setStyleName(styles.usePopup());
+        setStyleName(_rsrc.styles().usePopup());
         _popper = popper;
 
         if (deet.projectId > 0) {
@@ -112,4 +110,5 @@ public class UsePopup extends PopupPanel
     protected Popper _popper;
 
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

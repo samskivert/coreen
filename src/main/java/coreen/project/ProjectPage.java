@@ -178,4 +178,10 @@ public class ProjectPage extends AbstractPage
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectMessages _msgs = GWT.create(ProjectMessages.class);
     protected static final ClientMessages _cmsgs = GWT.create(ClientMessages.class);
+
+    // ensure that our shared CSS resources are injected into the DOM
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    static {
+        _rsrc.styles().ensureInjected();
+    }
 }

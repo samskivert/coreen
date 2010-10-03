@@ -1,0 +1,21 @@
+/** Shared project styles. */
+
+.code {
+  font-family: Courier;
+  white-space: pre;
+}
+
+.def {
+  font-weight: bold;
+}
+
+.use {
+  font-style: italic;
+}
+
+.usePopup {
+  padding: 5px;
+  z-index: 5;
+  border: 1px solid black;
+  background: white;
+}
