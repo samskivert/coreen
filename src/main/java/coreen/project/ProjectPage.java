@@ -45,6 +45,9 @@ public class ProjectPage extends AbstractPage
         /** Compilation units, by directory. */
         CUS(_msgs.pByDir()),
 
+        /** Types, grouped alphabetically. */
+        TPS(_msgs.pByTypes()),
+
         /** Viewing an individual source file. */
         SRC(null);
 
@@ -131,6 +134,9 @@ public class ProjectPage extends AbstractPage
                 _compunits = new CompUnitsPanel(_proj.get());
             }
             _contents.setWidget(_compunits);
+            break;
+        case TPS:
+            _contents.setWidget(new TypesPanel(projectId));
             break;
         case SRC:
             _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L)));

@@ -8,21 +8,14 @@
     .contents {
       padding-top: 5px;
     }
-    .code {
-      font-family: Courier;
-      white-space: pre;
+    .byname {
+      width: 800px;
     }
-    .def {
+    .byname .Letter {
       font-weight: bold;
     }
-    .use {
-      font-style: italic;
-    }
-    .usePopup {
-      padding: 5px;
-      z-index: 5;
-      border: 1px solid black;
-      background: white;
+    .byname .Gap {
+      padding-right: 5px;
     }
   </ui:style>
 

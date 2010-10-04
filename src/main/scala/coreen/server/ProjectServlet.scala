@@ -71,14 +71,16 @@ trait ProjectServlet {
     // from interface ProjectService
     def getTypes (projectId :Long) :Array[JDef] = transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
-        where(cu.projectId === projectId and cu.id === d.unitId)
+        where(cu.projectId === projectId and cu.id === d.unitId and
+              (d.typ === _db.typeToCode(JDef.Type.TYPE)))
         select(d)
-      ) map(Convert.toJava(_db.codeToType)) toArray
+      ).toArray sortBy(_.name) map(Convert.toJava(_db.codeToType))
     }
 
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
-      _db.defs.where(d => d.parentId === defId) map(Convert.toJava(_db.codeToType)) toArray
+      _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
+        Convert.toJava(_db.codeToType))
     }
 
     private def requireProject (id :Long) = transaction {
