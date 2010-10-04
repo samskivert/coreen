@@ -24,8 +24,8 @@ trait LibraryServlet {
       transaction {
         from(_db.projects) { p =>
           select(p)
-                            //        orderBy(p.name)
-                          } map(Convert.toJava) toArray
+          //        orderBy(p.name)
+        } map(Convert.toJava) toArray
       }
     }
 
@@ -33,6 +33,6 @@ trait LibraryServlet {
     def getPendingProjects :Array[PendingProject] = _importer.getPendingProjects
 
     // from interface LibraryService
-    def  importProject (source :String) :PendingProject = _importer.importProject(source)
+    def importProject (source :String) :PendingProject = _importer.importProject(source)
   }
 }
