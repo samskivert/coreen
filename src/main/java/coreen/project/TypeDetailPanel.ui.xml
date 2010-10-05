@@ -10,6 +10,9 @@
       border: 1px solid;
       padding: 2px;
     }
+    .doc {
+      border-bottom: 1px solid;
+    }
     .sig {
     }
     .kind {

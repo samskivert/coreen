@@ -35,7 +35,7 @@ object SourceModel
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
-  case class DefElem (name :String, id :String, sig :String, typ :Def.Type,
+  case class DefElem (name :String, id :String, sig :String, doc :String, typ :Def.Type,
                       defs :Seq[DefElem], uses :Seq[UseElem], start :Int) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
       case h :: Nil => if (h == name) Some(this) else None
@@ -70,7 +70,8 @@ object SourceModel
   }
 
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
-    DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "@sig").text, parseType(elem),
+    DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "@sig").text, (elem \ "@doc").text,
+            parseType(elem),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
             children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]),
             intAttr(elem, "start"))

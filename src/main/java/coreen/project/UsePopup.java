@@ -7,6 +7,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -114,12 +115,17 @@ public class UsePopup extends PopupPanel
         setStyleName(_rsrc.styles().usePopup());
         _popper = popper;
 
+        FlowPanel panel = new FlowPanel();
+        if (deet.doc != null) {
+            panel.add(Widgets.newHTML(deet.doc));
+        }
         if (deet.projectId > 0) {
-            add(Link.create(deet.sig, Page.PROJECT, deet.projectId,
+            panel.add(Link.create(deet.sig, Page.PROJECT, deet.projectId,
                             ProjectPage.Detail.SRC, deet.unitId, deet.def.id));
         } else {
-            add(Widgets.newLabel(deet.sig));
+            panel.add(Widgets.newLabel(deet.sig));
         }
+        setWidget(panel);
     }
 
     @Override // from PopupPanel

@@ -178,7 +178,7 @@ trait Updater {
         // now convert the defelems into defs using the fqName to id map
         def processDefs (parentId :Long)(out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
           val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
-                         stropt(df.sig), None, df.start, df.start+df.name.length, 0, 0)
+                         stropt(df.sig), stropt(df.doc), df.start, df.start+df.name.length, 0, 0)
           ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
         }
         val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(0L))

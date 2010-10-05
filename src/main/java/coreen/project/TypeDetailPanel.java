@@ -54,6 +54,9 @@ public class TypeDetailPanel extends Composite
         initWidget(_binder.createAndBindUi(this));
 
         FluentTable deets = new FluentTable(2, 0);
+        if (detail.doc != null) {
+            deets.add().setText(detail.doc, _styles.doc()).setColSpan(2);
+        }
         deets.add().right().setText(detail.sig, _styles.sig());
         addDefs(deets, _msgs.tdpTypes(), detail.types);
         addDefs(deets, _msgs.tdpTerms(), detail.terms);
@@ -85,6 +88,7 @@ public class TypeDetailPanel extends Composite
 
     protected interface Styles extends CssResource
     {
+        String doc ();
         String sig ();
         String kind ();
         String defs ();
