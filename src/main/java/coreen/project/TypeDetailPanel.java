@@ -55,7 +55,7 @@ public class TypeDetailPanel extends Composite
 
         FluentTable deets = new FluentTable(2, 0);
         if (detail.doc != null) {
-            deets.add().setText(detail.doc, _styles.doc()).setColSpan(2);
+            deets.add().setHTML(detail.doc, _styles.doc()).setColSpan(2);
         }
         deets.add().setText(detail.sig, _rsrc.styles().code()).setColSpan(2);
         addDefs(deets, _msgs.tdpTypes(), detail.types);
