@@ -11,6 +11,7 @@ import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.Project;
+import coreen.model.TypeDetail;
 
 /**
  * Provides project-related services.
@@ -32,6 +33,12 @@ public interface ProjectService extends RemoteService
     /** Returns all compilation units associated with the specified project. */
     CompUnit[] getCompUnits (long projectId) throws ServiceException;
 
+    /** Returns all of the types defined by this project. */
+    Def[] getTypes (long projectId) throws ServiceException;
+
+    /** Returns all defs that are immediate children of the specified def. */
+    Def[] getMembers (long defId) throws ServiceException;
+
     /** Returns details for the specified compilation unit.
      * @throws ServiceException with e.no_such_unit if the unit is unknown. */
     CompUnitDetail getCompUnit (long unitId) throws ServiceException;
@@ -40,9 +47,7 @@ public interface ProjectService extends RemoteService
      * @throws ServiceException with e.no_such_def if the def is unknown. */
     DefDetail getDef (long defId) throws ServiceException;
 
-    /** Returns all of the types defined by this project. */
-    Def[] getTypes (long projectId) throws ServiceException;
-
-    /** Returns all defs that are immediate children of the specified def. */
-    Def[] getMembers (long defId) throws ServiceException;
+    /** Returns the details for the specified type.
+     * @throws ServiceException with e.no_such_def if the def is unknown. */
+    TypeDetail getType (long defId) throws ServiceException;
 }

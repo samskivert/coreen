@@ -60,7 +60,7 @@ public class TypesPanel extends Composite
                 types.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            new UsePopup.Popper(def.id, label);
+            TypeDetailPanel.bind(def, label, types);
             types.add(label);
         }
         return table;

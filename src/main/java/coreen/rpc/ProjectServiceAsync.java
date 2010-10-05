@@ -9,12 +9,18 @@ import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.Project;
+import coreen.model.TypeDetail;
 
 /**
  * Provides the asynchronous version of {@link ProjectService}.
  */
 public interface ProjectServiceAsync
 {
+    /**
+     * The async version of {@link ProjectService#getType}.
+     */
+    void getType (long defId, AsyncCallback<TypeDetail> callback);
+
     /**
      * The async version of {@link ProjectService#getProject}.
      */
@@ -26,16 +32,6 @@ public interface ProjectServiceAsync
     void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
-     * The async version of {@link ProjectService#getCompUnit}.
-     */
-    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
-
-    /**
-     * The async version of {@link ProjectService#getDef}.
-     */
-    void getDef (long defId, AsyncCallback<DefDetail> callback);
-
-    /**
      * The async version of {@link ProjectService#updateProject}.
      */
     void updateProject (long id, AsyncCallback<Void> callback);
@@ -44,6 +40,16 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getCompUnits}.
      */
     void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
+
+    /**
+     * The async version of {@link ProjectService#getDef}.
+     */
+    void getDef (long defId, AsyncCallback<DefDetail> callback);
 
     /**
      * The async version of {@link ProjectService#getMembers}.

@@ -19,3 +19,7 @@
   border: 1px solid black;
   background: white;
 }
+
+.actionable { 
+  cursor: pointer;
+}

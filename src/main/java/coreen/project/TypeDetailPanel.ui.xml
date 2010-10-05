@@ -1,0 +1,28 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style type="coreen.project.TypeDetailPanel.Styles" field="_styles">
+    .contents {
+      margin-top: 5px;
+      border: 1px solid;
+      padding: 2px;
+    }
+    .sig {
+    }
+    .kind {
+      text-align: right;
+      font-style: italic;
+      font-size: small;
+    }
+    .defs {
+    }
+    .defs .Gap {
+      padding-right: 5px;
+    }
+  </ui:style>
+
+  <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
+</ui:UiBinder>

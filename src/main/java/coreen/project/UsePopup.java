@@ -6,6 +6,7 @@ package coreen.project;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -36,6 +37,7 @@ public class UsePopup extends PopupPanel
                 ((HasMouseDownHandlers)target).addMouseDownHandler(this);
                 ((HasMouseOverHandlers)target).addMouseOverHandler(this);
                 ((HasMouseOutHandlers)target).addMouseOutHandler(this);
+                target.addStyleName(_rsrc.styles().actionable());
             }
         }
 
@@ -48,7 +50,8 @@ public class UsePopup extends PopupPanel
 
         public void onMouseOver (MouseOverEvent event) {
             if (_popup == null || !_popup.isShowing()) {
-                _timer.schedule(500);
+                // _timer.schedule(100);
+                showPopup();
             }
         }
 
@@ -58,14 +61,20 @@ public class UsePopup extends PopupPanel
 
         protected void showPopup () {
             if (_popup != null) {
-                _popup.show();
-            } else {
-                _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
-                    public void onSuccess (DefDetail deet) {
-                        Popups.showNear(_popup = new UsePopup(Popper.this, deet), _target);
-                    }
-                });
+                if (_current != null) {
+                    _current.hide();
+                }
+                _current = _popup;
+                _popup.showNear(_target);
+                return;
             }
+
+            _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
+                public void onSuccess (DefDetail deet) {
+                    _popup = new UsePopup(Popper.this, deet);
+                    showPopup();
+                }
+            });
         }
 
         protected void poppedDown () {
@@ -84,6 +93,19 @@ public class UsePopup extends PopupPanel
         protected long _lastPopdown;
 
         protected static final long BOUNCE = 250L;
+    }
+
+    public void showNear (Widget target)
+    {
+        setVisible(false);
+        show();
+        int left = target.getAbsoluteLeft();
+        int top = target.getAbsoluteTop() - getOffsetHeight() - 5;
+        if (left + getOffsetWidth() > Window.getClientWidth()) {
+            left = Math.max(0, Window.getClientWidth() - getOffsetWidth());
+        }
+        setPopupPosition(left, top);
+        setVisible(true);
     }
 
     protected UsePopup (Popper popper, DefDetail deet)
@@ -108,6 +130,8 @@ public class UsePopup extends PopupPanel
     }
 
     protected Popper _popper;
+
+    protected static UsePopup _current;
 
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
