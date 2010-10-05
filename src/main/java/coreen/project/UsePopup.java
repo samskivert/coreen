@@ -119,12 +119,15 @@ public class UsePopup extends PopupPanel
         if (deet.doc != null) {
             panel.add(Widgets.newHTML(deet.doc));
         }
+        Widget sig;
         if (deet.projectId > 0) {
-            panel.add(Link.create(deet.sig, Page.PROJECT, deet.projectId,
-                            ProjectPage.Detail.SRC, deet.unitId, deet.def.id));
+            sig = Link.create(deet.sig, Page.PROJECT, deet.projectId,
+                              ProjectPage.Detail.SRC, deet.unitId, deet.def.id);
         } else {
-            panel.add(Widgets.newLabel(deet.sig));
+            sig = Widgets.newLabel(deet.sig);
         }
+        sig.addStyleName(_rsrc.styles().code());
+        panel.add(sig);
         setWidget(panel);
     }
 

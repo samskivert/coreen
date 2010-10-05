@@ -57,7 +57,7 @@ public class TypeDetailPanel extends Composite
         if (detail.doc != null) {
             deets.add().setText(detail.doc, _styles.doc()).setColSpan(2);
         }
-        deets.add().right().setText(detail.sig, _styles.sig());
+        deets.add().setText(detail.sig, _rsrc.styles().code()).setColSpan(2);
         addDefs(deets, _msgs.tdpTypes(), detail.types);
         addDefs(deets, _msgs.tdpTerms(), detail.terms);
         addDefs(deets, _msgs.tdpFuncs(), detail.funcs);
@@ -70,7 +70,7 @@ public class TypeDetailPanel extends Composite
             return;
         }
 
-        FlowPanel panel = Widgets.newFlowPanel();
+        FlowPanel panel = Widgets.newFlowPanel(_styles.defs());
         for (Def def : defs) {
             if (panel.getWidgetCount() > 0) {
                 InlineLabel gap = new InlineLabel(" ");
@@ -83,13 +83,12 @@ public class TypeDetailPanel extends Composite
         }
 
         deets.add().setText(kind, _styles.kind()).alignTop().
-            right().setWidget(panel, _styles.defs());
+            right().setWidget(panel, _rsrc.styles().code());
     }
 
     protected interface Styles extends CssResource
     {
         String doc ();
-        String sig ();
         String kind ();
         String defs ();
         String Gap ();
