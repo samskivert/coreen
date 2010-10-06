@@ -27,6 +27,12 @@ public class Span
     /** Used when unserializing. */
     public Span () {}
 
+    /** * Offsets this span by the specified number of characters. */
+    public void adjust (int delta)
+    {
+        start += delta;
+    }
+
     @Override // from Object
     public String toString ()
     {

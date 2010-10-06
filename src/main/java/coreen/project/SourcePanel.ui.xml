@@ -6,7 +6,6 @@
              ui:generateLocales="default">
   <ui:style>
     .contents {
-      padding-top: 5px;
     }
   </ui:style>
 

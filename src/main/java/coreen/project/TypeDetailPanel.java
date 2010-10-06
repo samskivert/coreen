@@ -79,11 +79,12 @@ public class TypeDetailPanel extends Composite
                 panel.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            // new UsePopup.Popper(def.id, label);
+            new UsePopup.Popper(def.id, label);
             new ClickCallback<DefContent>(label) {
                 protected boolean callService () {
                     if (_content != null) {
                         panel.remove(_content);
+                        ((Widget)_trigger).removeStyleName(_styles.Open());
                         _content = null;
                         return false;
                     }
@@ -91,17 +92,27 @@ public class TypeDetailPanel extends Composite
                     return true;
                 }
                 protected boolean gotResult (DefContent content) {
-                    panel.add(_content = new SourcePanel(
-                                  content.text, content.defs, content.uses, 0L));
+                    ((Widget)_trigger).addStyleName(_styles.Open());
+                    panel.add(_content = createContentPanel(content));
                     return true;
                 }
-                protected SourcePanel _content;
+                protected Widget _content;
             };
             panel.add(label);
         }
 
         deets.add().setText(kind, _styles.kind()).alignTop().
-            right().setWidget(panel, _rsrc.styles().code());
+            right().setWidget(panel);
+    }
+
+    protected Widget createContentPanel (DefContent content)
+    {
+        FlowPanel bits = Widgets.newFlowPanel(_styles.defContent());
+        if (content.doc != null) {
+            bits.add(Widgets.newHTML(content.doc));
+        }
+        bits.add(new SourcePanel(content.text, content.defs, content.uses, 0L));
+        return bits;
     }
 
     protected interface Styles extends CssResource
@@ -109,7 +120,9 @@ public class TypeDetailPanel extends Composite
         String doc ();
         String kind ();
         String defs ();
-        String Gap ();
+        String /*defs*/ Gap ();
+        String /*defs*/ Open ();
+        String defContent();
     }
 
     protected @UiField SimplePanel _contents;

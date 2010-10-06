@@ -35,7 +35,7 @@ public class UsePopup extends PopupPanel
             if (!(target instanceof HasMouseOverHandlers)) {
                 GWT.log("Can't listen for mouse over on " + target);
             } else {
-                ((HasMouseDownHandlers)target).addMouseDownHandler(this);
+                // ((HasMouseDownHandlers)target).addMouseDownHandler(this);
                 ((HasMouseOverHandlers)target).addMouseOverHandler(this);
                 ((HasMouseOutHandlers)target).addMouseOutHandler(this);
                 target.addStyleName(_rsrc.styles().actionable());
@@ -62,9 +62,7 @@ public class UsePopup extends PopupPanel
 
         protected void showPopup () {
             if (_popup != null) {
-                if (_current != null) {
-                    _current.hide();
-                }
+                hidePopup();
                 _current = _popup;
                 _popup.showNear(_target);
                 return;
@@ -76,6 +74,12 @@ public class UsePopup extends PopupPanel
                     showPopup();
                 }
             });
+        }
+
+        protected void hidePopup () {
+            if (_current != null) {
+                _current.hide();
+            }
         }
 
         protected void poppedDown () {

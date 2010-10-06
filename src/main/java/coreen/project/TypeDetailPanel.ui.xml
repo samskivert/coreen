@@ -26,6 +26,15 @@
     .defs .Gap {
       padding-right: 5px;
     }
+    .defs .Open {
+      font-weight: bold;
+    }
+    .defContent {
+      margin-top: 5px;
+      border: 1px solid;
+      padding: 2px;
+      background: #FFFFFF;
+    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>

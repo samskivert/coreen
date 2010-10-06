@@ -89,11 +89,25 @@ trait ProjectServlet {
       val d = requireDef(defId)
       val dc = initDefDetail(d, new DefContent)
       val p = requireProject(dc.unit.projectId)
-      val text = Source.fromURI(new File(p.rootPath).toURI.resolve(dc.unit.path)).mkString("")
+
+      // load up the source text for this definition
       // TODO: prune whitespace from the left side of these lines
-      dc.text = text.substring(text.lastIndexOf(LineSeparator, d.bodyStart)+1, d.bodyEnd)
-      dc.defs = Array() // todo
-      dc.uses = Array() // todo
+      val text = Source.fromURI(new File(p.rootPath).toURI.resolve(dc.unit.path)).mkString("")
+      val start = text.lastIndexOf(LineSeparator, d.bodyStart)+1
+      dc.text = stripLeftMargin(text.substring(start, d.bodyEnd))
+
+      // load up all defs and uses that are children of the def in question
+      def loadDefs (parents :Set[Long]) :Seq[Def] = {
+        val defs = _db.defs.where(d => d.parentId in parents).toSeq
+        if (defs.isEmpty) defs
+        else defs ++ loadDefs(defs.map(_.id) toSet)
+      }
+      dc.defs = loadDefs(Set(defId)).toArray sortBy(_.defStart) map(Convert.toJava(_db.codeToType))
+      dc.defs foreach { _.loc.adjust(-start) }
+      val defIds = dc.defs map(_.id) toSet
+      val uses = _db.uses.where(u => u.ownerId in defIds).toArray
+      dc.uses = uses sortBy(_.useStart) map(Convert.toJava)
+      dc.uses foreach { _.loc.adjust(-start) }
       dc
     }
 
@@ -132,7 +146,14 @@ trait ProjectServlet {
         Convert.toJava)
       detail
     }
-  }
 
-  private val LineSeparator = System.getProperty("line.separator")
+    private def stripLeftMargin (text :String) = {
+      text
+      // val lines = text.split(LineSeparator)
+      // val margin = lines(0).length - lines(0).replaceFirst("^[ \t]*", "").length
+      // lines map(_.substring(margin)) mkString(LineSeparator)
+    }
+
+    private val LineSeparator = System.getProperty("line.separator")
+  }
 }
