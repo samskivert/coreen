@@ -67,16 +67,18 @@ trait Updater {
         val cus = time("parseCompUnits") {
           parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
         }
+        println("Parsed " + cus.size + " compunits.")
 
         // now that we've totally drained stdout, we can wait for stderr output and log it
-        errLines.get.foreach(ulog)
+        val errs = errLines.get
 
         // report any error status code (TODO: we probably don't really need to do this)
         val ecode = proc.waitFor
         if (ecode != 0) {
           ulog("Reader exited with status: " + ecode)
+          errs.foreach(ulog)
           return // leave the project as is; TODO: maybe not if this is the first import...
-          }
+        }
 
         // determine which CUs we knew about before
         val oldCUs = time("loadOldUnits") {
@@ -116,27 +118,23 @@ trait Updater {
         // declarations (TODO: support package-info.java files, Scala package objects, and
         // languages that have a compunit which can be reasonably associated with a module
         // definition)
-        val cuDef = _db.compunits.where(
-          cu => cu.projectId === p.id and cu.path === "").headOption.getOrElse(
-          transaction { _db.compunits.insert(CompUnit(p.id, "", now)) })
-
-        // as module definitions tend to span compilation units, we first extract and process them
-        val modDefs = transaction {
-          _db.defs.where(d => d.unitId === cuDef.id and
-                         d.typ === _db.typeToCode(JDef.Type.MODULE)) map(d => (d.id, d)) toMap
+        val cuDef = transaction {
+          _db.compunits.where(cu => cu.projectId === p.id and cu.path === "").headOption.
+            getOrElse(_db.compunits.insert(CompUnit(p.id, "", now)))
         }
-        val modEls = cus.flatMap(_.allDefs) filter(_.typ == JDef.Type.MODULE) map(_.id) toSet
-        val modMap = transaction { _db.loadDefNames(modDefs.keySet) }
-        val modsToAdd = modEls -- modMap.keySet
-        val modsToDel = modMap.keySet -- modEls
-        // for now we're not updating module defs since nothing changes...
-        println("Adding " + modsToAdd)
-        println("Removing " + modsToDel)
+
+        // we extract all of the module definitions, map them by id, and then select (arbitrarily)
+        // the first occurance of a definition for the specified module id to represent that
+        // module; we then strip those defs of their subdefs (which will be processed later) and
+        // then process the whole list as if they were all part of one "declare all the modules in
+        // this project" compilation unit
+        val byId = cus.flatMap(_.allDefs) filter(_.typ == JDef.Type.MODULE) groupBy(_.id)
+        val modDefs = byId.values map(_.head) map(_.copy(defs = Nil))
+        val modIds = processCompUnit(cuDef.id, Map(), CompUnitElem("", modDefs toSeq))
 
         // process each compunit individually
-        println("Parsed " + cuIds.size + " compunits.")
         for (cu <- cus) {
-          processCompUnit(cuIds(cu.src), cu)
+          processCompUnit(cuIds(cu.src), modIds, cu)
         }
 
         _timings.toList sortBy(_._2) foreach(println)
@@ -177,7 +175,7 @@ trait Updater {
       def args :List[String]
     }
 
-    def processCompUnit (unitId :Long, cu :CompUnitElem) = {
+    def processCompUnit (unitId :Long, modIds :Map[String,Long], cu :CompUnitElem) = {
       println("Processing " + unitId + " " + cu.src)
 
       // load up existing defs for this compunit, and a mapping from fqName to defId
@@ -192,7 +190,7 @@ trait Updater {
       // figure out which defs to add, which to update, and which to delete
       val (newDefs, oldDefs) = (cu.allIds, emap.keySet)
       val toDelete = oldDefs -- newDefs
-      val (toAdd, toUpdate) = (newDefs -- oldDefs, oldDefs -- toDelete)
+      val (toAdd, toUpdate) = (newDefs -- oldDefs -- modIds.keySet, oldDefs -- toDelete)
 
       transaction {
         // add the new defs to the defname map to assign them ids
@@ -202,7 +200,7 @@ trait Updater {
         // we have to load the newly assigned ids back out of the db as there's no way to get the
         // newly assigned ids when using a batch update
         val nmap = time("loadDefIds") { _db.loadDefIds(toAdd) }
-        val ids = emap ++ nmap
+        val ids = modIds ++ emap ++ nmap
 
         // now convert the defelems into defs using the fqName to id map
         def processDefs (parentId :Long)(out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
@@ -252,6 +250,8 @@ trait Updater {
           case None => (acc._1, up :: acc._2)
         })
         time("insertUses") { _db.uses.insert(bound) }
+
+        ids // return the mapping from fqName to id for all defs in this compunit
       }
     }
 

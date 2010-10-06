@@ -99,9 +99,12 @@ object SourceModel
     }
   }
 
-  protected def intAttr (elem :Node, attr :String) = try {
-    (elem \ ("@" + attr)).text.toInt
-  } catch {
-    case e :NumberFormatException => println("Bogus element? " + elem + "@" + attr); 0
+  protected def intAttr (elem :Node, attr :String) = {
+    val text = (elem \ ("@" + attr)).text.trim
+    try if (text.length == 0) 0 else text.toInt
+    catch {
+      case e :NumberFormatException => println(
+        "Bogus element? " + attr + " -> " + text + " in " + elem); 0
+    }
   }
 }
