@@ -49,7 +49,8 @@ object SourceModel
 
   /** Models a definition (e.g. class, field, function, method, variable). */
   case class DefElem (name :String, id :String, sig :String, doc :String, typ :Def.Type,
-                      defs :Seq[DefElem], uses :Seq[UseElem], start :Int) extends Span {
+                      defs :Seq[DefElem], uses :Seq[UseElem],
+                      start :Int, bodyStart :Int, bodyEnd :Int) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
       case h :: Nil => if (h == name) Some(this) else None
       case h :: t => if (h == name) defs flatMap(_.getDef(t)) headOption else None
@@ -87,7 +88,7 @@ object SourceModel
             parseType(elem),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
             children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]),
-            intAttr(elem, "start"))
+            intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"))
 
   protected def parseType (elem :Node) = {
     val text = (elem \ "@type").text
