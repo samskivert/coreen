@@ -14,11 +14,8 @@ public class DefDetail
     /** The standard information about this def. */
     public Def def;
 
-    /** The id of the project to which this def belongs, or -1 if it's an unknown def. */
-    public long projectId;
-
-    /** The id of the compunit to which this def belongs, or -1 if it's an unknown def. */
-    public long unitId;
+    /** The compunit to which this def belongs. */
+    public CompUnit unit;
 
     /** This def's signature. */
     public String sig;

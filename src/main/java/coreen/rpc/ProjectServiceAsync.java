@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import coreen.model.CompUnit;
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
+import coreen.model.DefContent;
 import coreen.model.DefDetail;
 import coreen.model.Project;
 import coreen.model.TypeDetail;
@@ -22,14 +23,14 @@ public interface ProjectServiceAsync
     void getType (long defId, AsyncCallback<TypeDetail> callback);
 
     /**
+     * The async version of {@link ProjectService#getContent}.
+     */
+    void getContent (long defId, AsyncCallback<DefContent> callback);
+
+    /**
      * The async version of {@link ProjectService#getProject}.
      */
     void getProject (long id, AsyncCallback<Project> callback);
-
-    /**
-     * The async version of {@link ProjectService#getTypes}.
-     */
-    void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
      * The async version of {@link ProjectService#updateProject}.
@@ -37,14 +38,9 @@ public interface ProjectServiceAsync
     void updateProject (long id, AsyncCallback<Void> callback);
 
     /**
-     * The async version of {@link ProjectService#getCompUnits}.
+     * The async version of {@link ProjectService#getTypes}.
      */
-    void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
-
-    /**
-     * The async version of {@link ProjectService#getCompUnit}.
-     */
-    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
+    void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
      * The async version of {@link ProjectService#getDef}.
@@ -52,7 +48,17 @@ public interface ProjectServiceAsync
     void getDef (long defId, AsyncCallback<DefDetail> callback);
 
     /**
+     * The async version of {@link ProjectService#getCompUnits}.
+     */
+    void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
+
+    /**
      * The async version of {@link ProjectService#getMembers}.
      */
     void getMembers (long defId, AsyncCallback<Def[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
 }

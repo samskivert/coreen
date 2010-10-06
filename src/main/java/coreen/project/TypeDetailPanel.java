@@ -18,6 +18,7 @@ import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
 
 import coreen.model.Def;
+import coreen.model.DefContent;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -49,7 +50,7 @@ public class TypeDetailPanel extends Composite
         };
     }
 
-    public TypeDetailPanel (final TypeDetail detail)
+    protected TypeDetailPanel (final TypeDetail detail)
     {
         initWidget(_binder.createAndBindUi(this));
 
@@ -70,15 +71,32 @@ public class TypeDetailPanel extends Composite
             return;
         }
 
-        FlowPanel panel = Widgets.newFlowPanel(_styles.defs());
-        for (Def def : defs) {
+        final FlowPanel panel = Widgets.newFlowPanel(_styles.defs());
+        for (final Def def : defs) {
             if (panel.getWidgetCount() > 0) {
                 InlineLabel gap = new InlineLabel(" ");
                 gap.addStyleName(_styles.Gap());
                 panel.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            new UsePopup.Popper(def.id, label);
+            // new UsePopup.Popper(def.id, label);
+            new ClickCallback<DefContent>(label) {
+                protected boolean callService () {
+                    if (_content != null) {
+                        panel.remove(_content);
+                        _content = null;
+                        return false;
+                    }
+                    _projsvc.getContent(def.id, this);
+                    return true;
+                }
+                protected boolean gotResult (DefContent content) {
+                    panel.add(_content = new SourcePanel(
+                                  content.text, content.defs, content.uses, 0L));
+                    return true;
+                }
+                protected SourcePanel _content;
+            };
             panel.add(label);
         }
 

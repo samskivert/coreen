@@ -36,20 +36,30 @@ public class SourcePanel extends Composite
 {
     public SourcePanel (long unitId, final long scrollToDefId)
     {
-        initWidget(_binder.createAndBindUi(this));
-
+        this();
         _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
             public void onSuccess (CompUnitDetail detail) {
-                _contents.setWidget(createContents(detail, scrollToDefId));
+                init(detail.text, detail.defs, detail.uses, scrollToDefId);
             }
         });
     }
 
-    protected Widget createContents (CompUnitDetail detail, long scrollToDefId)
+    public SourcePanel (String text, Def[] defs, Use[] uses, long scrollToDefId)
+    {
+        this();
+        init(text, defs, uses, scrollToDefId);
+    }
+
+    protected SourcePanel ()
+    {
+        initWidget(_binder.createAndBindUi(this));
+    }
+
+    protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId)
     {
         List<Elementer> elems = new ArrayList<Elementer>();
         Elementer scrollTo = null;
-        for (Def def : detail.defs) {
+        for (Def def : defs) {
             elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
                 public Widget createElement (String text) {
                     return Widgets.newInlineLabel(text, _rsrc.styles().def());
@@ -59,7 +69,7 @@ public class SourcePanel extends Composite
                 scrollTo = elems.get(elems.size()-1);
             }
         }
-        for (final Use use : detail.uses) {
+        for (final Use use : uses) {
             elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
@@ -75,10 +85,9 @@ public class SourcePanel extends Composite
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
-                code.add(Widgets.newInlineLabel(detail.text.substring(offset, elem.startPos)));
+                code.add(Widgets.newInlineLabel(text.substring(offset, elem.startPos)));
             }
-            final Widget span = elem.createElement(
-                detail.text.substring(elem.startPos, elem.endPos));
+            final Widget span = elem.createElement(text.substring(elem.startPos, elem.endPos));
             if (elem == scrollTo) {
                 DeferredCommand.addCommand(new Command() {
                     public void execute () {
@@ -89,10 +98,11 @@ public class SourcePanel extends Composite
             code.add(span);
             offset = elem.endPos;
         }
-        if (offset < detail.text.length()) {
-            code.add(Widgets.newInlineLabel(detail.text.substring(offset), _rsrc.styles().code()));
+        if (offset < text.length()) {
+            code.add(Widgets.newInlineLabel(text.substring(offset), _rsrc.styles().code()));
         }
-        return code;
+
+        _contents.setWidget(code);
     }
 
     protected abstract class Elementer implements Comparable<Elementer> {

@@ -10,8 +10,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
-import coreen.model.{CompUnitDetail, DefDetail, TypeDetail}
-import coreen.persist.{DB, Project, CompUnit}
+import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail}
+import coreen.persist.{DB, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
 
@@ -84,6 +84,19 @@ trait ProjectServlet {
       td
     }
 
+    // from interface ProjectService
+    def getContent (defId :Long) :DefContent = transaction {
+      val d = requireDef(defId)
+      val dc = initDefDetail(d, new DefContent)
+      val p = requireProject(dc.unit.projectId)
+      val text = Source.fromURI(new File(p.rootPath).toURI.resolve(dc.unit.path)).mkString("")
+      // TODO: prune whitespace from the left side of these lines
+      dc.text = text.substring(text.lastIndexOf(LineSeparator, d.bodyStart)+1, d.bodyEnd)
+      dc.defs = Array() // todo
+      dc.uses = Array() // todo
+      dc
+    }
+
     private def requireProject (id :Long) = transaction {
       _db.projects.lookup(id) match {
         case Some(p) => p
@@ -91,16 +104,23 @@ trait ProjectServlet {
       }
     }
 
-    private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) = {
-      _db.defs.lookup(defId) map { d =>
-        dd.`def` = Convert.toJava(_db.codeToType)(d)
-        dd.projectId = _db.compunits.lookup(d.unitId).get.projectId
-        dd.unitId = d.unitId
-        dd.sig = d.sig.getOrElse(null)
-        dd.doc = d.doc.getOrElse(null)
-        dd
-      } getOrElse(throw new ServiceException("e.no_such_def"))
+    private def requireDef (id :Long) = transaction {
+      _db.defs.lookup(id) match {
+        case Some(d) => d
+        case None => throw new ServiceException("e.no_such_def")
+      }
     }
+
+    private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
+      dd.`def` = Convert.toJava(_db.codeToType)(d)
+      dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
+      dd.sig = d.sig.getOrElse(null)
+      dd.doc = d.doc.getOrElse(null)
+      dd
+    }
+
+    private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =
+      initDefDetail(requireDef(defId), dd)
 
     private def loadCompUnitDetail (p :Project, unit :CompUnit) = {
       val detail = new CompUnitDetail
@@ -113,4 +133,6 @@ trait ProjectServlet {
       detail
     }
   }
+
+  private val LineSeparator = System.getProperty("line.separator")
 }
