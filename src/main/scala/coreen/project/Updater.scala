@@ -67,7 +67,7 @@ trait Updater {
         val cus = time("parseCompUnits") {
           parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
         }
-        println("Parsed " + cus.size + " compunits.")
+        ulog("Parsed " + cus.size + " compunits.")
 
         // now that we've totally drained stdout, we can wait for stderr output and log it
         val errs = errLines.get
@@ -178,8 +178,6 @@ trait Updater {
     }
 
     def processCompUnit (unitId :Long, modIds :Map[String,Long], cu :CompUnitElem) = {
-      println("Processing " + unitId + " " + cu.src)
-
       // load up existing defs for this compunit, and a mapping from fqName to defId
       val (edefs, emap) = time("loadNames") {
         transaction {
