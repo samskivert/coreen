@@ -41,7 +41,7 @@ trait DB {
     /** A mapping from fully qualfied def name to id (and vice versa). */
     val defmap = table[DefName]
     on(defmap) { dn => declare(
-      dn.fqName is(indexed)
+      dn.fqName is(indexed, unique)
     )}
 
     /** Returns a mapping from fqName to id for all known values in the supplied fqName set. */

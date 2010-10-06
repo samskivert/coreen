@@ -15,6 +15,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
+import coreen.model.{Def => JDef}
 import coreen.persist.{DB, Project, CompUnit, Def, DefName, Use}
 import coreen.server.{Log, Exec, Dirs}
 
@@ -63,7 +64,9 @@ trait Updater {
         // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
         // and processing each complete unit that we receive; anything in between compunit elements
         // is reported verbatim to the status log
-        val cus = parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
+        val cus = time("parseCompUnits") {
+          parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
+        }
 
         // now that we've totally drained stdout, we can wait for stderr output and log it
         errLines.get.foreach(ulog)
@@ -76,20 +79,22 @@ trait Updater {
           }
 
         // determine which CUs we knew about before
-        val oldCUs = transaction { _db.compunits where(cu => cu.projectId === p.id) toList }
+        val oldCUs = time("loadOldUnits") {
+          transaction { _db.compunits where(cu => cu.projectId === p.id) toList }
+        }
 
         // update compunit data, and construct a mapping from compunit path to id
-        val newPaths = Set() ++ (cus map(_.src))
+        val newPaths = Set("") ++ (cus map(_.src))
         val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
         val toAdd = newPaths -- (oldCUs map(_.path))
         val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id) toSet
         val cuIds = collection.mutable.Map[String,Long]()
+        val now = System.currentTimeMillis
         transaction {
           if (!toDelete.isEmpty) {
             _db.compunits.deleteWhere(cu => cu.id in toDelete)
             ulog("Removed " + toDelete.size + " obsolete compunits.")
           }
-          val now = System.currentTimeMillis
           if (!toAdd.isEmpty) {
             toAdd.map(CompUnit(p.id, _, now)) foreach { cu =>
               _db.compunits.insert(cu)
@@ -107,11 +112,34 @@ trait Updater {
           }
         }
 
+        // (if necessary) create a fake comp unit which will act as a container for module
+        // declarations (TODO: support package-info.java files, Scala package objects, and
+        // languages that have a compunit which can be reasonably associated with a module
+        // definition)
+        val cuDef = _db.compunits.where(
+          cu => cu.projectId === p.id and cu.path === "").headOption.getOrElse(
+          transaction { _db.compunits.insert(CompUnit(p.id, "", now)) })
+
+        // as module definitions tend to span compilation units, we first extract and process them
+        val modDefs = transaction {
+          _db.defs.where(d => d.unitId === cuDef.id and
+                         d.typ === _db.typeToCode(JDef.Type.MODULE)) map(d => (d.id, d)) toMap
+        }
+        val modEls = cus.flatMap(_.allDefs) filter(_.typ == JDef.Type.MODULE) map(_.id) toSet
+        val modMap = transaction { _db.loadDefNames(modDefs.keySet) }
+        val modsToAdd = modEls -- modMap.keySet
+        val modsToDel = modMap.keySet -- modEls
+        // for now we're not updating module defs since nothing changes...
+        println("Adding " + modsToAdd)
+        println("Removing " + modsToDel)
+
         // process each compunit individually
-        println(cuIds)
+        println("Parsed " + cuIds.size + " compunits.")
         for (cu <- cus) {
           processCompUnit(cuIds(cu.src), cu)
         }
+
+        _timings.toList sortBy(_._2) foreach(println)
       }
 
       def parseCompUnits (p :Project, ulog :String=>Unit, lines :Iterator[String]) = {
@@ -153,26 +181,27 @@ trait Updater {
       println("Processing " + unitId + " " + cu.src)
 
       // load up existing defs for this compunit, and a mapping from fqName to defId
-      val (edefs, emap) = transaction {
-        val tmp = _db.defs.where(d => d.unitId === unitId) map(d => (d.id, d)) toMap; // grumble
-        (tmp, _db.loadDefNames(tmp.keySet))
+      val (edefs, emap) = time("loadNames") {
+        transaction {
+          val tmp = _db.defs.where(d => d.unitId === unitId) map(d => (d.id, d)) toMap; // grumble
+          (tmp, _db.loadDefNames(tmp.keySet))
+        }
       }
+      println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
-      // generate a map from (string) id to all the defelems
-      def flattenDefs (df :DefElem) :Seq[DefElem] = df +: df.defs.flatMap(flattenDefs)
-      val nelems = cu.defs flatMap(flattenDefs) map(df => (df.id, df)) toMap
-
-      // figure out which to add, which to update, and which to delete
-      val (newDefs, oldDefs) = (nelems.keySet, emap.keySet)
+      // figure out which defs to add, which to update, and which to delete
+      val (newDefs, oldDefs) = (cu.allIds, emap.keySet)
       val toDelete = oldDefs -- newDefs
       val (toAdd, toUpdate) = (newDefs -- oldDefs, oldDefs -- toDelete)
 
       transaction {
         // add the new defs to the defname map to assign them ids
-        _db.defmap.insert(toAdd.map(DefName(_)))
+        time("insertNewNames") {
+          _db.defmap.insert(toAdd.map(DefName(_)))
+        }
         // we have to load the newly assigned ids back out of the db as there's no way to get the
         // newly assigned ids when using a batch update
-        val nmap = _db.loadDefIds(toAdd)
+        val nmap = time("loadDefIds") { _db.loadDefIds(toAdd) }
         val ids = emap ++ nmap
 
         // now convert the defelems into defs using the fqName to id map
@@ -186,7 +215,7 @@ trait Updater {
         // insert, update, and delete
         if (!toAdd.isEmpty) {
           val added = toAdd map(nmap) map(ndefs)
-          _db.defs.insert(added)
+          time("addNewDefs") { _db.defs.insert(added) }
           println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
@@ -195,12 +224,12 @@ trait Updater {
         }
         if (!toDelete.isEmpty) {
           val toDelIds = toDelete map(emap)
-          _db.defs.deleteWhere(d => d.id in toDelIds)
+          time("deleteOldDefs") { _db.defs.deleteWhere(d => d.id in toDelIds) }
           println("Deleted " + toDelete.size + " defs")
         }
 
         // delete the old uses recorded for this compunit
-        _db.uses.deleteWhere(u => u.unitId === unitId)
+        time("deleteOldUses") { _db.uses.deleteWhere(u => u.unitId === unitId) }
 
         // convert the useelems into (use, referentFqName) pairs
         def processUses (out :Vector[(Use,String)], df :DefElem) :Vector[(Use,String)] = {
@@ -213,7 +242,7 @@ trait Updater {
 
         // now look up the referents
         val refFqNames = Set() ++ nuses.map(_._2)
-        val refIds = _db.loadDefIds(refFqNames)
+        val refIds = time("loadRefIds") { _db.loadDefIds(refFqNames) }
         // TODO: generate placeholder defs for unknown referents
         val missingIds = refFqNames -- refIds.keySet
         val (bound, unbound) = ((List[Use](),List[(Use,String)]()) /: nuses)((
@@ -221,7 +250,7 @@ trait Updater {
           case Some(id) => ((up._1 copy (referentId = id)) :: acc._1, acc._2)
           case None => (acc._1, up :: acc._2)
         })
-        _db.uses.insert(bound)
+        time("insertUses") { _db.uses.insert(bound) }
       }
     }
 
@@ -233,6 +262,17 @@ trait Updater {
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
                   classname :: javaArgs)
     }
+
+    // TEMP: profiling helper
+    def time[T] (id :String)(action : => T) = {
+      val start = System.nanoTime
+      val r = action
+      val elapsed = System.nanoTime - start
+      _timings(id) = elapsed + _timings.getOrElse(id, 0L)
+      r
+    }
+    val _timings = collection.mutable.Map[String,Long]()
+    // END TEMP
 
     def stropt (text :String) = text match {
       case null | "" => None

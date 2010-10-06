@@ -32,6 +32,19 @@ object SourceModel
   case class CompUnitElem (var src :String, defs :Seq[DefElem]) {
     def getDef (path :String) :Option[DefElem] = getDef(path split("\\.") toList)
     def getDef (path :List[String]) :Option[DefElem] = defs flatMap(_.getDef(path)) headOption
+
+    /** Returns a sequence containing all defs in this unit. */
+    def allDefs :Seq[DefElem] = {
+      def flatten (df :DefElem) :Seq[DefElem] = df +: df.defs.flatMap(flatten)
+      defs flatMap(flatten)
+    }
+
+    /** Returns a set containing the ids of all defelems in this unit. */
+    def allIds :Set[String] = {
+      def flatten (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
+        (ids /: defs)((s, d) => flatten(s + d.id, d.defs))
+      flatten(Set(), defs)
+    }
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
