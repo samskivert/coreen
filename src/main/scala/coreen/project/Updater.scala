@@ -134,9 +134,11 @@ trait Updater {
 
         // process each compunit individually
         for (cu <- cus) {
+          ulog("Processing " + cu.src + "...")
           processCompUnit(cuIds(cu.src), modIds, cu)
         }
 
+        ulog("Processing complete!")
         _timings.toList sortBy(_._2) foreach(println)
       }
 
