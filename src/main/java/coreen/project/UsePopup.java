@@ -71,8 +71,13 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            if (_popup == null || !_popup.isShowing()) {
-                _timer.schedule(100);
+            // if this def is already onscreen, just highlight it
+            Widget def = _defmap.get(_referentId);
+            if (def != null) { // TODO: && is visible
+                def.addStyleName(_rsrc.styles().highlight());
+
+            } else if (_popup == null || !_popup.isShowing()) {
+                _timer.schedule(500);
                 // showPopup();
             }
         }
@@ -90,13 +95,6 @@ public class UsePopup extends PopupPanel
 
         protected void showPopup () {
             hidePopup();
-
-            // if this def is already onscreen, just highlight it
-            Widget def = _defmap.get(_referentId);
-            if (def != null) { // TODO: && is visible
-                def.addStyleName(_rsrc.styles().highlight());
-                return;
-            }
 
             // if we already have our popup, then just show it
             if (_popup != null) {

@@ -3,8 +3,6 @@
 
 package coreen.project;
 
-import java.util.HashMap;
-
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
@@ -105,7 +103,7 @@ public class ProjectPage extends AbstractPage
     public void setArgs (final Args args)
     {
         final long projectId = args.get(0, 0L);
-        final Detail detail = args.get(1, Detail.class, Detail.CUS);
+        final Detail detail = args.get(1, Detail.class, Detail.TPS);
         updateNavBar(projectId, detail);
 
         // if we have no project, or the wrong project, we must load the right project
@@ -148,8 +146,7 @@ public class ProjectPage extends AbstractPage
             break;
         }
         case SRC:
-            _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L),
-                                                new HashMap<Long, Widget>()));
+            _contents.setWidget(new SourcePanel.Full(args.get(2, 0L), args.get(3, 0L)));
             break;
         }
     }

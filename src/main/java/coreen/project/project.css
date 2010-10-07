@@ -33,3 +33,8 @@
 .highlight {
   background: #FF0000;
 }
+
+@external .actionLabel {
+  /* override gwt-utils default */
+  text-decoration: none;
+}

@@ -6,35 +6,31 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.TypeDetailPanel.Styles" field="_styles">
     .contents {
-      margin-top: 5px;
-      border: 1px solid;
-      padding: 2px;
-      background: #EEEEEE;
-    }
-    .contents .Deets {
-      width: 100%;
+      margin-top: 2px;
+      padding-top: 2px;
+      border-top: 1px solid;
+      width: 800px;
     }
     .doc {
-      border-bottom: 1px solid;
+    }
+    .members {
+      font-size: small;
+    }
+    .members .Icon {
+      vertical-align: bottom;
+      display: inline;
+    }
+    .members .Member {
+      float: left;
+      padding-right: 5px;
+    }
+    .members .Spacer {
+      clear: both;
     }
     .sig {
     }
-    .kind {
-      text-align: right;
-      font-style: italic;
-      font-size: small;
-      width: 50px;
-    }
-    .defs {
-    }
-    .defs .Gap {
-      padding-right: 5px;
-    }
-    .defContent {
-      margin-top: 5px;
-      border: 1px solid;
-      padding: 2px;
-      background: #FFFFFF;
+    .toggle {
+      float: right;
     }
   </ui:style>
 

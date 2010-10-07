@@ -14,11 +14,13 @@ import java.util.Set;
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JsArrayString;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
@@ -34,39 +36,52 @@ import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.util.Edit;
+import coreen.util.Errors;
 import coreen.util.PanelCallback;
 
 /**
  * Displays a single compilation unit.
  */
-public class SourcePanel extends Composite
+public abstract class SourcePanel extends Composite
 {
-    public SourcePanel (long unitId, final long scrollToDefId, Map<Long, Widget> defmap)
-    {
-        this(defmap);
-        _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
-            public void onSuccess (CompUnitDetail detail) {
-                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
-            }
-        });
+    /** A source panel that displays an entire compilation unit. */
+    public static class Full extends SourcePanel {
+        public Full (final long unitId, final long scrollToDefId) {
+            super(new HashMap<Long, Widget>());
+            _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
+                public void onSuccess (CompUnitDetail detail) {
+                    init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
+                }
+            });
+        }
     }
 
-    public SourcePanel (String text, Def[] defs, Use[] uses, long scrollToDefId,
-                        Map<Long, Widget> defmap, Function<DefDetail, Widget> linker)
-    {
-        this(defmap);
-        init(text, defs, uses, scrollToDefId, linker);
-    }
-
-    protected SourcePanel (Map<Long, Widget> defmap)
+    public SourcePanel (Map<Long, Widget> defmap)
     {
         initWidget(_binder.createAndBindUi(this));
+        _contents.setWidget(Widgets.newLabel("Loading..."));
         _defmap = defmap;
     }
 
     protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
                          final Function<DefDetail, Widget> linker)
     {
+        // TODO: make sure this doesn't freak out when source uses CRLF
+        JsArrayString lines = splitString(text, "\n");
+        String first = lines.get(0);
+        int prefix = first.indexOf(first.trim());
+        if (prefix > 0) {
+            // scan through another ten lines to ensure that the first line wasn't anomalous in
+            // establishing our indentation prefix
+            for (int ii = 0, ll = Math.min(lines.length(), 10); ii < ll; ii++) {
+                String line = lines.get(ii), tline = line.trim();
+                if (tline.length() != 0 && // line is not blank
+                    line.substring(0, Math.min(line.length(), prefix)).trim().length() > 0) {
+                    prefix = line.indexOf(tline);
+                }
+            }
+        }
+
         List<Elementer> elems = new ArrayList<Elementer>();
         for (final Def def : defs) {
             elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
@@ -94,13 +109,19 @@ public class SourcePanel extends Composite
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
-                code.add(Widgets.newInlineLabel(text.substring(offset, elem.startPos)));
+                String seg = text.substring(offset, elem.startPos);
+                // special handling for the first line since we can't rely on it following a
+                // newline to tell us that it needs to be trimmed
+                if (offset == 0 && prefix > 0) {
+                    seg = seg.substring(prefix);
+                }
+                code.add(Widgets.newInlineLabel(trimPrefix(seg, prefix)));
             }
             code.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
             offset = elem.endPos;
         }
         if (offset < text.length()) {
-            code.add(Widgets.newInlineLabel(text.substring(offset), _rsrc.styles().code()));
+            code.add(Widgets.newInlineLabel(trimPrefix(text.substring(offset), prefix)));
         }
 
         final Widget scrollTo = _defmap.get(scrollToDefId);
@@ -140,6 +161,25 @@ public class SourcePanel extends Composite
             this.endPos = endPos;
         }
     }
+
+    protected native JsArrayString splitString (String text, String delim) /*-{
+        return text.split(delim);
+    }-*/;
+
+    protected native String trimPrefix (String text, int prefix) /*-{
+        if (prefix == 0) {
+            return text;
+        }
+        var lines = text.split("\n");
+        var ii, ll = lines.length;
+        for (ii = 1; ii < ll; ii++) {
+           var line = lines[ii];
+           if (line.length > prefix) { // TODO: avoid chopping non-whitespace
+             lines[ii] = line.substring(prefix);
+           }
+         }
+         return lines.join("\n");
+    }-*/;
 
     protected Map<Long, Widget> _defmap;
     protected Set<Long> _added = new HashSet<Long>();
