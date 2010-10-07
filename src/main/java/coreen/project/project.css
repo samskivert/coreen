@@ -19,6 +19,7 @@
   z-index: 5;
   border: 1px solid black;
   background: white;
+  max-width: 800px;
 }
 
 .actionable { 
