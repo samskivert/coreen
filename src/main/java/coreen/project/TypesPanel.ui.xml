@@ -17,6 +17,9 @@
     .byname .Gap {
       padding-right: 5px;
     }
+    .byname .Open {
+      font-weight: bold;
+    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>

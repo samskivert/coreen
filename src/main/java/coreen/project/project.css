@@ -24,3 +24,7 @@
 .actionable { 
   cursor: pointer;
 }
+
+.openDef {
+  font-weight: bold;
+}

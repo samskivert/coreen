@@ -51,8 +51,8 @@ public class UsePopup extends PopupPanel
 
         public void onMouseOver (MouseOverEvent event) {
             if (_popup == null || !_popup.isShowing()) {
-                // _timer.schedule(100);
-                showPopup();
+                _timer.schedule(100);
+                // showPopup();
             }
         }
 

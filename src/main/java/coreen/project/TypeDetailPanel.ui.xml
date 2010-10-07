@@ -26,9 +26,6 @@
     .defs .Gap {
       padding-right: 5px;
     }
-    .defs .Open {
-      font-weight: bold;
-    }
     .defContent {
       margin-top: 5px;
       border: 1px solid;

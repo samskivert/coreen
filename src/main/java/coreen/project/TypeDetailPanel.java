@@ -36,6 +36,7 @@ public class TypeDetailPanel extends Composite
             protected boolean callService () {
                 if (_deets != null) {
                     target.remove(_deets);
+                    ((Widget)_trigger).removeStyleName(_rsrc.styles().openDef());
                     _deets = null;
                     return false;
                 }
@@ -43,6 +44,7 @@ public class TypeDetailPanel extends Composite
                 return true;
             }
             protected boolean gotResult (TypeDetail detail) {
+                ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
                 target.add(_deets = new TypeDetailPanel(detail));
                 return true;
             }
@@ -84,7 +86,7 @@ public class TypeDetailPanel extends Composite
                 protected boolean callService () {
                     if (_content != null) {
                         panel.remove(_content);
-                        ((Widget)_trigger).removeStyleName(_styles.Open());
+                        ((Widget)_trigger).removeStyleName(_rsrc.styles().openDef());
                         _content = null;
                         return false;
                     }
@@ -92,7 +94,7 @@ public class TypeDetailPanel extends Composite
                     return true;
                 }
                 protected boolean gotResult (DefContent content) {
-                    ((Widget)_trigger).addStyleName(_styles.Open());
+                    ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
                     panel.add(_content = createContentPanel(content));
                     return true;
                 }
@@ -121,7 +123,6 @@ public class TypeDetailPanel extends Composite
         String kind ();
         String defs ();
         String /*defs*/ Gap ();
-        String /*defs*/ Open ();
         String defContent();
     }
 

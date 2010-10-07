@@ -18,6 +18,7 @@ public interface ProjectResources extends ClientBundle
         String use ();
         String usePopup ();
         String actionable ();
+        String openDef ();
     }
 
     @Source("project.css")
