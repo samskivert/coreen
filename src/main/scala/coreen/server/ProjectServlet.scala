@@ -4,13 +4,14 @@
 package coreen.server
 
 import java.io.File
+
 import scala.io.Source
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
-import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail}
+import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail, TypedId}
 import coreen.persist.{DB, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -129,10 +130,17 @@ trait ProjectServlet {
     private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
       dd.`def` = Convert.toJava(_db.codeToType)(d)
       dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
+      dd.path = loadDefPath(d.parentId, Nil).toArray
       dd.sig = d.sig.getOrElse(null)
       dd.doc = d.doc.getOrElse(null)
       dd
     }
+
+    private def loadDefPath (defId :Long, path :List[TypedId]) :List[TypedId] =
+      if (defId == 0L) path else {
+        val d = _db.defs.lookup(defId).get
+        loadDefPath(d.parentId, new TypedId(_db.codeToType(d.typ), d.id) :: path)
+      }
 
     private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =
       initDefDetail(requireDef(defId), dd)

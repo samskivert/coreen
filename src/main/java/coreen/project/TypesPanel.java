@@ -31,18 +31,36 @@ import coreen.util.PanelCallback;
  */
 public class TypesPanel extends Composite
 {
-    public TypesPanel (final long projectId)
+    public TypesPanel ()
     {
         initWidget(_binder.createAndBindUi(this));
-
-        _projsvc.getTypes(projectId, new PanelCallback<Def[]>(_contents) {
-            public void onSuccess (Def[] defs) {
-                _contents.setWidget(createContents(projectId, defs));
-            }
-        });
     }
 
-    protected Widget createContents (long projectId, Def[] defs)
+    public void display (long projectId, final long typeId, final long memberId)
+    {
+        if (_projectId != projectId) {
+            _projsvc.getTypes(_projectId = projectId, new PanelCallback<Def[]>(_contents) {
+                public void onSuccess (Def[] defs) {
+                    _contents.setWidget(createContents(defs));
+                    showMember(typeId, memberId);
+                }
+            });
+        } else {
+            showMember(typeId, memberId);
+        }
+    }
+
+    protected void showMember (long typeId, long memberId)
+    {
+        TypeDetailPanel.Shower shower = _showers.get(typeId);
+        if (shower != null) {
+            shower.show(memberId);
+        } else {
+            GWT.log("Have no shower for " + typeId);
+        }
+    }
+
+    protected Widget createContents (Def[] defs)
     {
         FluentTable table = new FluentTable(5, 0, _styles.byname());
         FlowPanel types = null;
@@ -63,7 +81,7 @@ public class TypesPanel extends Composite
                 types.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            TypeDetailPanel.bind(def, label, types, _defmap);
+            _showers.put(def.id, new TypeDetailPanel.Shower(def, label, types, _defmap));
             types.add(label);
         }
         return table;
@@ -76,7 +94,10 @@ public class TypesPanel extends Composite
         String Gap ();
     }
 
+    protected long _projectId;
     protected Map<Long, Widget> _defmap = new HashMap<Long, Widget>();
+    protected Map<Long, TypeDetailPanel.Shower> _showers =
+        new HashMap<Long, TypeDetailPanel.Shower>();
 
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Function;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -27,6 +29,7 @@ import com.threerings.gwt.util.WindowUtil;
 
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
+import coreen.model.DefDetail;
 import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -43,16 +46,16 @@ public class SourcePanel extends Composite
         this(defmap);
         _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
             public void onSuccess (CompUnitDetail detail) {
-                init(detail.text, detail.defs, detail.uses, scrollToDefId);
+                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
             }
         });
     }
 
     public SourcePanel (String text, Def[] defs, Use[] uses, long scrollToDefId,
-                        Map<Long, Widget> defmap)
+                        Map<Long, Widget> defmap, Function<DefDetail, Widget> linker)
     {
         this(defmap);
-        init(text, defs, uses, scrollToDefId);
+        init(text, defs, uses, scrollToDefId, linker);
     }
 
     protected SourcePanel (Map<Long, Widget> defmap)
@@ -61,7 +64,8 @@ public class SourcePanel extends Composite
         _defmap = defmap;
     }
 
-    protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId)
+    protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
+                         final Function<DefDetail, Widget> linker)
     {
         List<Elementer> elems = new ArrayList<Elementer>();
         for (final Def def : defs) {
@@ -70,7 +74,6 @@ public class SourcePanel extends Composite
                     Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
                     _added.add(def.id);
                     _defmap.put(def.id, w);
-                    GWT.log("Adding mapping for " + def.id);
                     return w;
                 }
             });
@@ -79,7 +82,7 @@ public class SourcePanel extends Composite
             elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span, _defmap);
+                    new UsePopup.Popper(use.referentId, span, _defmap, linker);
                     return span;
                 }
             });
@@ -118,7 +121,6 @@ public class SourcePanel extends Composite
         super.onUnload();
         // clear out the defs we were displaying
         for (Long defId : _added) {
-            GWT.log("Clearing mapping for " + defId);
             _defmap.remove(defId);
         }
     }
@@ -139,8 +141,9 @@ public class SourcePanel extends Composite
         }
     }
 
-    protected Set<Long> _added = new HashSet<Long>();
     protected Map<Long, Widget> _defmap;
+    protected Set<Long> _added = new HashSet<Long>();
+
     protected @UiField SimplePanel _contents;
 
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}

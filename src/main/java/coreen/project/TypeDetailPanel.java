@@ -3,6 +3,7 @@
 
 package coreen.project;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
@@ -24,7 +25,6 @@ import coreen.model.DefContent;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
-import coreen.util.ClickCallback;
 import coreen.util.PanelCallback;
 
 /**
@@ -32,27 +32,49 @@ import coreen.util.PanelCallback;
  */
 public class TypeDetailPanel extends Composite
 {
-    public static void bind (final Def def, final Label trigger, final FlowPanel target,
-                             final Map<Long, Widget> defmap)
+    public static class Shower extends ShowCallback<TypeDetail, TypeDetailPanel>
     {
-        new ClickCallback<TypeDetail>(trigger) {
-            protected boolean callService () {
-                if (_deets != null) {
-                    target.remove(_deets);
-                    ((Widget)_trigger).removeStyleName(_rsrc.styles().openDef());
-                    _deets = null;
-                    return false;
-                }
-                _projsvc.getType(def.id, this);
-                return true;
-            }
-            protected boolean gotResult (TypeDetail detail) {
-                ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
-                target.add(_deets = new TypeDetailPanel(detail, defmap));
-                return true;
-            }
-            protected TypeDetailPanel _deets;
-        };
+        public Shower (Def def, Label trigger, FlowPanel target, Map<Long, Widget> defmap) {
+            super(trigger, target);
+            _def = def;
+            _defmap = defmap;
+        }
+
+        public void show (long memberId) {
+            GWT.log("Showing " + _def);
+            _pendingMemberId = memberId;
+            show();
+        }
+
+        protected boolean callService () {
+            _projsvc.getType(_def.id, this);
+            return true;
+        }
+
+        protected TypeDetailPanel createDisplay (TypeDetail detail) {
+            return new TypeDetailPanel(detail, _defmap);
+        }
+
+        protected void displayShown () {
+            super.displayShown();
+            GWT.log("Showed details for " + _def);
+            _display.showMember(_pendingMemberId);
+            _pendingMemberId = 0L;
+        }
+
+        protected Def _def;
+        protected Map<Long, Widget> _defmap;
+        protected long _pendingMemberId;
+    }
+
+    public void showMember (long memberId)
+    {
+        ShowCallback<DefContent, Widget> shower = _showers.get(memberId);
+        if (shower != null) {
+            shower.show();
+        } else {
+            GWT.log("No shower for member " + memberId);
+        }
     }
 
     protected TypeDetailPanel (final TypeDetail detail, Map<Long, Widget> defmap)
@@ -74,7 +96,7 @@ public class TypeDetailPanel extends Composite
         _contents.setWidget(deets);
     }
 
-    protected void addDefs (FluentTable deets, String kind, Def[] defs, final FlowPanel code)
+    protected void addDefs (FluentTable deets, String kind, Def[] defs, FlowPanel code)
     {
         if (defs.length == 0) {
             return;
@@ -88,42 +110,36 @@ public class TypeDetailPanel extends Composite
                 panel.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            new UsePopup.Popper(def.id, label, _defmap);
-            new ClickCallback<DefContent>(label) {
+            new UsePopup.Popper(def.id, label, _defmap, UsePopup.BY_TYPES);
+            GWT.log("Mapping " + def.id);
+            _showers.put(def.id, new ShowCallback<DefContent, Widget>(label, code) {
                 protected boolean callService () {
-                    if (_content != null) {
-                        code.remove(_content);
-                        code.setVisible(code.getWidgetCount() > 0);
-                        ((Widget)_trigger).removeStyleName(_rsrc.styles().openDef());
-                        _content = null;
-                        return false;
-                    }
                     _projsvc.getContent(def.id, this);
                     return true;
                 }
-                protected boolean gotResult (DefContent content) {
-                    ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
-                    code.add(_content = createContentPanel(content));
-                    code.setVisible(true);
-                    return true;
+                protected Widget createDisplay (DefContent content) {
+                    FlowPanel bits = Widgets.newFlowPanel();
+                    if (content.doc != null) {
+                        bits.add(Widgets.newHTML(content.doc));
+                    }
+                    bits.add(new SourcePanel(content.text, content.defs, content.uses, 0L,
+                                             _defmap, UsePopup.BY_TYPES));
+                    return bits;
                 }
-                protected Widget _content;
-            };
+                protected void displayShown () {
+                    GWT.log("Showed display for " + def);
+                    _target.setVisible(true);
+                    super.displayShown();
+                }
+                protected void displayHidden () {
+                    _target.setVisible(_target.getWidgetCount() > 0);
+                }
+            });
             panel.add(label);
         }
 
         deets.add().setText(kind, _styles.kind()).alignTop().
             right().setWidget(panel);
-    }
-
-    protected Widget createContentPanel (DefContent content)
-    {
-        FlowPanel bits = Widgets.newFlowPanel();
-        if (content.doc != null) {
-            bits.add(Widgets.newHTML(content.doc));
-        }
-        bits.add(new SourcePanel(content.text, content.defs, content.uses, 0L, _defmap));
-        return bits;
     }
 
     protected interface Styles extends CssResource
@@ -137,6 +153,9 @@ public class TypeDetailPanel extends Composite
     }
 
     protected Map<Long, Widget> _defmap;
+    protected Map<Long, ShowCallback<DefContent, Widget>> _showers =
+        new HashMap<Long, ShowCallback<DefContent, Widget>>();
+
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
 

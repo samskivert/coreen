@@ -5,6 +5,8 @@ package coreen.project;
 
 import java.util.Map;
 
+import com.google.common.base.Function;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.Timer;
@@ -28,12 +30,28 @@ import coreen.rpc.ProjectServiceAsync;
  */
 public class UsePopup extends PopupPanel
 {
+    public static final Function<DefDetail, Widget> SOURCE = new Function<DefDetail, Widget>() {
+        public Widget apply (DefDetail deet) {
+            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
+                               ProjectPage.Detail.SRC, deet.unit.id, deet.def.id);
+        }
+    };
+
+    public static final Function<DefDetail, Widget> BY_TYPES = new Function<DefDetail, Widget>() {
+        public Widget apply (DefDetail deet) {
+            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
+                               ProjectPage.Detail.TPS, deet.outerTypeId(), deet.outerMemberId());
+        }
+    };
+
     public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (long referentId, Widget target, Map<Long, Widget> defmap) {
+        public Popper (long referentId, Widget target, Map<Long, Widget> defmap,
+                       Function<DefDetail, Widget> linker) {
             _referentId = referentId;
             _target = target;
             _defmap = defmap;
+            _linker = linker;
 
             if (!(target instanceof HasMouseOverHandlers)) {
                 GWT.log("Can't listen for mouse over on " + target);
@@ -78,8 +96,6 @@ public class UsePopup extends PopupPanel
             if (def != null) { // TODO: && is visible
                 def.addStyleName(_rsrc.styles().highlight());
                 return;
-            } else {
-                GWT.log("No mapping for " + _referentId);
             }
 
             // if we already have our popup, then just show it
@@ -92,7 +108,7 @@ public class UsePopup extends PopupPanel
             // otherwise we have to fetch our referent details
             _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
                 public void onSuccess (DefDetail deet) {
-                    _popup = new UsePopup(Popper.this, deet);
+                    _popup = new UsePopup(Popper.this, deet, _linker);
                     showPopup();
                 }
             });
@@ -117,6 +133,8 @@ public class UsePopup extends PopupPanel
         protected long _referentId;
         protected Widget _target;
         protected Map<Long, Widget> _defmap;
+        protected Function<DefDetail, Widget> _linker;
+
         protected UsePopup _popup;
         protected long _lastPopdown;
 
@@ -136,7 +154,7 @@ public class UsePopup extends PopupPanel
         setVisible(true);
     }
 
-    protected UsePopup (Popper popper, DefDetail deet)
+    protected UsePopup (Popper popper, DefDetail deet, Function<DefDetail, Widget> linker)
     {
         super(true);
         setStyleName(_rsrc.styles().usePopup());
@@ -146,10 +164,10 @@ public class UsePopup extends PopupPanel
         if (deet.doc != null) {
             panel.add(Widgets.newHTML(deet.doc));
         }
+        panel.add(Widgets.newLabel("Parents " + deet.path.length));
         Widget sig;
         if (deet.unit.projectId > 0) {
-            sig = Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
-                              ProjectPage.Detail.SRC, deet.unit.id, deet.def.id);
+            sig = linker.apply(deet);
         } else {
             sig = Widgets.newLabel(deet.sig);
         }

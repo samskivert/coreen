@@ -137,9 +137,16 @@ public class ProjectPage extends AbstractPage
             }
             _contents.setWidget(_compunits);
             break;
-        case TPS:
-            _contents.setWidget(new TypesPanel(projectId));
+        case TPS: {
+            TypesPanel panel;
+            if (_contents.getWidget() instanceof TypesPanel) {
+                panel = (TypesPanel)_contents.getWidget();
+            } else {
+                _contents.setWidget(panel = new TypesPanel());
+            }
+            panel.display(projectId, args.get(2, 0L), args.get(3, 0L));
             break;
+        }
         case SRC:
             _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L),
                                                 new HashMap<Long, Widget>()));
