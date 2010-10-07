@@ -41,7 +41,6 @@ public class TypeDetailPanel extends Composite
         }
 
         public void show (long memberId) {
-            GWT.log("Showing " + _def);
             _pendingMemberId = memberId;
             show();
         }
@@ -57,7 +56,6 @@ public class TypeDetailPanel extends Composite
 
         protected void displayShown () {
             super.displayShown();
-            GWT.log("Showed details for " + _def);
             _display.showMember(_pendingMemberId);
             _pendingMemberId = 0L;
         }
@@ -111,7 +109,6 @@ public class TypeDetailPanel extends Composite
             }
             InlineLabel label = new InlineLabel(def.name);
             new UsePopup.Popper(def.id, label, _defmap, UsePopup.BY_TYPES);
-            GWT.log("Mapping " + def.id);
             _showers.put(def.id, new ShowCallback<DefContent, Widget>(label, code) {
                 protected boolean callService () {
                     _projsvc.getContent(def.id, this);
@@ -127,7 +124,6 @@ public class TypeDetailPanel extends Composite
                     return bits;
                 }
                 protected void displayShown () {
-                    GWT.log("Showed display for " + def);
                     _target.setVisible(true);
                     super.displayShown();
                 }

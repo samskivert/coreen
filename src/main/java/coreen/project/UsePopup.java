@@ -164,7 +164,6 @@ public class UsePopup extends PopupPanel
         if (deet.doc != null) {
             panel.add(Widgets.newHTML(deet.doc));
         }
-        panel.add(Widgets.newLabel("Parents " + deet.path.length));
         Widget sig;
         if (deet.unit.projectId > 0) {
             sig = linker.apply(deet);
