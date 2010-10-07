@@ -29,3 +29,8 @@
 .openDef {
   font-weight: bold;
 }
+
+.highlight {
+  text-decoration: underline;
+  background: #FF0000;
+}

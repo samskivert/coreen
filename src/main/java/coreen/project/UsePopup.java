@@ -3,6 +3,8 @@
 
 package coreen.project;
 
+import java.util.Map;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.Timer;
@@ -28,9 +30,10 @@ public class UsePopup extends PopupPanel
 {
     public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (long referentId, Widget target) {
+        public Popper (long referentId, Widget target, Map<Long, Widget> defmap) {
             _referentId = referentId;
             _target = target;
+            _defmap = defmap;
 
             if (!(target instanceof HasMouseOverHandlers)) {
                 GWT.log("Can't listen for mouse over on " + target);
@@ -57,17 +60,36 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOut (MouseOutEvent event) {
+            // cancel any pending pop timer
             _timer.cancel();
+
+            // if we've highlighted our onscreen def, unhighlight it
+            Widget def = _defmap.get(_referentId);
+            if (def != null) {
+                def.removeStyleName(_rsrc.styles().highlight());
+            }
         }
 
         protected void showPopup () {
+            hidePopup();
+
+            // if this def is already onscreen, just highlight it
+            Widget def = _defmap.get(_referentId);
+            if (def != null) { // TODO: && is visible
+                def.addStyleName(_rsrc.styles().highlight());
+                return;
+            } else {
+                GWT.log("No mapping for " + _referentId);
+            }
+
+            // if we already have our popup, then just show it
             if (_popup != null) {
-                hidePopup();
                 _current = _popup;
                 _popup.showNear(_target);
                 return;
             }
 
+            // otherwise we have to fetch our referent details
             _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
                 public void onSuccess (DefDetail deet) {
                     _popup = new UsePopup(Popper.this, deet);
@@ -94,6 +116,7 @@ public class UsePopup extends PopupPanel
 
         protected long _referentId;
         protected Widget _target;
+        protected Map<Long, Widget> _defmap;
         protected UsePopup _popup;
         protected long _lastPopdown;
 

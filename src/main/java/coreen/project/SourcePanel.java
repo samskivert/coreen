@@ -5,7 +5,11 @@ package coreen.project;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.CssResource;
@@ -34,9 +38,9 @@ import coreen.util.PanelCallback;
  */
 public class SourcePanel extends Composite
 {
-    public SourcePanel (long unitId, final long scrollToDefId)
+    public SourcePanel (long unitId, final long scrollToDefId, Map<Long, Widget> defmap)
     {
-        this();
+        this(defmap);
         _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
             public void onSuccess (CompUnitDetail detail) {
                 init(detail.text, detail.defs, detail.uses, scrollToDefId);
@@ -44,36 +48,38 @@ public class SourcePanel extends Composite
         });
     }
 
-    public SourcePanel (String text, Def[] defs, Use[] uses, long scrollToDefId)
+    public SourcePanel (String text, Def[] defs, Use[] uses, long scrollToDefId,
+                        Map<Long, Widget> defmap)
     {
-        this();
+        this(defmap);
         init(text, defs, uses, scrollToDefId);
     }
 
-    protected SourcePanel ()
+    protected SourcePanel (Map<Long, Widget> defmap)
     {
         initWidget(_binder.createAndBindUi(this));
+        _defmap = defmap;
     }
 
     protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId)
     {
         List<Elementer> elems = new ArrayList<Elementer>();
-        Elementer scrollTo = null;
-        for (Def def : defs) {
+        for (final Def def : defs) {
             elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
                 public Widget createElement (String text) {
-                    return Widgets.newInlineLabel(text, _rsrc.styles().def());
+                    Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
+                    _added.add(def.id);
+                    _defmap.put(def.id, w);
+                    GWT.log("Adding mapping for " + def.id);
+                    return w;
                 }
             });
-            if (scrollToDefId == def.id) {
-                scrollTo = elems.get(elems.size()-1);
-            }
         }
         for (final Use use : uses) {
             elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span);
+                    new UsePopup.Popper(use.referentId, span, _defmap);
                     return span;
                 }
             });
@@ -87,22 +93,34 @@ public class SourcePanel extends Composite
             if (elem.startPos > offset) {
                 code.add(Widgets.newInlineLabel(text.substring(offset, elem.startPos)));
             }
-            final Widget span = elem.createElement(text.substring(elem.startPos, elem.endPos));
-            if (elem == scrollTo) {
-                DeferredCommand.addCommand(new Command() {
-                    public void execute () {
-                        WindowUtil.scrollTo(span);
-                    }
-                });
-            }
-            code.add(span);
+            code.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
             offset = elem.endPos;
         }
         if (offset < text.length()) {
             code.add(Widgets.newInlineLabel(text.substring(offset), _rsrc.styles().code()));
         }
 
+        final Widget scrollTo = _defmap.get(scrollToDefId);
+        if (scrollTo != null) {
+            DeferredCommand.addCommand(new Command() {
+                public void execute () {
+                    WindowUtil.scrollTo(scrollTo);
+                }
+            });
+        }
+
         _contents.setWidget(code);
+    }
+
+    @Override // from Widget
+    protected void onUnload ()
+    {
+        super.onUnload();
+        // clear out the defs we were displaying
+        for (Long defId : _added) {
+            GWT.log("Clearing mapping for " + defId);
+            _defmap.remove(defId);
+        }
     }
 
     protected abstract class Elementer implements Comparable<Elementer> {
@@ -121,6 +139,8 @@ public class SourcePanel extends Composite
         }
     }
 
+    protected Set<Long> _added = new HashSet<Long>();
+    protected Map<Long, Widget> _defmap;
     protected @UiField SimplePanel _contents;
 
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}

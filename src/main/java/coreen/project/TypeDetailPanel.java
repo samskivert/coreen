@@ -3,6 +3,8 @@
 
 package coreen.project;
 
+import java.util.Map;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -30,7 +32,8 @@ import coreen.util.PanelCallback;
  */
 public class TypeDetailPanel extends Composite
 {
-    public static void bind (final Def def, final Label trigger, final FlowPanel target)
+    public static void bind (final Def def, final Label trigger, final FlowPanel target,
+                             final Map<Long, Widget> defmap)
     {
         new ClickCallback<TypeDetail>(trigger) {
             protected boolean callService () {
@@ -45,35 +48,39 @@ public class TypeDetailPanel extends Composite
             }
             protected boolean gotResult (TypeDetail detail) {
                 ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
-                target.add(_deets = new TypeDetailPanel(detail));
+                target.add(_deets = new TypeDetailPanel(detail, defmap));
                 return true;
             }
             protected TypeDetailPanel _deets;
         };
     }
 
-    protected TypeDetailPanel (final TypeDetail detail)
+    protected TypeDetailPanel (final TypeDetail detail, Map<Long, Widget> defmap)
     {
         initWidget(_binder.createAndBindUi(this));
+        _defmap = defmap;
 
-        FluentTable deets = new FluentTable(2, 0);
+        FluentTable deets = new FluentTable(2, 0, _styles.Deets());
         if (detail.doc != null) {
             deets.add().setHTML(detail.doc, _styles.doc()).setColSpan(2);
         }
+        FlowPanel code = Widgets.newFlowPanel(_styles.defContent());
+        code.setVisible(false);
         deets.add().setText(detail.sig, _rsrc.styles().code()).setColSpan(2);
-        addDefs(deets, _msgs.tdpTypes(), detail.types);
-        addDefs(deets, _msgs.tdpTerms(), detail.terms);
-        addDefs(deets, _msgs.tdpFuncs(), detail.funcs);
+        addDefs(deets, _msgs.tdpTypes(), detail.types, code);
+        addDefs(deets, _msgs.tdpTerms(), detail.terms, code);
+        addDefs(deets, _msgs.tdpFuncs(), detail.funcs, code);
+        deets.add().setWidget(code).setColSpan(2);
         _contents.setWidget(deets);
     }
 
-    protected void addDefs (FluentTable deets, String kind, Def[] defs)
+    protected void addDefs (FluentTable deets, String kind, Def[] defs, final FlowPanel code)
     {
         if (defs.length == 0) {
             return;
         }
 
-        final FlowPanel panel = Widgets.newFlowPanel(_styles.defs());
+        FlowPanel panel = Widgets.newFlowPanel(_styles.defs());
         for (final Def def : defs) {
             if (panel.getWidgetCount() > 0) {
                 InlineLabel gap = new InlineLabel(" ");
@@ -81,11 +88,12 @@ public class TypeDetailPanel extends Composite
                 panel.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            new UsePopup.Popper(def.id, label);
+            new UsePopup.Popper(def.id, label, _defmap);
             new ClickCallback<DefContent>(label) {
                 protected boolean callService () {
                     if (_content != null) {
-                        panel.remove(_content);
+                        code.remove(_content);
+                        code.setVisible(code.getWidgetCount() > 0);
                         ((Widget)_trigger).removeStyleName(_rsrc.styles().openDef());
                         _content = null;
                         return false;
@@ -95,7 +103,8 @@ public class TypeDetailPanel extends Composite
                 }
                 protected boolean gotResult (DefContent content) {
                     ((Widget)_trigger).addStyleName(_rsrc.styles().openDef());
-                    panel.add(_content = createContentPanel(content));
+                    code.add(_content = createContentPanel(content));
+                    code.setVisible(true);
                     return true;
                 }
                 protected Widget _content;
@@ -109,16 +118,17 @@ public class TypeDetailPanel extends Composite
 
     protected Widget createContentPanel (DefContent content)
     {
-        FlowPanel bits = Widgets.newFlowPanel(_styles.defContent());
+        FlowPanel bits = Widgets.newFlowPanel();
         if (content.doc != null) {
             bits.add(Widgets.newHTML(content.doc));
         }
-        bits.add(new SourcePanel(content.text, content.defs, content.uses, 0L));
+        bits.add(new SourcePanel(content.text, content.defs, content.uses, 0L, _defmap));
         return bits;
     }
 
     protected interface Styles extends CssResource
     {
+        String /*content*/ Deets ();
         String doc ();
         String kind ();
         String defs ();
@@ -126,6 +136,7 @@ public class TypeDetailPanel extends Composite
         String defContent();
     }
 
+    protected Map<Long, Widget> _defmap;
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
 

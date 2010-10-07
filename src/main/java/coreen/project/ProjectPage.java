@@ -3,6 +3,8 @@
 
 package coreen.project;
 
+import java.util.HashMap;
+
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
@@ -139,7 +141,8 @@ public class ProjectPage extends AbstractPage
             _contents.setWidget(new TypesPanel(projectId));
             break;
         case SRC:
-            _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L)));
+            _contents.setWidget(new SourcePanel(args.get(2, 0L), args.get(3, 0L),
+                                                new HashMap<Long, Widget>()));
             break;
         }
     }

@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -60,7 +63,7 @@ public class TypesPanel extends Composite
                 types.add(gap);
             }
             InlineLabel label = new InlineLabel(def.name);
-            TypeDetailPanel.bind(def, label, types);
+            TypeDetailPanel.bind(def, label, types, _defmap);
             types.add(label);
         }
         return table;
@@ -72,6 +75,8 @@ public class TypesPanel extends Composite
         String Letter ();
         String Gap ();
     }
+
+    protected Map<Long, Widget> _defmap = new HashMap<Long, Widget>();
 
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;

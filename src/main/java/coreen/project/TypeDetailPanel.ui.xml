@@ -11,6 +11,9 @@
       padding: 2px;
       background: #EEEEEE;
     }
+    .contents .Deets {
+      width: 100%;
+    }
     .doc {
       border-bottom: 1px solid;
     }
@@ -20,6 +23,7 @@
       text-align: right;
       font-style: italic;
       font-size: small;
+      width: 50px;
     }
     .defs {
     }
