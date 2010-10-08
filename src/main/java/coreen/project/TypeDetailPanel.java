@@ -24,9 +24,11 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.icons.IconResources;
 import coreen.model.Def;
@@ -34,6 +36,7 @@ import coreen.model.DefContent;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.util.IdMap;
 import coreen.util.PanelCallback;
 
 /**
@@ -41,61 +44,45 @@ import coreen.util.PanelCallback;
  */
 public class TypeDetailPanel extends Composite
 {
-    public static class Shower extends ShowCallback<TypeDetail, TypeDetailPanel>
+    public TypeDetailPanel (Def def, Map<Long, Widget> defmap, IdMap expanded)
     {
-        public Shower (Def def, Label trigger, FlowPanel target, Map<Long, Widget> defmap) {
-            super(trigger, target);
-            _def = def;
-            _defmap = defmap;
-        }
+        initWidget(_binder.createAndBindUi(this));
+        _def = def;
+        _defmap = defmap;
+        _expanded = expanded;
+    }
 
-        public void show (long memberId) {
-            _pendingMemberId = memberId;
-            show();
+    @Override // from Widget
+    public void setVisible (boolean visible)
+    {
+        if (visible && !_loaded) {
+            _loaded = true;
+            _contents.setWidget(Widgets.newLabel("Loading..."));
+            _projsvc.getType(_def.id, new PanelCallback<TypeDetail>(_contents) {
+                public void onSuccess (TypeDetail deets) {
+                    init(deets);
+                }
+            });
         }
-
-        protected boolean callService () {
-            _projsvc.getType(_def.id, this);
-            return true;
-        }
-
-        protected TypeDetailPanel createDisplay (TypeDetail detail) {
-            return new TypeDetailPanel(detail, _defmap);
-        }
-
-        protected void displayShown () {
-            super.displayShown();
-            _display.showMember(_pendingMemberId);
-            _pendingMemberId = 0L;
-        }
-
-        protected Def _def;
-        protected Map<Long, Widget> _defmap;
-        protected long _pendingMemberId;
+        super.setVisible(visible);
     }
 
     public void showMember (long memberId)
     {
-        Shower shower = _showers.get(memberId);
-        if (shower != null) {
-            shower.show(0L);
-        } else {
-            GWT.log("No shower for member " + memberId);
-        }
+        _expanded.get(memberId).update(true);
     }
 
-    protected TypeDetailPanel (final TypeDetail detail, Map<Long, Widget> defmap)
+    protected void init (final TypeDetail detail)
     {
-        initWidget(_binder.createAndBindUi(this));
         _detail = detail;
-        _defmap = defmap;
 
-        FlowPanel deets = Widgets.newFlowPanel();
+        FlowPanel contents = Widgets.newFlowPanel();
         if (detail.doc != null) {
-            deets.add(Widgets.newHTML(detail.doc, _styles.doc()));
+            contents.add(Widgets.newHTML(detail.doc, _styles.doc()));
         }
 
         FlowPanel members = Widgets.newFlowPanel(_styles.members());
+        FlowPanel deets = Widgets.newFlowPanel();
         addDefs(members, _msgs.tdpTypes(), detail.types, deets);
         addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
         if (detail.def.type == Def.Type.TYPE) { // non-types terms are only displayed in-source
@@ -103,7 +90,7 @@ public class TypeDetailPanel extends Composite
         }
         if (members.getWidgetCount() > 0) {
             members.add(Widgets.newLabel(" ", _styles.Spacer()));
-            deets.add(members);
+            contents.add(members);
         }
 
         final Label sig = Widgets.newLabel(detail.sig, _rsrc.styles().code());
@@ -131,11 +118,12 @@ public class TypeDetailPanel extends Composite
             }
         });
         toggle.addStyleName(_styles.toggle());
-        deets.add(toggle);
-        deets.add(sig);
-        deets.add(source);
+        contents.add(toggle);
+        contents.add(sig);
+        contents.add(source);
+        contents.add(deets);
 
-        _contents.setWidget(deets);
+        _contents.setWidget(contents);
     }
 
     protected void addDefs (FlowPanel panel, String kind, Def[] defs, FlowPanel members)
@@ -144,6 +132,12 @@ public class TypeDetailPanel extends Composite
             Image icon = iconForDef(def);
             icon.addStyleName(_styles.Icon());
             InlineLabel label = new InlineLabel(def.name);
+            label.addClickHandler(new ClickHandler() {
+                public void onClick (ClickEvent event) {
+                    Value<Boolean> expanded = _expanded.get(def.id);
+                    expanded.update(!expanded.get());
+                }
+            });
             label.addMouseOverHandler(new MouseOverHandler() {
                 public void onMouseOver (MouseOverEvent event) {
                     // if this def is already onscreen, just highlight it
@@ -163,8 +157,11 @@ public class TypeDetailPanel extends Composite
                 }
             });
             // new UsePopup.Popper(def.id, label, _defmap, UsePopup.BY_TYPES);
-            _showers.put(def.id, new Shower(def, label, members, _defmap));
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
+
+            TypeDetailPanel deets = new TypeDetailPanel(def, _defmap, _expanded);
+            Bindings.bindVisible(_expanded.get(def.id), deets);
+            members.add(deets);
         }
     }
 
@@ -193,11 +190,11 @@ public class TypeDetailPanel extends Composite
         String toggle ();
     }
 
+    protected boolean _loaded;
+    protected Def _def;
     protected TypeDetail _detail;
     protected Map<Long, Widget> _defmap;
-    // protected Map<Long, ShowCallback<DefContent, Widget>> _showers =
-    //     new HashMap<Long, ShowCallback<DefContent, Widget>>();
-    protected Map<Long, Shower> _showers = new HashMap<Long, Shower>();
+    protected IdMap _expanded;
 
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
