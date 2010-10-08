@@ -3,9 +3,6 @@
 
 package coreen.project;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -38,9 +35,11 @@ import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefContent;
 import coreen.model.TypeDetail;
+import coreen.model.TypedId;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;
+import coreen.util.DefMap;
 import coreen.util.IdMap;
 import coreen.util.PanelCallback;
 
@@ -54,11 +53,11 @@ public class TypeDetailPanel extends Composite
     /** Used when we're totally standalone. */
     public TypeDetailPanel (long defId)
     {
-        this(defId, new HashMap<Long, Widget>(), IdMap.create(false));
+        this(defId, new DefMap(), IdMap.create(false));
     }
 
     /** Used when we're part of a type hierarchy. */
-    public TypeDetailPanel (long defId, Map<Long, Widget> defmap, IdMap<Boolean> expanded)
+    public TypeDetailPanel (long defId, DefMap defmap, IdMap<Boolean> expanded)
     {
         initWidget(_binder.createAndBindUi(this));
         this.defId = defId;
@@ -114,15 +113,18 @@ public class TypeDetailPanel extends Composite
         _detail = detail;
 
         FlowPanel contents = Widgets.newFlowPanel();
-        String header = "";
+        FlowPanel header = Widgets.newFlowPanel();
         if (detail.def.type == Def.Type.TYPE) {
-            header = "<b>" + detail.def.name + "</b> ";
+            TypeLabel name = new TypeLabel(
+                detail.path, detail.def, UsePopup.BY_TYPES, _defmap);
+            name.addStyleName("inline");
+            header.add(name);
         }
         if (detail.doc != null) {
-            header += detail.doc;
+            header.add(Widgets.newHTML(detail.doc, _styles.doc(), "inline"));
         }
-        if (header.length() > 0) {
-            contents.add(Widgets.newHTML(header, _styles.doc()));
+        if (header.getWidgetCount() > 0) {
+            contents.add(header);
         }
 
         // if this is a type, display nested fields, funcs, etc.
@@ -153,7 +155,20 @@ public class TypeDetailPanel extends Composite
         toggle.addStyleName(_styles.toggle());
         contents.add(toggle);
 
-        Label sig = Widgets.newLabel(detail.sig, _rsrc.styles().code());
+        Label sig = new Label(detail.sig) {
+            /* ctor */ {
+                addStyleName(_rsrc.styles().code());
+            }
+
+            @Override public void setVisible (boolean visible) {
+                super.setVisible(visible);
+                if (visible) {
+                    _defmap.map(detail.def.id, this);
+                } else {
+                    _defmap.unmap(detail.def.id, this);
+                }
+            }
+        };
         Bindings.bindVisible(showSource.map(Functions.NOT), sig);
         contents.add(sig);
 
@@ -223,7 +238,7 @@ public class TypeDetailPanel extends Composite
                     }
                 }
             });
-            new UsePopup.Popper(def.id, label, Functions.forMap(_defmap, null), UsePopup.BY_TYPES);
+            new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
         }
     }
@@ -260,7 +275,7 @@ public class TypeDetailPanel extends Composite
 
     protected boolean _loaded;
     protected TypeDetail _detail;
-    protected Map<Long, Widget> _defmap;
+    protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
 
     protected @UiField SimplePanel _contents;

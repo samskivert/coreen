@@ -1,5 +1,10 @@
 /** Shared project styles. */
 
+@external .actionLabel {
+  /* override gwt-utils default */
+  text-decoration: none;
+}
+
 .code {
   font-family: Courier;
   font-size: small;
@@ -38,7 +43,7 @@
   margin-left: 5px;
 }
 
-@external .actionLabel {
-  /* override gwt-utils default */
-  text-decoration: none;
+.typeLabel {
+  font-weight: bold;
+  padding-right: 5px;
 }

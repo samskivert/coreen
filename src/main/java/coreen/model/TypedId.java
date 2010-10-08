@@ -16,11 +16,15 @@ public class TypedId implements Serializable
     /** The type of the referent. */
     public long id;
 
+    /** The name of the referent. */
+    public String name;
+
     /** Creates and initializes this instance. */
-    public TypedId (Def.Type type, long id)
+    public TypedId (Def.Type type, long id, String name)
     {
         this.type = type;
         this.id = id;
+        this.name = name;
     }
 
     /** Used when unserializing. */
@@ -29,6 +33,6 @@ public class TypedId implements Serializable
     @Override // from Object
     public String toString ()
     {
-        return type + ":" + id;
+        return name + "(" + type + ":" + id + ")";
     }
 }

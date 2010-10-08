@@ -22,6 +22,7 @@ public interface ProjectResources extends ClientBundle
         String openDef ();
         String highlight ();
         String indent ();
+        String typeLabel ();
     }
 
     @Source("project.css")

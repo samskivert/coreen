@@ -3,13 +3,13 @@
 
 package coreen.project;
 
-import com.google.common.base.Function;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -21,6 +21,7 @@ import com.threerings.gwt.util.WindowUtil;
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.ui.WindowFX;
+import coreen.util.DefMap;
 import coreen.model.DefDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -30,15 +31,19 @@ import coreen.rpc.ProjectServiceAsync;
  */
 public class UsePopup extends PopupPanel
 {
-    public static final Function<DefDetail, Widget> SOURCE = new Function<DefDetail, Widget>() {
-        public Widget apply (DefDetail deet) {
+    public interface Linker {
+        public Hyperlink makeLink (DefDetail deet);
+    }
+
+    public static final Linker SOURCE = new Linker() {
+        public Hyperlink makeLink (DefDetail deet) {
             return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
                                ProjectPage.Detail.SRC, deet.unit.id, deet.def.id);
         }
     };
 
-    public static final Function<DefDetail, Widget> BY_TYPES = new Function<DefDetail, Widget>() {
-        public Widget apply (DefDetail deet) {
+    public static final Linker BY_TYPES = new Linker() {
+        public Hyperlink makeLink (DefDetail deet) {
             return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
                                ProjectPage.Detail.TPS, deet.outerTypeId(), deet.outerMemberId());
         }
@@ -46,8 +51,7 @@ public class UsePopup extends PopupPanel
 
     public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (long referentId, Widget target, Function<Long, Widget> defmap,
-                       Function<DefDetail, Widget> linker) {
+        public Popper (long referentId, Widget target, Linker linker, DefMap defmap) {
             _referentId = referentId;
             _target = target;
             _defmap = defmap;
@@ -64,9 +68,11 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseDown (MouseDownEvent event) {
-            Widget def = _defmap.apply(_referentId);
+            Widget def = _defmap.get(_referentId);
             if (def != null) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
+            } else if (_popup != null) {
+                _popup.go();
             } else {
                 boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
                 if (!debounce && (_popup == null || !_popup.isShowing())) {
@@ -79,7 +85,7 @@ public class UsePopup extends PopupPanel
             hidePopup();
 
             // if this def is already onscreen, just highlight it
-            Widget def = _defmap.apply(_referentId);
+            Widget def = _defmap.get(_referentId);
             if (def != null) { // TODO: && is scrolled into view
                 def.addStyleName(_rsrc.styles().highlight());
 
@@ -94,7 +100,7 @@ public class UsePopup extends PopupPanel
             _timer.cancel();
 
             // if we've highlighted our onscreen def, unhighlight it
-            Widget def = _defmap.apply(_referentId);
+            Widget def = _defmap.get(_referentId);
             if (def != null) {
                 def.removeStyleName(_rsrc.styles().highlight());
             }
@@ -137,8 +143,8 @@ public class UsePopup extends PopupPanel
 
         protected long _referentId;
         protected Widget _target;
-        protected Function<Long, Widget> _defmap;
-        protected Function<DefDetail, Widget> _linker;
+        protected Linker _linker;
+        protected DefMap _defmap;
 
         protected UsePopup _popup;
         protected long _lastPopdown;
@@ -159,7 +165,14 @@ public class UsePopup extends PopupPanel
         setVisible(true);
     }
 
-    protected UsePopup (Popper popper, DefDetail deet, Function<DefDetail, Widget> linker)
+    public void go ()
+    {
+        if (_link != null) {
+            History.newItem(_link.getTargetHistoryToken());
+        }
+    }
+
+    protected UsePopup (Popper popper, DefDetail deet, Linker linker)
     {
         super(true);
         setStyleName(_rsrc.styles().usePopup());
@@ -171,7 +184,7 @@ public class UsePopup extends PopupPanel
         }
         Widget sig;
         if (deet.unit.projectId > 0) {
-            sig = linker.apply(deet);
+            sig = (_link = linker.makeLink(deet));
         } else {
             sig = Widgets.newLabel(deet.sig);
         }
@@ -188,6 +201,7 @@ public class UsePopup extends PopupPanel
     }
 
     protected Popper _popper;
+    protected Hyperlink _link;
 
     protected static UsePopup _current;
 

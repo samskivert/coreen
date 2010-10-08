@@ -5,11 +5,7 @@ package coreen.project;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
@@ -33,6 +29,7 @@ import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;
+import coreen.util.DefMap;
 import coreen.util.Edit;
 import coreen.util.Errors;
 import coreen.util.PanelCallback;
@@ -45,7 +42,7 @@ public abstract class SourcePanel extends Composite
     /** A source panel that displays an entire compilation unit. */
     public static class Full extends SourcePanel {
         public Full (final long unitId, final long scrollToDefId) {
-            super(new HashMap<Long, Widget>());
+            super(new DefMap());
             _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
                 public void onSuccess (CompUnitDetail detail) {
                     init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
@@ -54,11 +51,12 @@ public abstract class SourcePanel extends Composite
         }
     }
 
-    public SourcePanel (Map<Long, Widget> defmap)
+    public SourcePanel (DefMap defmap)
     {
         initWidget(_binder.createAndBindUi(this));
         _contents.setWidget(Widgets.newLabel("Loading..."));
         _defmap = defmap;
+        _local = new DefMap(_defmap);
     }
 
     @Override // from Widget
@@ -66,9 +64,9 @@ public abstract class SourcePanel extends Composite
     {
         super.setVisible(visible);
         if (visible) {
-            addMappings();
+            _local.addTo(_defmap);
         } else {
-            clearMappings();
+            _local.removeFrom(_defmap);
         }
     }
 
@@ -76,11 +74,11 @@ public abstract class SourcePanel extends Composite
     protected void onUnload ()
     {
         super.onUnload();
-        clearMappings();
+        _local.removeFrom(_defmap);
     }
 
     protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
-                         final Function<DefDetail, Widget> linker)
+                         final UsePopup.Linker linker)
     {
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
@@ -103,7 +101,7 @@ public abstract class SourcePanel extends Composite
             elems.add(new Elementer(def.start, def.start+def.name.length()) {
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
-                    _local.put(def.id, w);
+                    _local.map(def.id, w);
                     return w;
                 }
             });
@@ -112,7 +110,7 @@ public abstract class SourcePanel extends Composite
             elems.add(new Elementer(use.start, use.start+use.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span, _getDef, linker);
+                    new UsePopup.Popper(use.referentId, span, linker, _local);
                     return span;
                 }
             });
@@ -150,26 +148,12 @@ public abstract class SourcePanel extends Composite
         // }
 
         _contents.setWidget(code);
-        addMappings();
+        _local.addTo(_defmap);
         didInit();
     }
 
     protected void didInit ()
     {
-    }
-
-    protected void addMappings ()
-    {
-        for (Map.Entry<Long, Widget> entry : _local.entrySet()) {
-            _defmap.put(entry.getKey(), entry.getValue());
-        }
-    }
-
-    protected void clearMappings ()
-    {
-        for (Long defId : _local.keySet()) {
-            _defmap.remove(defId);
-        }
     }
 
     protected abstract class Elementer implements Comparable<Elementer> {
@@ -213,16 +197,7 @@ public abstract class SourcePanel extends Composite
          return lines.join("\n");
     }-*/;
 
-    protected Map<Long, Widget> _defmap;
-    protected Map<Long, Widget> _local = new HashMap<Long, Widget>();
-
-    /** First searches our local map, then the global map for a def. */
-    protected Function<Long, Widget> _getDef = new Function<Long, Widget>() {
-        public Widget apply (Long defId) {
-            Widget def = _local.get(defId);
-            return (def != null) ? def : _defmap.get(defId);
-        }
-    };
+    protected DefMap _defmap, _local;
 
     protected @UiField SimplePanel _contents;
 
