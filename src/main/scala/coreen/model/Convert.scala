@@ -22,8 +22,8 @@ object Convert
 
   /** Converts a Scala Def to a Java Def. */
   def toJava (decode :Map[Int,JDef.Type])(d :SDef) :JDef = new JDef(
-    d.id, d.parentId, d.name, decode(d.typ), new Span(d.defStart, d.defEnd-d.defStart))
+    d.id, d.parentId, d.name, decode(d.typ), d.defStart)
 
   /** Converts a Scala Use to a Java Use. */
-  def toJava (u :SUse) :JUse = new JUse(u.referentId, new Span(u.useStart, u.useEnd-u.useStart))
+  def toJava (u :SUse) :JUse = new JUse(u.referentId, u.useStart, u.useEnd-u.useStart)
 }

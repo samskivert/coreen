@@ -29,26 +29,22 @@ public class Def
     /** A unique identifier for this definition (1 or higher). */
     public long id;
 
-    /** The id of this definition's enclosing definition, or null if none. */
-    public long parentId;
-
     /** This definition's (unqualified) name (i.e. Foo, not com.bar.Outer.Foo). */
     public String name;
 
     /** The type of this definition (function, term, etc.). */
     public Type type;
 
-    /** The location in the source file of this definition. */
-    public Span loc;
+    /** The character offset in the source file at which this def starts. */
+    public int start;
 
     /** Creates and initializes this instance. */
-    public Def (long id, long parentId, String name, Type type, Span loc)
+    public Def (long id, long parentId, String name, Type type, int start)
     {
         this.id = id;
-        this.parentId = parentId;
         this.name = name;
         this.type = type;
-        this.loc = loc;
+        this.start = start;
     }
 
     /** Used when unserializing. */
@@ -58,7 +54,6 @@ public class Def
     public String toString ()
     {
         return new StringBuffer("[id=").append(id).
-            append(", parent=").append(parentId).
             append(", name=").append(name).
             append(", type=").append(type).
             append("]").toString();

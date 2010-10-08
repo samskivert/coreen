@@ -84,7 +84,7 @@ public abstract class SourcePanel extends Composite
 
         List<Elementer> elems = new ArrayList<Elementer>();
         for (final Def def : defs) {
-            elems.add(new Elementer(def.loc.start, def.loc.start+def.loc.length) {
+            elems.add(new Elementer(def.start, def.start+def.name.length()) {
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
                     _added.add(def.id);
@@ -94,7 +94,7 @@ public abstract class SourcePanel extends Composite
             });
         }
         for (final Use use : uses) {
-            elems.add(new Elementer(use.loc.start, use.loc.start+use.loc.length) {
+            elems.add(new Elementer(use.start, use.start+use.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
                     new UsePopup.Popper(use.referentId, span, _defmap, linker);

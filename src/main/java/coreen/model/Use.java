@@ -14,14 +14,18 @@ public class Use
     /** The id of the definition of the referent of this use. */
     public long referentId;
 
-    /** The location in the source file of this use. */
-    public Span loc;
+    /** The character offset in the source file at which this span starts. */
+    public int start;
+
+    /** The length of this use in characters. */
+    public int length;
 
     /** Creates and initializes this instance. */
-    public Use (long referentId, Span loc)
+    public Use (long referentId, int start, int length)
     {
         this.referentId = referentId;
-        this.loc = loc;
+        this.start = start;
+        this.length = length;
     }
 
     /** Used when unserializing. */
@@ -30,8 +34,6 @@ public class Use
     @Override // from Object
     public String toString ()
     {
-        return new StringBuffer("[referent=").append(referentId).
-            append(", loc=").append(loc).
-            append("]").toString();
+        return "[ref=" + referentId + ", loc=" + start + "-" + length + "]";
     }
 }

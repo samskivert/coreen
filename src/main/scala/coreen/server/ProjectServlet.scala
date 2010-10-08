@@ -104,11 +104,11 @@ trait ProjectServlet {
       }
       dc.defs = (loadDefs(Set(defId)) :+ d).toArray sortBy(_.defStart) map(
         Convert.toJava(_db.codeToType))
-      dc.defs foreach { _.loc.adjust(-start) }
+      dc.defs foreach { _.start -= start }
       val defIds = dc.defs map(_.id) toSet
       val uses = _db.uses.where(u => u.ownerId in defIds).toArray
       dc.uses = uses sortBy(_.useStart) map(Convert.toJava)
-      dc.uses foreach { _.loc.adjust(-start) }
+      dc.uses foreach { _.start -= start }
       dc
     }
 
