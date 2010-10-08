@@ -64,7 +64,7 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseDown (MouseDownEvent event) {
-            Widget def = getVizDef();
+            Widget def = _defmap.apply(_referentId);
             if (def != null) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
             } else {
@@ -79,7 +79,7 @@ public class UsePopup extends PopupPanel
             hidePopup();
 
             // if this def is already onscreen, just highlight it
-            Widget def = getVizDef();
+            Widget def = _defmap.apply(_referentId);
             if (def != null) { // TODO: && is scrolled into view
                 def.addStyleName(_rsrc.styles().highlight());
 
@@ -127,17 +127,6 @@ public class UsePopup extends PopupPanel
 
         protected void poppedDown () {
             _lastPopdown = System.currentTimeMillis();
-        }
-
-        protected Widget getVizDef () {
-            Widget def = _defmap.apply(_referentId);
-            if (def == null || !def.isVisible() ||
-                // this is a hack to detect when a widget thinks it's visible, but actually its
-                // parent is not visible; not sure if this will work on all browsers...
-                def.getAbsoluteLeft() == 0) {
-                return null;
-            }
-            return def;
         }
 
         protected Timer _timer = new Timer() {

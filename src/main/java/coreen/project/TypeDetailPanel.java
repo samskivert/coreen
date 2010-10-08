@@ -223,7 +223,7 @@ public class TypeDetailPanel extends Composite
                     }
                 }
             });
-            new UsePopup.Popper(def.id, label, Functions.asFunc(_defmap), UsePopup.BY_TYPES);
+            new UsePopup.Popper(def.id, label, Functions.forMap(_defmap, null), UsePopup.BY_TYPES);
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
         }
     }

@@ -62,13 +62,21 @@ public abstract class SourcePanel extends Composite
     }
 
     @Override // from Widget
+    public void setVisible (boolean visible)
+    {
+        super.setVisible(visible);
+        if (visible) {
+            addMappings();
+        } else {
+            clearMappings();
+        }
+    }
+
+    @Override // from Widget
     protected void onUnload ()
     {
         super.onUnload();
-        // clear out the defs we were displaying
-        for (Long defId : _local.keySet()) {
-            _defmap.remove(defId);
-        }
+        clearMappings();
     }
 
     protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
@@ -96,7 +104,6 @@ public abstract class SourcePanel extends Composite
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
                     _local.put(def.id, w);
-                    _defmap.put(def.id, w);
                     return w;
                 }
             });
@@ -143,11 +150,26 @@ public abstract class SourcePanel extends Composite
         // }
 
         _contents.setWidget(code);
+        addMappings();
         didInit();
     }
 
     protected void didInit ()
     {
+    }
+
+    protected void addMappings ()
+    {
+        for (Map.Entry<Long, Widget> entry : _local.entrySet()) {
+            _defmap.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    protected void clearMappings ()
+    {
+        for (Long defId : _local.keySet()) {
+            _defmap.remove(defId);
+        }
     }
 
     protected abstract class Elementer implements Comparable<Elementer> {
