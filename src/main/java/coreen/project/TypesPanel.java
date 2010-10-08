@@ -74,17 +74,14 @@ public class TypesPanel extends Composite
                 types.add(gap);
             }
 
-            // add a label for this type
-            types.add(Link.createInline(def.name, Page.PROJECT, _projectId,
-                                        ProjectPage.Detail.TPS, def.id));
-            // InlineLabel label = new InlineLabel(def.name);
-            // label.addClickHandler(new ClickHandler() {
-            //     public void onClick (ClickEvent event) {
-            //         Value<Boolean> showing = _types.get(def.id);
-            //         showing.update(!showing.get());
-            //     }
-            // });
-            // types.add(label);
+            InlineLabel label = new InlineLabel(def.name);
+            label.addClickHandler(new ClickHandler() {
+                public void onClick (ClickEvent event) {
+                    Link.go(Page.PROJECT, _projectId, ProjectPage.Detail.TPS, def.id);
+                }
+            });
+            new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
+            types.add(label);
 
             // create and add the detail panel (hidden) and bind its visibility to a value
             TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _members);
