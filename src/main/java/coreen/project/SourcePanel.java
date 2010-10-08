@@ -6,10 +6,8 @@ package coreen.project;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Function;
 
@@ -68,7 +66,7 @@ public abstract class SourcePanel extends Composite
     {
         super.onUnload();
         // clear out the defs we were displaying
-        for (Long defId : _added) {
+        for (Long defId : _local.keySet()) {
             _defmap.remove(defId);
         }
     }
@@ -97,7 +95,7 @@ public abstract class SourcePanel extends Composite
             elems.add(new Elementer(def.start, def.start+def.name.length()) {
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, _rsrc.styles().def());
-                    _added.add(def.id);
+                    _local.put(def.id, w);
                     _defmap.put(def.id, w);
                     return w;
                 }
@@ -107,7 +105,7 @@ public abstract class SourcePanel extends Composite
             elems.add(new Elementer(use.start, use.start+use.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span, _defmap, linker);
+                    new UsePopup.Popper(use.referentId, span, _getDef, linker);
                     return span;
                 }
             });
@@ -194,7 +192,15 @@ public abstract class SourcePanel extends Composite
     }-*/;
 
     protected Map<Long, Widget> _defmap;
-    protected Set<Long> _added = new HashSet<Long>();
+    protected Map<Long, Widget> _local = new HashMap<Long, Widget>();
+
+    /** First searches our local map, then the global map for a def. */
+    protected Function<Long, Widget> _getDef = new Function<Long, Widget>() {
+        public Widget apply (Long defId) {
+            Widget def = _local.get(defId);
+            return (def != null) ? def : _defmap.get(defId);
+        }
+    };
 
     protected @UiField SimplePanel _contents;
 

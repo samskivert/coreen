@@ -105,7 +105,8 @@ public class TypesPanel extends Composite
 
     protected long _projectId;
     protected Map<Long, Widget> _defmap = new HashMap<Long, Widget>();
-    protected IdMap _types = new IdMap(), _members = new IdMap();
+    protected IdMap<Boolean> _types = IdMap.create(false);
+    protected IdMap<Boolean> _members = IdMap.create(false);
 
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;

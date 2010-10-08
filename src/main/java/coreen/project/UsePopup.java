@@ -3,8 +3,6 @@
 
 package coreen.project;
 
-import java.util.Map;
-
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
@@ -18,9 +16,11 @@ import com.google.gwt.user.client.ui.Widget;
 import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.PopupCallback; // TODO: make a custom version that handles errors
+import com.threerings.gwt.util.WindowUtil;
 
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.ui.WindowFX;
 import coreen.model.DefDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -46,7 +46,7 @@ public class UsePopup extends PopupPanel
 
     public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (long referentId, Widget target, Map<Long, Widget> defmap,
+        public Popper (long referentId, Widget target, Function<Long, Widget> defmap,
                        Function<DefDetail, Widget> linker) {
             _referentId = referentId;
             _target = target;
@@ -56,7 +56,7 @@ public class UsePopup extends PopupPanel
             if (!(target instanceof HasMouseOverHandlers)) {
                 GWT.log("Can't listen for mouse over on " + target);
             } else {
-                // ((HasMouseDownHandlers)target).addMouseDownHandler(this);
+                ((HasMouseDownHandlers)target).addMouseDownHandler(this);
                 ((HasMouseOverHandlers)target).addMouseOverHandler(this);
                 ((HasMouseOutHandlers)target).addMouseOutHandler(this);
                 target.addStyleName(_rsrc.styles().actionable());
@@ -64,19 +64,20 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseDown (MouseDownEvent event) {
-            boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
-            if (!debounce && (_popup == null || !_popup.isShowing())) {
-                showPopup();
+            Widget def = getVizDef();
+            if (def != null) {
+                WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
             }
+            // boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
+            // if (!debounce && (_popup == null || !_popup.isShowing())) {
+            //     showPopup();
+            // }
         }
 
         public void onMouseOver (MouseOverEvent event) {
             // if this def is already onscreen, just highlight it
-            Widget def = _defmap.get(_referentId);
-            if (def != null && def.isVisible() &&
-                // this is a hack to detect when a widget thinks it's visible, but actually its
-                // parent is not visible; not sure if this will work on all browsers...
-                def.getAbsoluteLeft() != 0) { // TODO: && is scrolled into view
+            Widget def = getVizDef();
+            if (def != null) { // TODO: && is scrolled into view
                 def.addStyleName(_rsrc.styles().highlight());
 
             } else if (_popup == null || !_popup.isShowing()) {
@@ -90,7 +91,7 @@ public class UsePopup extends PopupPanel
             _timer.cancel();
 
             // if we've highlighted our onscreen def, unhighlight it
-            Widget def = _defmap.get(_referentId);
+            Widget def = _defmap.apply(_referentId);
             if (def != null) {
                 def.removeStyleName(_rsrc.styles().highlight());
             }
@@ -125,6 +126,17 @@ public class UsePopup extends PopupPanel
             _lastPopdown = System.currentTimeMillis();
         }
 
+        protected Widget getVizDef () {
+            Widget def = _defmap.apply(_referentId);
+            if (def == null || !def.isVisible() ||
+                // this is a hack to detect when a widget thinks it's visible, but actually its
+                // parent is not visible; not sure if this will work on all browsers...
+                def.getAbsoluteLeft() == 0) {
+                return null;
+            }
+            return def;
+        }
+
         protected Timer _timer = new Timer() {
             @Override public void run () {
                 showPopup();
@@ -133,7 +145,7 @@ public class UsePopup extends PopupPanel
 
         protected long _referentId;
         protected Widget _target;
-        protected Map<Long, Widget> _defmap;
+        protected Function<Long, Widget> _defmap;
         protected Function<DefDetail, Widget> _linker;
 
         protected UsePopup _popup;

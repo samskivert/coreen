@@ -151,7 +151,6 @@ public class ProjectPage extends AbstractPage
         case TYP: {
             long defId = args.get(2, 0L);
             TypeDetailPanel panel;
-            GWT.log("Roger roger " + defId);
             if (_contents.getWidget() instanceof TypeDetailPanel &&
                 ((TypeDetailPanel)_contents.getWidget()).defId == defId) {
                 panel = (TypeDetailPanel)_contents.getWidget();

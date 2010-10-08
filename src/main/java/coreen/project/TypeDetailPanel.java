@@ -30,6 +30,7 @@ import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Functions;
 import com.threerings.gwt.util.Value;
 import com.threerings.gwt.util.WindowUtil;
 
@@ -53,16 +54,25 @@ public class TypeDetailPanel extends Composite
     /** Used when we're totally standalone. */
     public TypeDetailPanel (long defId)
     {
-        this(defId, new HashMap<Long, Widget>(), new IdMap());
+        this(defId, new HashMap<Long, Widget>(), IdMap.create(false));
     }
 
     /** Used when we're part of a type hierarchy. */
-    public TypeDetailPanel (long defId, Map<Long, Widget> defmap, IdMap expanded)
+    public TypeDetailPanel (long defId, Map<Long, Widget> defmap, IdMap<Boolean> expanded)
     {
         initWidget(_binder.createAndBindUi(this));
         this.defId = defId;
         _defmap = defmap;
         _expanded = expanded;
+    }
+
+    @Override // from Widget
+    public void onLoad ()
+    {
+        super.onLoad();
+        if (isVisible()) {
+            ensureLoaded();
+        }
     }
 
     @Override // from Widget
@@ -73,19 +83,6 @@ public class TypeDetailPanel extends Composite
             ensureLoaded();
         }
         super.setVisible(visible);
-        // if we were just made visible, scroll ourselves into view
-        if (!wasVisible && visible) {
-            recenterPanel();
-        }
-    }
-
-    @Override // from Widget
-    public void onLoad ()
-    {
-        super.onLoad();
-        if (isVisible()) {
-            ensureLoaded();
-        }
     }
 
     public void showMember (long memberId)
@@ -142,8 +139,25 @@ public class TypeDetailPanel extends Composite
             }
         }
 
-        final Label sig = Widgets.newLabel(detail.sig, _rsrc.styles().code());
-        final SourcePanel source = new SourcePanel(_defmap) {
+        // show source first if we last expanded a source *and* this is not type
+        final Value<Boolean> showSource = Value.create(
+            _sourceFirst && (detail.def.type != Def.Type.TYPE));
+        ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
+                                               new Image(_icons.codeOpen()), new ClickHandler() {
+            public void onClick (ClickEvent event) {
+                showSource.update(!showSource.get());
+                _sourceFirst = showSource.get();
+            }
+        });
+        toggle.setDown(showSource.get());
+        toggle.addStyleName(_styles.toggle());
+        contents.add(toggle);
+
+        Label sig = Widgets.newLabel(detail.sig, _rsrc.styles().code());
+        Bindings.bindVisible(showSource.map(Functions.NOT), sig);
+        contents.add(sig);
+
+        SourcePanel source = new SourcePanel(_defmap) {
             public void setVisible (boolean visible) {
                 super.setVisible(visible);
                 if (visible && !_loaded) {
@@ -160,19 +174,9 @@ public class TypeDetailPanel extends Composite
             }
             protected boolean _loaded;
         };
-        source.setVisible(false);
-
-        ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
-                                               new Image(_icons.codeOpen()), new ClickHandler() {
-            public void onClick (ClickEvent event) {
-                sig.setVisible(!sig.isVisible());
-                source.setVisible(!source.isVisible());
-            }
-        });
-        toggle.addStyleName(_styles.toggle());
-        contents.add(toggle);
-        contents.add(sig);
+        Bindings.bindVisible(showSource, source);
         contents.add(source);
+
         if (deets != null) {
             contents.add(deets);
         }
@@ -183,18 +187,22 @@ public class TypeDetailPanel extends Composite
     protected void addDefs (FlowPanel panel, String kind, Def[] defs, FlowPanel members)
     {
         for (final Def def : defs) {
+            // create a type detail panel for this def, which will most likely be hidden
+            final TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _expanded);
+            deets.addStyleName(_rsrc.styles().indent());
+            Bindings.bindVisible(_expanded.get(def.id), deets);
+            members.add(deets);
+
             Image icon = iconForDef(def);
             icon.addStyleName(_styles.Icon());
             InlineLabel label = new InlineLabel(def.name);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
-                    Value<Boolean> expanded = _expanded.get(def.id);
-                    // if it's already visible, hide and reshow it to trigger the "scroll into view
-                    // on made visible" processing
-                    if (expanded.get()) {
-                        expanded.update(false);
+                    if (!deets.isVisible()) {
+                        deets.setVisible(true);
+                    } else {
+                        deets.recenterPanel();
                     }
-                    expanded.update(true);
                 }
             });
             label.addMouseOverHandler(new MouseOverHandler() {
@@ -215,13 +223,8 @@ public class TypeDetailPanel extends Composite
                     }
                 }
             });
-            // new UsePopup.Popper(def.id, label, _defmap, UsePopup.BY_TYPES);
+            new UsePopup.Popper(def.id, label, Functions.asFunc(_defmap), UsePopup.BY_TYPES);
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
-
-            TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _expanded);
-            deets.addStyleName(_rsrc.styles().indent());
-            Bindings.bindVisible(_expanded.get(def.id), deets);
-            members.add(deets);
         }
     }
 
@@ -258,10 +261,15 @@ public class TypeDetailPanel extends Composite
     protected boolean _loaded;
     protected TypeDetail _detail;
     protected Map<Long, Widget> _defmap;
-    protected IdMap _expanded;
+    protected IdMap<Boolean> _expanded;
 
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
+
+    /** We keep a global toggle to track whether to open defs with source or summary first. When
+     * you expand a def into source, you switch to source first mode, when you contract, you return
+     * to summary first. */
+    protected static boolean _sourceFirst = false;
 
     protected interface Binder extends UiBinder<Widget, TypeDetailPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
