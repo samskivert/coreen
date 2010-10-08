@@ -44,10 +44,19 @@ import coreen.util.PanelCallback;
  */
 public class TypeDetailPanel extends Composite
 {
-    public TypeDetailPanel (Def def, Map<Long, Widget> defmap, IdMap expanded)
+    public final long defId;
+
+    /** Used when we're totally standalone. */
+    public TypeDetailPanel (long defId)
+    {
+        this(defId, new HashMap<Long, Widget>(), new IdMap());
+    }
+
+    /** Used when we're part of a type hierarchy. */
+    public TypeDetailPanel (long defId, Map<Long, Widget> defmap, IdMap expanded)
     {
         initWidget(_binder.createAndBindUi(this));
-        _def = def;
+        this.defId = defId;
         _defmap = defmap;
         _expanded = expanded;
     }
@@ -55,21 +64,37 @@ public class TypeDetailPanel extends Composite
     @Override // from Widget
     public void setVisible (boolean visible)
     {
-        if (visible && !_loaded) {
-            _loaded = true;
-            _contents.setWidget(Widgets.newLabel("Loading..."));
-            _projsvc.getType(_def.id, new PanelCallback<TypeDetail>(_contents) {
-                public void onSuccess (TypeDetail deets) {
-                    init(deets);
-                }
-            });
+        if (visible) {
+            ensureLoaded();
         }
         super.setVisible(visible);
+    }
+
+    @Override // from Widget
+    public void onLoad ()
+    {
+        super.onLoad();
+        if (isVisible()) {
+            ensureLoaded();
+        }
     }
 
     public void showMember (long memberId)
     {
         _expanded.get(memberId).update(true);
+    }
+
+    protected void ensureLoaded ()
+    {
+        if (!_loaded) {
+            _loaded = true;
+            _contents.setWidget(Widgets.newLabel("Loading..."));
+            _projsvc.getType(defId, new PanelCallback<TypeDetail>(_contents) {
+                public void onSuccess (TypeDetail deets) {
+                    init(deets);
+                }
+            });
+        }
     }
 
     protected void init (final TypeDetail detail)
@@ -166,7 +191,7 @@ public class TypeDetailPanel extends Composite
             // new UsePopup.Popper(def.id, label, _defmap, UsePopup.BY_TYPES);
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
 
-            TypeDetailPanel deets = new TypeDetailPanel(def, _defmap, _expanded);
+            TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _expanded);
             deets.addStyleName(_rsrc.styles().indent());
             Bindings.bindVisible(_expanded.get(def.id), deets);
             members.add(deets);
@@ -199,7 +224,6 @@ public class TypeDetailPanel extends Composite
     }
 
     protected boolean _loaded;
-    protected Def _def;
     protected TypeDetail _detail;
     protected Map<Long, Widget> _defmap;
     protected IdMap _expanded;

@@ -68,13 +68,13 @@ public abstract class SourcePanel extends Composite
     {
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
-        String first = lines.get(0);
+        String first = expandTabs(lines.get(0));
         int prefix = first.indexOf(first.trim());
         if (prefix > 0) {
             // scan through another ten lines to ensure that the first line wasn't anomalous in
             // establishing our indentation prefix
             for (int ii = 0, ll = Math.min(lines.length(), 10); ii < ll; ii++) {
-                String line = lines.get(ii), tline = line.trim();
+                String line = expandTabs(lines.get(ii)), tline = line.trim();
                 if (tline.length() != 0 && // line is not blank
                     line.substring(0, Math.min(line.length(), prefix)).trim().length() > 0) {
                     prefix = line.indexOf(tline);
@@ -109,7 +109,7 @@ public abstract class SourcePanel extends Composite
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
-                String seg = text.substring(offset, elem.startPos);
+                String seg = expandTabs(text.substring(offset, elem.startPos));
                 // special handling for the first line since we can't rely on it following a
                 // newline to tell us that it needs to be trimmed
                 if (offset == 0 && prefix > 0) {
@@ -121,7 +121,8 @@ public abstract class SourcePanel extends Composite
             offset = elem.endPos;
         }
         if (offset < text.length()) {
-            code.add(Widgets.newInlineLabel(trimPrefix(text.substring(offset), prefix)));
+            code.add(Widgets.newInlineLabel(
+                         trimPrefix(expandTabs(text.substring(offset)), prefix)));
         }
 
         final Widget scrollTo = _defmap.get(scrollToDefId);
@@ -160,6 +161,12 @@ public abstract class SourcePanel extends Composite
             this.startPos = startPos;
             this.endPos = endPos;
         }
+    }
+
+    // TODO: allow per-project settings
+    protected static String expandTabs (String text)
+    {
+        return text.replace("\t", "        ");
     }
 
     protected native JsArrayString splitString (String text, String delim) /*-{

@@ -48,6 +48,9 @@ public class ProjectPage extends AbstractPage
         /** Types, grouped alphabetically. */
         TPS(_msgs.pByTypes()),
 
+        /** Viewing an individual type. */
+        TYP(null),
+
         /** Viewing an individual source file. */
         SRC(null);
 
@@ -143,6 +146,19 @@ public class ProjectPage extends AbstractPage
                 _contents.setWidget(panel = new TypesPanel());
             }
             panel.display(projectId, args.get(2, 0L), args.get(3, 0L));
+            break;
+        }
+        case TYP: {
+            long defId = args.get(2, 0L);
+            TypeDetailPanel panel;
+            GWT.log("Roger roger " + defId);
+            if (_contents.getWidget() instanceof TypeDetailPanel &&
+                ((TypeDetailPanel)_contents.getWidget()).defId == defId) {
+                panel = (TypeDetailPanel)_contents.getWidget();
+            } else {
+                _contents.setWidget(panel = new TypeDetailPanel(defId));
+            }
+            panel.showMember(args.get(3, 0L));
             break;
         }
         case SRC:
