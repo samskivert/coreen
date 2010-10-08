@@ -77,8 +77,15 @@ public class TypeDetailPanel extends Composite
         _detail = detail;
 
         FlowPanel contents = Widgets.newFlowPanel();
+        String header = "";
+        if (detail.def.type == Def.Type.TYPE) {
+            header = "<b>" + detail.def.name + "</b> ";
+        }
         if (detail.doc != null) {
-            contents.add(Widgets.newHTML(detail.doc, _styles.doc()));
+            header += detail.doc;
+        }
+        if (header.length() > 0) {
+            contents.add(Widgets.newHTML(header, _styles.doc()));
         }
 
         FlowPanel members = Widgets.newFlowPanel(_styles.members());
@@ -160,6 +167,7 @@ public class TypeDetailPanel extends Composite
             panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
 
             TypeDetailPanel deets = new TypeDetailPanel(def, _defmap, _expanded);
+            deets.addStyleName(_rsrc.styles().indent());
             Bindings.bindVisible(_expanded.get(def.id), deets);
             members.add(deets);
         }

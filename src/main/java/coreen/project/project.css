@@ -34,6 +34,10 @@
   background: #FF0000;
 }
 
+.indent {
+  margin-left: 5px;
+}
+
 @external .actionLabel {
   /* override gwt-utils default */
   text-decoration: none;
