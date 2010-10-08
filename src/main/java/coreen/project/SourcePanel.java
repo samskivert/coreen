@@ -27,7 +27,6 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.WindowUtil;
 
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
@@ -35,6 +34,7 @@ import coreen.model.DefDetail;
 import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.WindowFX;
 import coreen.util.Edit;
 import coreen.util.Errors;
 import coreen.util.PanelCallback;
@@ -61,6 +61,16 @@ public abstract class SourcePanel extends Composite
         initWidget(_binder.createAndBindUi(this));
         _contents.setWidget(Widgets.newLabel("Loading..."));
         _defmap = defmap;
+    }
+
+    @Override // from Widget
+    protected void onUnload ()
+    {
+        super.onUnload();
+        // clear out the defs we were displaying
+        for (Long defId : _added) {
+            _defmap.remove(defId);
+        }
     }
 
     protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
@@ -125,26 +135,21 @@ public abstract class SourcePanel extends Composite
                          trimPrefix(expandTabs(text.substring(offset)), prefix)));
         }
 
-        final Widget scrollTo = _defmap.get(scrollToDefId);
-        if (scrollTo != null) {
-            DeferredCommand.addCommand(new Command() {
-                public void execute () {
-                    WindowUtil.scrollTo(scrollTo);
-                }
-            });
-        }
+        // final Widget scrollTo = _defmap.get(scrollToDefId);
+        // if (scrollTo != null) {
+        //     DeferredCommand.addCommand(new Command() {
+        //         public void execute () {
+        //             WindowFX.scrollTo(scrollTo);
+        //         }
+        //     });
+        // }
 
         _contents.setWidget(code);
+        didInit();
     }
 
-    @Override // from Widget
-    protected void onUnload ()
+    protected void didInit ()
     {
-        super.onUnload();
-        // clear out the defs we were displaying
-        for (Long defId : _added) {
-            _defmap.remove(defId);
-        }
     }
 
     protected abstract class Elementer implements Comparable<Elementer> {

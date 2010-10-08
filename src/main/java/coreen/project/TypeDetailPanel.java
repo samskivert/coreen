@@ -16,6 +16,8 @@ import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -29,6 +31,7 @@ import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
+import com.threerings.gwt.util.WindowUtil;
 
 import coreen.icons.IconResources;
 import coreen.model.Def;
@@ -36,6 +39,7 @@ import coreen.model.DefContent;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.WindowFX;
 import coreen.util.IdMap;
 import coreen.util.PanelCallback;
 
@@ -64,10 +68,15 @@ public class TypeDetailPanel extends Composite
     @Override // from Widget
     public void setVisible (boolean visible)
     {
+        boolean wasVisible = isVisible();
         if (visible) {
             ensureLoaded();
         }
         super.setVisible(visible);
+        // if we were just made visible, scroll ourselves into view
+        if (!wasVisible && visible) {
+            recenterPanel();
+        }
     }
 
     @Override // from Widget
@@ -92,6 +101,12 @@ public class TypeDetailPanel extends Composite
             _projsvc.getType(defId, new PanelCallback<TypeDetail>(_contents) {
                 public void onSuccess (TypeDetail deets) {
                     init(deets);
+                    // make sure we fit in the view
+                    DeferredCommand.addCommand(new Command() {
+                        public void execute () {
+                            recenterPanel();
+                        }
+                    });
                 }
             });
         }
@@ -113,16 +128,18 @@ public class TypeDetailPanel extends Composite
             contents.add(Widgets.newHTML(header, _styles.doc()));
         }
 
-        FlowPanel members = Widgets.newFlowPanel(_styles.members());
-        FlowPanel deets = Widgets.newFlowPanel();
-        addDefs(members, _msgs.tdpTypes(), detail.types, deets);
-        addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
-        if (detail.def.type == Def.Type.TYPE) { // non-types terms are only displayed in-source
+        // if this is a type, display nested fields, funcs, etc.
+        FlowPanel deets = null;
+        if (detail.def.type == Def.Type.TYPE) {
+            FlowPanel members = Widgets.newFlowPanel(_styles.members());
+            deets = Widgets.newFlowPanel();
+            addDefs(members, _msgs.tdpTypes(), detail.types, deets);
+            addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
             addDefs(members, _msgs.tdpTerms(), detail.terms, deets);
-        }
-        if (members.getWidgetCount() > 0) {
-            members.add(Widgets.newLabel(" ", _styles.Spacer()));
-            contents.add(members);
+            if (members.getWidgetCount() > 0) {
+                members.add(Widgets.newLabel(" ", _styles.Spacer()));
+                contents.add(members);
+            }
         }
 
         final Label sig = Widgets.newLabel(detail.sig, _rsrc.styles().code());
@@ -137,6 +154,9 @@ public class TypeDetailPanel extends Composite
                         }
                     });
                 }
+            }
+            protected void didInit () {
+                recenterPanel();
             }
             protected boolean _loaded;
         };
@@ -153,7 +173,9 @@ public class TypeDetailPanel extends Composite
         contents.add(toggle);
         contents.add(sig);
         contents.add(source);
-        contents.add(deets);
+        if (deets != null) {
+            contents.add(deets);
+        }
 
         _contents.setWidget(contents);
     }
@@ -167,7 +189,12 @@ public class TypeDetailPanel extends Composite
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     Value<Boolean> expanded = _expanded.get(def.id);
-                    expanded.update(!expanded.get());
+                    // if it's already visible, hide and reshow it to trigger the "scroll into view
+                    // on made visible" processing
+                    if (expanded.get()) {
+                        expanded.update(false);
+                    }
+                    expanded.update(true);
                 }
             });
             label.addMouseOverHandler(new MouseOverHandler() {
@@ -196,6 +223,11 @@ public class TypeDetailPanel extends Composite
             Bindings.bindVisible(_expanded.get(def.id), deets);
             members.add(deets);
         }
+    }
+
+    protected void recenterPanel ()
+    {
+        WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
     }
 
     protected Image iconForDef (Def def)
