@@ -69,7 +69,7 @@ public abstract class SourcePanel extends Composite
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
         String first = lines.get(0);
-        int prefix = 0; // first.indexOf(first.trim()); // TEMP: disabled
+        int prefix = first.indexOf(first.trim());
         if (prefix > 0) {
             // scan through another ten lines to ensure that the first line wasn't anomalous in
             // establishing our indentation prefix
