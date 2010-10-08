@@ -29,6 +29,9 @@ public class Def
     /** A unique identifier for this definition (1 or higher). */
     public long id;
 
+    /** A unique identifier for this definition's enclosing def (or 0 if they have none). */
+    public long parentId;
+
     /** This definition's (unqualified) name (i.e. Foo, not com.bar.Outer.Foo). */
     public String name;
 
@@ -42,6 +45,7 @@ public class Def
     public Def (long id, long parentId, String name, Type type, int start)
     {
         this.id = id;
+        this.parentId = parentId;
         this.name = name;
         this.type = type;
         this.start = start;

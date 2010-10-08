@@ -84,7 +84,7 @@ public class UsePopup extends PopupPanel
         public void onMouseOver (MouseOverEvent event) {
             // if this def is already onscreen, just highlight it
             Widget def = _defmap.get(_referentId);
-            if (def != null) { // TODO: && is scrolled into view
+            if (def != null && WindowUtil.isScrolledIntoView(def)) {
                 def.addStyleName(_rsrc.styles().highlight());
 
             } else if (_popup == null || !_popup.isShowing()) {

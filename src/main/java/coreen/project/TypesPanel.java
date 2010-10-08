@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -54,12 +57,18 @@ public class TypesPanel extends Composite
 
     protected Widget createContents (Def[] defs)
     {
+        // map the defs by id for some later fiddling
+        final Map<Long, Def> byid = new HashMap<Long, Def>();
+        for (Def def : defs) {
+            byid.put(def.id, def);
+        }
+
         FluentTable table = new FluentTable(5, 0, _styles.byname());
         FlowPanel types = null, details = null;
         char c = 0;
         for (final Def def : defs) {
             if (def.name.length() == 0) {
-                continue; // skip blank types; TODO: what are these?
+                continue; // skip blank types; TODO: better anonymous inner class handling
             }
             if (def.name.charAt(0) != c) {
                 types = Widgets.newFlowPanel();
@@ -77,7 +86,20 @@ public class TypesPanel extends Composite
             InlineLabel label = new InlineLabel(def.name);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
-                    Link.go(Page.PROJECT, _projectId, ProjectPage.Detail.TPS, def.id);
+                    if (_types.get(def.id).get()) {
+                        _types.get(def.id).update(false);
+                    } else {
+                        long outerId = def.id, innerId = 0L;
+                        Def d = def;
+                        while (d != null) {
+                            d = byid.get(d.parentId);
+                            if (d != null) {
+                                innerId = outerId;
+                                outerId = d.id;
+                            }
+                        }
+                        Link.go(Page.PROJECT, _projectId, ProjectPage.Detail.TPS, outerId, innerId);
+                    }
                 }
             });
             new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
