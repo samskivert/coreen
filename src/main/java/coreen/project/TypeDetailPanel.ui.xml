@@ -11,15 +11,9 @@
       border-top: 1px solid;
       width: 800px;
     }
-    .doc {
-    }
     .members {
       font-size: small;
       border-bottom: 1px solid;
-    }
-    .members .Icon {
-      vertical-align: bottom;
-      display: inline;
     }
     .members .Member {
       float: left;

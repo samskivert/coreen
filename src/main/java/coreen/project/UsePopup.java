@@ -82,8 +82,6 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            hidePopup();
-
             // if this def is already onscreen, just highlight it
             Widget def = _defmap.get(_referentId);
             if (def != null) { // TODO: && is scrolled into view
@@ -119,7 +117,7 @@ public class UsePopup extends PopupPanel
             // otherwise we have to fetch our referent details
             _projsvc.getDef(_referentId, new PopupCallback<DefDetail>(_target) {
                 public void onSuccess (DefDetail deet) {
-                    _popup = new UsePopup(Popper.this, deet, _linker);
+                    _popup = new UsePopup(Popper.this, deet, _linker, _defmap);
                     showPopup();
                 }
             });
@@ -172,16 +170,14 @@ public class UsePopup extends PopupPanel
         }
     }
 
-    protected UsePopup (Popper popper, DefDetail deet, Linker linker)
+    protected UsePopup (Popper popper, DefDetail deet, Linker linker, DefMap defmap)
     {
         super(true);
         setStyleName(_rsrc.styles().usePopup());
         _popper = popper;
 
         FlowPanel panel = new FlowPanel();
-        if (deet.doc != null) {
-            panel.add(Widgets.newHTML(deet.doc));
-        }
+        panel.add(new TypeLabel(deet.path, deet.def, linker, defmap, deet.doc));
         Widget sig;
         if (deet.unit.projectId > 0) {
             sig = (_link = linker.makeLink(deet));

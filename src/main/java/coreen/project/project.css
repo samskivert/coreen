@@ -43,7 +43,13 @@
   margin-left: 5px;
 }
 
-.typeLabel {
-  font-weight: bold;
+.typeLabel .Type {
   padding-right: 5px;
+  font-weight: bold;
+}
+
+.typeIcon {
+  display: inline;
+  position: relative;
+  top: 2px;
 }

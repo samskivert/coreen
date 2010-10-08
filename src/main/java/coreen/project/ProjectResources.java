@@ -23,6 +23,8 @@ public interface ProjectResources extends ClientBundle
         String highlight ();
         String indent ();
         String typeLabel ();
+        String /*typeLabel*/ Type ();
+        String typeIcon ();
     }
 
     @Source("project.css")

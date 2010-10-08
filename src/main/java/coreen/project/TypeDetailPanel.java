@@ -113,18 +113,11 @@ public class TypeDetailPanel extends Composite
         _detail = detail;
 
         FlowPanel contents = Widgets.newFlowPanel();
-        FlowPanel header = Widgets.newFlowPanel();
         if (detail.def.type == Def.Type.TYPE) {
-            TypeLabel name = new TypeLabel(
-                detail.path, detail.def, UsePopup.BY_TYPES, _defmap);
-            name.addStyleName("inline");
-            header.add(name);
-        }
-        if (detail.doc != null) {
-            header.add(Widgets.newHTML(detail.doc, _styles.doc(), "inline"));
-        }
-        if (header.getWidgetCount() > 0) {
-            contents.add(header);
+            contents.add(new TypeLabel(detail.path, detail.def, UsePopup.BY_TYPES,
+                                       _defmap, detail.doc));
+        } else if (detail.doc != null) {
+            contents.add(Widgets.newHTML(detail.doc));
         }
 
         // if this is a type, display nested fields, funcs, etc.
@@ -208,8 +201,6 @@ public class TypeDetailPanel extends Composite
             Bindings.bindVisible(_expanded.get(def.id), deets);
             members.add(deets);
 
-            Image icon = iconForDef(def);
-            icon.addStyleName(_styles.Icon());
             InlineLabel label = new InlineLabel(def.name);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
@@ -238,8 +229,10 @@ public class TypeDetailPanel extends Composite
                     }
                 }
             });
+
             new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
-            panel.add(Widgets.newFlowPanel(_styles.Member(), icon, label));
+            panel.add(Widgets.newFlowPanel(_styles.Member(),
+                                           TypeLabel.iconForDef(def.type), label));
         }
     }
 
@@ -248,26 +241,9 @@ public class TypeDetailPanel extends Composite
         WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
     }
 
-    protected Image iconForDef (Def def)
-    {
-        switch (def.type) {
-        default:
-        case MODULE: // TODO: module icon
-            return new Image(_icons.class_obj());
-        case TYPE: // TODO: support specialization on class/ifc/enum/etc.
-            return new Image(_icons.class_obj());
-        case FUNC: // TODO: support public/protected/private, etc.
-            return new Image(_icons.methpub_obj());
-        case TERM: // TODO: support public/protected/private, etc.
-            return new Image(_icons.field_public_obj());
-        }
-    }
-
     protected interface Styles extends CssResource
     {
-        String doc ();
         String members ();
-        String /*members*/ Icon ();
         String /*members*/ Member ();
         String /*members*/ Spacer ();
         String toggle ();
