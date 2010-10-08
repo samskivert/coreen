@@ -67,14 +67,17 @@ public class UsePopup extends PopupPanel
             Widget def = getVizDef();
             if (def != null) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
+            } else {
+                boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
+                if (!debounce && (_popup == null || !_popup.isShowing())) {
+                    showPopup();
+                }
             }
-            // boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
-            // if (!debounce && (_popup == null || !_popup.isShowing())) {
-            //     showPopup();
-            // }
         }
 
         public void onMouseOver (MouseOverEvent event) {
+            hidePopup();
+
             // if this def is already onscreen, just highlight it
             Widget def = getVizDef();
             if (def != null) { // TODO: && is scrolled into view
