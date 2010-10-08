@@ -49,7 +49,7 @@ public class UsePopup extends PopupPanel
         }
     };
 
-    public static class Popper implements MouseDownHandler, MouseOverHandler, MouseOutHandler
+    public static class Popper implements ClickHandler, MouseOverHandler, MouseOutHandler
     {
         public Popper (long referentId, Widget target, Linker linker, DefMap defmap) {
             _referentId = referentId;
@@ -57,39 +57,34 @@ public class UsePopup extends PopupPanel
             _defmap = defmap;
             _linker = linker;
 
-            if (!(target instanceof HasMouseOverHandlers)) {
-                GWT.log("Can't listen for mouse over on " + target);
-            } else {
-                ((HasMouseDownHandlers)target).addMouseDownHandler(this);
+            if (target instanceof HasClickHandlers) {
+                ((HasClickHandlers)target).addClickHandler(this);
+                target.addStyleName(_rsrc.styles().actionable());
+            }
+            if (target instanceof HasMouseOverHandlers) {
                 ((HasMouseOverHandlers)target).addMouseOverHandler(this);
                 ((HasMouseOutHandlers)target).addMouseOutHandler(this);
-                target.addStyleName(_rsrc.styles().actionable());
             }
         }
 
-        public void onMouseDown (MouseDownEvent event) {
+        public void onClick (ClickEvent event) {
             Widget def = _defmap.get(_referentId);
             if (def != null) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
             } else if (_popup != null) {
                 _popup.go();
-            } else {
-                boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
-                if (!debounce && (_popup == null || !_popup.isShowing())) {
-                    showPopup();
-                }
+            // } else {
+            //     boolean debounce = (System.currentTimeMillis() - _lastPopdown < BOUNCE);
+            //     if (!debounce && (_popup == null || !_popup.isShowing())) {
+            //         GWT.log("Immediate!");
+            //         showPopup();
+            //     }
             }
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            // if this def is already onscreen, just highlight it
-            Widget def = _defmap.get(_referentId);
-            if (def != null && WindowUtil.isScrolledIntoView(def)) {
-                def.addStyleName(_rsrc.styles().highlight());
-
-            } else if (_popup == null || !_popup.isShowing()) {
+            if (!highlightTarget() && (_popup == null || !_popup.isShowing())) {
                 _timer.schedule(500);
-                // showPopup();
             }
         }
 
@@ -104,8 +99,22 @@ public class UsePopup extends PopupPanel
             }
         }
 
+        protected boolean highlightTarget () {
+            Widget def = _defmap.get(_referentId);
+            if (def != null && WindowUtil.isScrolledIntoView(def)) {
+                def.addStyleName(_rsrc.styles().highlight());
+                return true;
+            }
+            return false;
+        }
+
         protected void showPopup () {
             hidePopup();
+
+            // if the def came into view while we were waiting, just highlight it
+            if (highlightTarget()) {
+                return;
+            }
 
             // if we already have our popup, then just show it
             if (_popup != null) {
@@ -167,6 +176,7 @@ public class UsePopup extends PopupPanel
     {
         if (_link != null) {
             History.newItem(_link.getTargetHistoryToken());
+            hide();
         }
     }
 
