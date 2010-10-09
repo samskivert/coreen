@@ -52,8 +52,10 @@ trait Updater {
 
     abstract class Reader {
       def invoke (p :Project, ulog :String=>Unit) {
-        _log.info("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
-        val proc = Runtime.getRuntime.exec((args :+ p.rootPath).toArray)
+        val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
+        val argList = args ++ (p.rootPath :: dirList)
+        _log.info("Invoking reader: " + argList.mkString(" "))
+        val proc = Runtime.getRuntime.exec(argList.toArray)
 
         // read stderr on a separate thread so that we can ensure that stdout and stderr are both
         // actively drained, preventing the process from blocking
@@ -261,7 +263,7 @@ trait Updater {
       val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
       def args = (javabin.getCanonicalPath :: "-classpath" ::
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
-                  classname :: javaArgs)
+                  "-mx512M" :: classname :: javaArgs)
     }
 
     // TEMP: profiling helper

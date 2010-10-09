@@ -24,6 +24,9 @@ public class Project
     /** A string identifying the imported version of this project. */
     public String version;
 
+    /** The source directory filters for this project (or the empty string). */
+    public String srcDirs;
+
     /** When this project was imported into the library. */
     public Date imported;
 
@@ -31,13 +34,14 @@ public class Project
     public Date lastUpdated;
 
     /** Creates and initializes this instance. */
-    public Project (long id, String name, String rootPath, String version,
+    public Project (long id, String name, String rootPath, String version, String srcDirs,
                     Date imported, Date lastUpdated)
     {
         this.id = id;
         this.name = name;
         this.rootPath = rootPath;
         this.version = version;
+        this.srcDirs = srcDirs;
         this.imported = imported;
         this.lastUpdated = lastUpdated;
     }
@@ -52,6 +56,7 @@ public class Project
             append(", name=").append(name).
             append(", rootPath=").append(rootPath).
             append(", version=").append(version).
+            append(", srcDirs=").append(srcDirs).
             append(", imported=").append(imported).
             append(", lastUpdated=").append(lastUpdated).
             append("]").toString();
