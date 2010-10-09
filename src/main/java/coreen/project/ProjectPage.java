@@ -145,7 +145,7 @@ public class ProjectPage extends AbstractPage
             } else {
                 _contents.setWidget(panel = new TypesPanel());
             }
-            panel.display(projectId, args.get(2, 0L), args.get(3, 0L));
+            panel.display(projectId, args.drop(2));
             break;
         }
         case TYP: {

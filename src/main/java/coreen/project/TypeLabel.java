@@ -57,6 +57,18 @@ public class TypeLabel extends FlowPanel
         if (showModules && docs != null) {
             add(Widgets.newHTML(docs)); // not inline
         }
+        if (!showModules) {
+            StringBuilder buf = new StringBuilder();
+            for (TypedId encl : parents) {
+                if (encl.type == Def.Type.MODULE) {
+                    if (buf.length() > 0) {
+                        buf.append(".");
+                    }
+                    buf.append(encl.name);
+                }
+            }
+            add(Widgets.newLabel(buf.toString(), _rsrc.styles().Module()));
+        }
         add(iconForDef(def.type));
         for (TypedId encl : parents) {
             if (showModules || encl.type != Def.Type.MODULE) {

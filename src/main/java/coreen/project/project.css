@@ -43,6 +43,10 @@
   margin-left: 5px;
 }
 
+.typeLabel .Module {
+  font-size: small;
+}
+
 .typeLabel .Type {
   padding-right: 5px;
   font-weight: bold;

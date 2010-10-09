@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.History;
@@ -20,11 +23,13 @@ import com.threerings.gwt.util.WindowUtil;
 
 import coreen.client.Link;
 import coreen.client.Page;
-import coreen.ui.WindowFX;
-import coreen.util.DefMap;
+import coreen.model.Def;
 import coreen.model.DefDetail;
+import coreen.model.TypedId;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.WindowFX;
+import coreen.util.DefMap;
 
 /**
  * Displays information about a use when the mouse is hovered over it.
@@ -44,8 +49,16 @@ public class UsePopup extends PopupPanel
 
     public static final Linker BY_TYPES = new Linker() {
         public Hyperlink makeLink (DefDetail deet) {
-            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
-                               ProjectPage.Detail.TPS, deet.outerTypeId(), deet.outerMemberId());
+            List<Object> args = new ArrayList<Object>();
+            args.add(deet.unit.projectId);
+            args.add(ProjectPage.Detail.TPS);
+            for (TypedId tid : deet.path) {
+                if (tid.type != Def.Type.MODULE) {
+                    args.add(tid.id);
+                }
+            }
+            args.add(deet.def.id);
+            return Link.create(deet.sig, Page.PROJECT, args.toArray());
         }
     };
 

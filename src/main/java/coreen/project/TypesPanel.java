@@ -23,6 +23,7 @@ import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
+import coreen.client.Args;
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
@@ -42,7 +43,7 @@ public class TypesPanel extends Composite
         initWidget(_binder.createAndBindUi(this));
     }
 
-    public void display (long projectId, final long typeId, final long memberId)
+    public void display (long projectId, Args args)
     {
         if (_projectId != projectId) {
             _projsvc.getTypes(_projectId = projectId, new PanelCallback<Def[]>(_contents) {
@@ -51,8 +52,10 @@ public class TypesPanel extends Composite
                 }
             });
         }
-        _types.get(typeId).update(true);
-        _members.get(memberId).update(true);
+        _types.get(args.get(0, 0L)).update(true);
+        for (int idx = 1; args.get(idx, 0L) != 0L; idx++) {
+            _members.get(args.get(idx, 0L)).update(true);
+        }
     }
 
     protected Widget createContents (Def[] defs)
