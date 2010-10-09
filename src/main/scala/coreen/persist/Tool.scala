@@ -53,8 +53,7 @@ object Tool extends AnyRef
   }
 
   protected def withConnection (action :(Connection => Unit)) {
-    val dburl = "jdbc:h2:" + new File(_coreenDir, "repository").getAbsolutePath
-    val conn = DriverManager.getConnection(dburl, "sa", "")
+    val conn = DriverManager.getConnection(_db.mkUrl(_coreenDir), "sa", "")
     try {
       action(conn)
     } finally {

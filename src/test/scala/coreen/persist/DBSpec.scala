@@ -20,7 +20,8 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
 {
   def testSession = {
     Class.forName("org.h2.Driver")
-    val s = Session.create(DriverManager.getConnection("jdbc:h2:mem:test", "sa", ""), new H2Adapter)
+    val url = "jdbc:h2:mem:test;ignorecase=true"
+    val s = Session.create(DriverManager.getConnection(url, "sa", ""), new H2Adapter)
     // s.setLogger(println) // for great debugging!
     s
   }
