@@ -73,6 +73,10 @@ trait DB {
     /** Maps a byte code back to a {@link JDef.Type}. */
     val codeToType = typeToCode map { case(x, y) => (y, x) }
 
+    /** Creates the JDBC URL to our database. */
+    def dbUrl (root :File) =
+      "jdbc:h2:" + new File(root, "repository").getAbsolutePath + ";ignorecase=true"
+
     /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
      * supported by Squeryl. */
     def reinitSchema {
@@ -94,7 +98,7 @@ trait DBComponent extends Component with DB {
 
     // initialize the H2 database
     Class.forName("org.h2.Driver")
-    val dburl = "jdbc:h2:" + new File(_coreenDir, "repository").getAbsolutePath
+    val dburl = _db.dbUrl(_coreenDir)
     SessionFactory.concreteFactory = Some(() => {
       // TODO: use connection pools as Squeryl creates and closes a connection on every query
       val sess = Session.create(DriverManager.getConnection(dburl, "sa", ""), new H2Adapter)
