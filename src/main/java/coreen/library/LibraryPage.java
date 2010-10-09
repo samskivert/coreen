@@ -41,8 +41,7 @@ public class LibraryPage extends AbstractPage
     {
         String action = args.get(0, "");
         if (action.equals(SEARCH)) {
-            _contents.setWidget(
-                Widgets.newLabel("TODO: implement search (" + args.get(1, "") + ")"));
+            _contents.setWidget(new SearchResultsPanel(args.get(1, "").trim()));
         } else {
             _contents.setWidget(_projects);
         }

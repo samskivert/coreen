@@ -13,6 +13,11 @@ import coreen.model.Project;
 public interface LibraryServiceAsync
 {
     /**
+     * The async version of {@link LibraryService#search}.
+     */
+    void search (String query, AsyncCallback<LibraryService.SearchResult[]> callback);
+
+    /**
      * The async version of {@link LibraryService#getProjects}.
      */
     void getProjects (AsyncCallback<Project[]> callback);

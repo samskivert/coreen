@@ -50,22 +50,35 @@ public class TypeLabel extends FlowPanel
     }
 
     public TypeLabel (TypedId[] parents, Def def, UsePopup.Linker linker, DefMap defmap,
-                      String docs)
+                      String docs, boolean showModules)
     {
         addStyleName(_rsrc.styles().typeLabel());
+        // haxx0r!
+        if (showModules && docs != null) {
+            add(Widgets.newHTML(docs)); // not inline
+        }
         add(iconForDef(def.type));
         for (TypedId encl : parents) {
-            if (encl.type != Def.Type.MODULE) {
+            if (showModules || encl.type != Def.Type.MODULE) {
                 Widget plabel = Widgets.newInlineLabel(encl.name);
-                new UsePopup.Popper(encl.id, plabel, linker, defmap);
+                if (encl.type != Def.Type.MODULE) {
+                    new UsePopup.Popper(encl.id, plabel, linker, defmap);
+                }
                 add(plabel);
                 add(Widgets.newInlineLabel(".")); // TODO: customizable path separator?
             }
         }
-        add(Widgets.newInlineLabel(def.name, _rsrc.styles().Type()));
-        if (docs != null) {
+        Widget dlabel = createDefLabel(def);
+        dlabel.addStyleName("inline");
+        add(dlabel);
+        if (!showModules && docs != null) {
             add(Widgets.newHTML(docs, "inline"));
         }
+    }
+
+    protected Widget createDefLabel (Def def)
+    {
+        return Widgets.newLabel(def.name, _rsrc.styles().Type());
     }
 
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);

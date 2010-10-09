@@ -138,7 +138,7 @@ trait ProjectServlet {
     private def loadDefPath (defId :Long, path :List[TypedId]) :List[TypedId] =
       if (defId == 0L) path else {
         val d = _db.defs.lookup(defId).get
-        loadDefPath(d.parentId, new TypedId(_db.codeToType(d.typ), d.id, d.name) :: path)
+        loadDefPath(d.parentId, Convert.toTypedId(_db.codeToType)(d) :: path)
       }
 
     private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =

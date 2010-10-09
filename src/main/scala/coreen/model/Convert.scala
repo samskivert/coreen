@@ -26,4 +26,8 @@ object Convert
 
   /** Converts a Scala Use to a Java Use. */
   def toJava (u :SUse) :JUse = new JUse(u.referentId, u.useStart, u.useEnd-u.useStart)
+
+  /** Converts a Scala Def to a TypedId. */
+  def toTypedId (decode :Map[Int,JDef.Type])(d :SDef) :TypedId =
+    new TypedId(decode(d.typ), d.id, d.name)
 }

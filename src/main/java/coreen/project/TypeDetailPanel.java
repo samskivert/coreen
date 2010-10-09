@@ -115,7 +115,7 @@ public class TypeDetailPanel extends Composite
         FlowPanel contents = Widgets.newFlowPanel();
         if (detail.def.type == Def.Type.TYPE) {
             contents.add(new TypeLabel(detail.path, detail.def, UsePopup.BY_TYPES,
-                                       _defmap, detail.doc));
+                                       _defmap, detail.doc, false));
         } else if (detail.doc != null) {
             contents.add(Widgets.newHTML(detail.doc));
         }
@@ -248,14 +248,13 @@ public class TypeDetailPanel extends Composite
         String /*members*/ Spacer ();
         String toggle ();
     }
+    protected @UiField Styles _styles;
+    protected @UiField SimplePanel _contents;
 
     protected boolean _loaded;
     protected TypeDetail _detail;
     protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
-
-    protected @UiField SimplePanel _contents;
-    protected @UiField Styles _styles;
 
     /** We keep a global toggle to track whether to open defs with source or summary first. When
      * you expand a def into source, you switch to source first mode, when you contract, you return

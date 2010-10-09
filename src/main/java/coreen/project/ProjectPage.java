@@ -157,7 +157,9 @@ public class ProjectPage extends AbstractPage
             } else {
                 _contents.setWidget(panel = new TypeDetailPanel(defId));
             }
-            panel.showMember(args.get(3, 0L));
+            for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
+                panel.showMember(args.get(idx, 0L));
+            }
             break;
         }
         case SRC:
