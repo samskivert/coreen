@@ -54,6 +54,7 @@ public class TypeDetailPanel extends Composite
     public TypeDetailPanel (long defId)
     {
         this(defId, new DefMap(), IdMap.create(false));
+        _linker = UsePopup.TYPE;
     }
 
     /** Used when we're part of a type hierarchy. */
@@ -63,6 +64,7 @@ public class TypeDetailPanel extends Composite
         this.defId = defId;
         _defmap = defmap;
         _expanded = expanded;
+        _linker = UsePopup.BY_TYPES;
     }
 
     @Override // from Widget
@@ -114,8 +116,8 @@ public class TypeDetailPanel extends Composite
 
         FlowPanel contents = Widgets.newFlowPanel();
         if (detail.def.type == Def.Type.TYPE) {
-            contents.add(new TypeLabel(detail.path, detail.def, UsePopup.BY_TYPES,
-                                       _defmap, detail.doc, false));
+            contents.add(new TypeLabel(detail.path, detail.def, _linker, _defmap,
+                                       detail.doc, false));
         } else if (detail.doc != null) {
             contents.add(Widgets.newHTML(detail.doc));
         }
@@ -172,7 +174,7 @@ public class TypeDetailPanel extends Composite
                     _loaded = true;
                     _projsvc.getContent(detail.def.id, new PanelCallback<DefContent>(_contents) {
                         public void onSuccess (DefContent content) {
-                            init(content.text, content.defs, content.uses, 0L, UsePopup.BY_TYPES);
+                            init(content.text, content.defs, content.uses, 0L, _linker);
                         }
                     });
                 }
@@ -230,7 +232,7 @@ public class TypeDetailPanel extends Composite
                 }
             });
 
-            new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
+            new UsePopup.Popper(def.id, label, _linker, _defmap);
             panel.add(Widgets.newFlowPanel(_styles.Member(),
                                            TypeLabel.iconForDef(def.type), label));
         }
@@ -255,6 +257,7 @@ public class TypeDetailPanel extends Composite
     protected TypeDetail _detail;
     protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
+    protected UsePopup.Linker _linker;
 
     /** We keep a global toggle to track whether to open defs with source or summary first. When
      * you expand a def into source, you switch to source first mode, when you contract, you return

@@ -36,29 +36,50 @@ import coreen.util.DefMap;
  */
 public class UsePopup extends PopupPanel
 {
-    public interface Linker {
-        public Hyperlink makeLink (DefDetail deet);
-    }
-
-    public static final Linker SOURCE = new Linker() {
-        public Hyperlink makeLink (DefDetail deet) {
-            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
-                               ProjectPage.Detail.SRC, deet.unit.id, deet.def.id);
-        }
-    };
-
-    public static final Linker BY_TYPES = new Linker() {
+    public static abstract class Linker {
         public Hyperlink makeLink (DefDetail deet) {
             List<Object> args = new ArrayList<Object>();
             args.add(deet.unit.projectId);
-            args.add(ProjectPage.Detail.TPS);
+            addArgs(deet, args);
+            return Link.create(deet.sig, Page.PROJECT, args.toArray());
+        }
+
+        protected void addArgs (DefDetail deet, List<Object> args) {
+            args.add(getDetail());
+            addDetailArgs(deet, args);
+        }
+
+        protected abstract ProjectPage.Detail getDetail ();
+
+        protected void addDetailArgs (DefDetail deet, List<Object> args) {
             for (TypedId tid : deet.path) {
                 if (tid.type != Def.Type.MODULE) {
                     args.add(tid.id);
                 }
             }
             args.add(deet.def.id);
-            return Link.create(deet.sig, Page.PROJECT, args.toArray());
+        }
+    }
+
+    public static final Linker SOURCE = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.SRC;
+        }
+        protected void addDetailArgs (DefDetail deet, List<Object> args) {
+            args.add(deet.unit.id);
+            args.add(deet.def.id);
+        }
+    };
+
+    public static final Linker TYPE = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.TYP;
+        }
+    };
+
+    public static final Linker BY_TYPES = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.TPS;
         }
     };
 
