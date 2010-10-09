@@ -187,7 +187,7 @@ trait Updater {
           (tmp, _db.loadDefNames(tmp.keySet))
         }
       }
-      println("Loaded " + edefs.size + " defs and " + emap.size + " names")
+      // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
       // figure out which defs to add, which to update, and which to delete
       val (newDefs, oldDefs) = (cu.allIds, emap.keySet)
@@ -217,16 +217,16 @@ trait Updater {
         if (!toAdd.isEmpty) {
           val added = toAdd map(nmap) map(ndefs)
           time("addNewDefs") { _db.defs.insert(added) }
-          println("Inserted " + toAdd.size + " new defs")
+          // println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
           _db.defs.update(toUpdate map(emap) map(ndefs))
-          println("Updated " + toUpdate.size + " defs")
+          // println("Updated " + toUpdate.size + " defs")
         }
         if (!toDelete.isEmpty) {
           val toDelIds = toDelete map(emap)
           time("deleteOldDefs") { _db.defs.deleteWhere(d => d.id in toDelIds) }
-          println("Deleted " + toDelete.size + " defs")
+          // println("Deleted " + toDelete.size + " defs")
         }
 
         // delete the old uses recorded for this compunit
