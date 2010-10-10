@@ -48,6 +48,21 @@ trait ProjectServlet {
     }
 
     // from interface ProjectService
+    def getModsAndMembers (projectId :Long) :Array[Array[JDef]] = transaction {
+      val mods = from(_db.compunits, _db.defs)((cu, d) =>
+        where(cu.projectId === projectId and cu.id === d.unitId and
+              (d.typ === _db.typeToCode(JDef.Type.MODULE)))
+        select(d)
+      ) map(d => (d.id -> d)) toMap
+
+      val members = _db.defs where(d => d.parentId in mods.keySet) toArray
+      val modMems = members groupBy(_.parentId) map {
+        case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava(_db.codeToType))
+      }
+      modMems.toArray sortBy(_.head.name)
+    }
+
+    // from interface ProjectService
     def getTypes (projectId :Long) :Array[JDef] = transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and

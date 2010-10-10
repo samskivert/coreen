@@ -17,28 +17,39 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.FluentTable;
 
+import coreen.client.Args;
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.CompUnit;
 import coreen.model.Project;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
 import coreen.util.PanelCallback;
 
 /**
  * Displays all of the compilation units in a particular project.
  */
-public class CompUnitsPanel extends Composite
+public class CompUnitsPanel extends AbstractProjectPanel
 {
-    public CompUnitsPanel (final Project p)
+    public CompUnitsPanel ()
     {
         initWidget(_binder.createAndBindUi(this));
+    }
 
-        _projsvc.getCompUnits(p.id, new PanelCallback<CompUnit[]>(_contents) {
-            public void onSuccess (CompUnit[] units) {
-                _contents.setWidget(createContents(p, units));
-            }
-        });
+    @Override // from AbstractProjectPanel
+    public ProjectPage.Detail getId ()
+    {
+        return ProjectPage.Detail.CUS;
+    }
+
+    @Override // from AbstractProjectPanel
+    public void setArgs (final Project proj, Args args)
+    {
+        if (proj.id != _projectId) {
+            _projsvc.getCompUnits(_projectId = proj.id, new PanelCallback<CompUnit[]>(_contents) {
+                public void onSuccess (CompUnit[] units) {
+                    _contents.setWidget(createContents(proj, units));
+                }
+            });
+        }
     }
 
     protected Widget createContents (Project p, CompUnit[] units)
@@ -79,11 +90,11 @@ public class CompUnitsPanel extends Composite
         String Path ();
         String Gap ();
     }
-
-    protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
+    protected @UiField SimplePanel _contents;
+
+    protected long _projectId;
 
     protected interface Binder extends UiBinder<Widget, CompUnitsPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
-    protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
 }

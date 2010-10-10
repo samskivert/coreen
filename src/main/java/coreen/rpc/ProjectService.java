@@ -34,6 +34,10 @@ public interface ProjectService extends RemoteService
     /** Returns all compilation units associated with the specified project. */
     CompUnit[] getCompUnits (long projectId) throws ServiceException;
 
+    /** Returns all modules in the specified project and their immediate members. The results are
+     * a 2D array where each subarray is a module def and its members in sorted order. */
+    Def[][] getModsAndMembers (long projectId) throws ServiceException;
+
     /** Returns all of the types defined by this project. */
     Def[] getTypes (long projectId) throws ServiceException;
 

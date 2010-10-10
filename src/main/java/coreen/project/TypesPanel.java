@@ -36,6 +36,12 @@ public class TypesPanel extends SummaryPanel
         initWidget(_binder.createAndBindUi(this));
     }
 
+    @Override // from AbstractProjectPanel
+    public ProjectPage.Detail getId ()
+    {
+        return ProjectPage.Detail.TPS;
+    }
+
     @Override // from SummaryPanel
     protected void updateContents (long projectId)
     {
