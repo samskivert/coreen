@@ -110,9 +110,8 @@ public class TypesPanel extends SummaryPanel
         String Letter ();
         String Gap ();
     }
-
-    protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
+    protected @UiField SimplePanel _contents;
 
     protected interface Binder extends UiBinder<Widget, TypesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

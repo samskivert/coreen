@@ -8,6 +8,8 @@ import com.google.gwt.user.client.ui.Composite;
 
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.util.DefMap;
+import coreen.util.IdMap;
 
 /**
  * Contains functionality shared by top-level "project summary" panels.
