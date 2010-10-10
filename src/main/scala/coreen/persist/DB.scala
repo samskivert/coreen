@@ -35,7 +35,8 @@ trait DB {
       // defs without having a new id assigned to them
       d.id is(indexed),
       d.unitId is(indexed),
-      d.parentId is(indexed)
+      d.parentId is(indexed),
+      d.name is (indexed, dbType("varchar_ignorecase"))
     )}
 
     /** A mapping from fully qualfied def name to id (and vice versa). */
@@ -75,7 +76,7 @@ trait DB {
 
     /** Creates the JDBC URL to our database. */
     def dbUrl (root :File) =
-      "jdbc:h2:" + new File(root, "repository").getAbsolutePath + ";ignorecase=true"
+      "jdbc:h2:" + new File(root, "repository").getAbsolutePath
 
     /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
      * supported by Squeryl. */
