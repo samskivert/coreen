@@ -12,7 +12,6 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.SimplePanel;
@@ -21,45 +20,30 @@ import com.google.gwt.user.client.ui.Widget;
 import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
-import coreen.util.DefMap;
-import coreen.util.IdMap;
 import coreen.util.PanelCallback;
 
 /**
  * Displays the types declared in an entire project.
  */
-public class TypesPanel extends Composite
+public class TypesPanel extends SummaryPanel
 {
     public TypesPanel ()
     {
         initWidget(_binder.createAndBindUi(this));
     }
 
-    public void display (long projectId, long typeId)
+    @Override // from SummaryPanel
+    protected void updateContents (long projectId)
     {
-        if (_projectId != projectId) {
-            _projsvc.getTypes(_projectId = projectId, new PanelCallback<Def[]>(_contents) {
-                public void onSuccess (Def[] defs) {
-                    _contents.setWidget(createContents(defs));
-                }
-            });
-            // reset our type and id maps when we switch projects
-            _types = IdMap.create(false);
-            _members = IdMap.create(false);
-        }
-        _types.get(typeId).update(true);
-    }
-
-    public void showMember (long memberId)
-    {
-        _members.get(memberId).update(true);
+        _projsvc.getTypes(projectId, new PanelCallback<Def[]>(_contents) {
+            public void onSuccess (Def[] defs) {
+                _contents.setWidget(createContents(defs));
+            }
+        });
     }
 
     protected Widget createContents (Def[] defs)
@@ -127,16 +111,9 @@ public class TypesPanel extends Composite
         String Gap ();
     }
 
-    protected long _projectId;
-    protected DefMap _defmap = new DefMap();
-    protected IdMap<Boolean> _types = IdMap.create(false);
-    protected IdMap<Boolean> _members = IdMap.create(false);
-
     protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
 
     protected interface Binder extends UiBinder<Widget, TypesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
-    protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
-    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }
