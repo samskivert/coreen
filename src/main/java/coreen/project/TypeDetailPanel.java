@@ -24,7 +24,6 @@ import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
-import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Functions;
@@ -35,7 +34,6 @@ import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefContent;
 import coreen.model.TypeDetail;
-import coreen.model.TypedId;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;

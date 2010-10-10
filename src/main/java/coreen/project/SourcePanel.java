@@ -9,12 +9,10 @@ import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
-import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
@@ -24,14 +22,11 @@ import com.threerings.gwt.ui.Widgets;
 
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
-import coreen.model.DefDetail;
 import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
-import coreen.util.Edit;
-import coreen.util.Errors;
 import coreen.util.PanelCallback;
 
 /**
