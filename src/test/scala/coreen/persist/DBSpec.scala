@@ -32,7 +32,7 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
 
       // create
       val now = System.currentTimeMillis
-      val p1in = _db.projects.insert(new Project("Test 1", "/foo/bar/test1", "1.0", now, now))
+      val p1in = _db.projects.insert(new Project("Test 1", "/foo/bar/test1", "1.0", None, now, now))
 
       // read
       val p1out = _db.projects.lookup(p1in.id).get
