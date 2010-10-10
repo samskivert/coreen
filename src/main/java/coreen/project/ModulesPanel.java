@@ -11,11 +11,9 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
-import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import com.threerings.gwt.ui.FluentTable;
+import com.threerings.gwt.ui.Widgets;
 
 import coreen.model.Def;
 import coreen.util.PanelCallback;
@@ -41,20 +39,22 @@ public class ModulesPanel extends SummaryPanel
     {
         _projsvc.getModsAndMembers(projectId, new PanelCallback<Def[][]>(_contents) {
             public void onSuccess (Def[][] modsMems) {
-                _contents.setWidget(createContents(modsMems));
+                initContents(modsMems);
             }
         });
     }
 
-    protected Widget createContents (Def[][] modsMems)
+    protected void initContents (Def[][] modsMems)
     {
-        FluentTable table = new FluentTable(5, 0, _styles.bymod());
+        _contents.clear();
+
         for (Def[] modMems : modsMems) {
-            table.add().setText(modMems[0].name);
+            _contents.add(Widgets.newLabel(modMems[0].name, _styles.module()));
             FlowPanel types = new FlowPanel();
             for (int ii = 1; ii < modMems.length; ii++) {
                 Def def = modMems[ii];
-                InlineLabel label = new InlineLabel(def.name);
+                Widget label = Widgets.newInlineLabel(def.name, _styles.type());
+
             // label.addClickHandler(new ClickHandler() {
             //     public void onClick (ClickEvent event) {
             //         if (_types.get(def.id).get()) {
@@ -76,7 +76,7 @@ public class ModulesPanel extends SummaryPanel
                 new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
                 types.add(label);
             }
-            table.add().setWidget(types);
+            _contents.add(types);
         }
 
         // FlowPanel types = null, details = null;
@@ -104,15 +104,15 @@ public class ModulesPanel extends SummaryPanel
         //     Bindings.bindVisible(_types.get(def.id), deets);
         //     details.add(deets);
         // }
-        return table;
     }
 
     protected interface Styles extends CssResource
     {
-        String bymod ();
+        String type ();
+        String module ();
     }
     protected @UiField Styles _styles;
-    protected @UiField SimplePanel _contents;
+    protected @UiField FlowPanel _contents;
 
     protected interface Binder extends UiBinder<Widget, ModulesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

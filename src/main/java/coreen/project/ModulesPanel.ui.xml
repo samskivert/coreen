@@ -8,10 +8,13 @@
     .contents {
       padding-top: 5px;
     }
-    .bymod {
-      width: 800px;
+    .module {
+      font-size: small;
+    }
+    .type {
+      padding-right: 5px;
     }
   </ui:style>
 
-  <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
+  <g:FlowPanel styleName="{_styles.contents}" ui:field="_contents"/>
 </ui:UiBinder>
