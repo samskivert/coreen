@@ -42,7 +42,7 @@ public class TypesPanel extends Composite
         initWidget(_binder.createAndBindUi(this));
     }
 
-    public void display (long projectId)
+    public void display (long projectId, long typeId)
     {
         if (_projectId != projectId) {
             _projsvc.getTypes(_projectId = projectId, new PanelCallback<Def[]>(_contents) {
@@ -50,8 +50,11 @@ public class TypesPanel extends Composite
                     _contents.setWidget(createContents(defs));
                 }
             });
+            // reset our type and id maps when we switch projects
+            _types = IdMap.create(false);
+            _members = IdMap.create(false);
         }
-        _types.get(projectId).update(true);
+        _types.get(typeId).update(true);
     }
 
     public void showMember (long memberId)

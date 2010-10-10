@@ -153,10 +153,10 @@ trait Updater {
         var accum = new StringBuilder
         val cubuf = ArrayBuffer[CompUnitElem]()
         for (line <- lines) {
-          accmode = accmode || line.trim.startsWith("<compunit");
+          accmode = accmode || line.trim.startsWith("<compunit")
           if (!accmode) ulog(line)
           else {
-            accum.append(line)
+            accum.append(line).append("\n") // TODO: need line.separator?
             accmode = !line.trim.startsWith("</compunit>")
             if (!accmode) {
               try {
