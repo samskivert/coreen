@@ -42,9 +42,9 @@ public class ProjectPage extends AbstractPage
 {
     /** Enumerates the different project detail pages. */
     public static enum Detail {
-        /** Compilation units, by directory. */
-        CUS(_msgs.pByDir()) {
-            public AbstractProjectPanel create () { return new CompUnitsPanel(); }
+        /** Modules, sorted alphabetically. */
+        MDS(_msgs.pByMod()) {
+            public AbstractProjectPanel create () { return new ModulesPanel(); }
         },
 
         /** Types, grouped alphabetically. */
@@ -52,9 +52,9 @@ public class ProjectPage extends AbstractPage
             public AbstractProjectPanel create () { return new TypesPanel(); }
         },
 
-        /** Modules, sorted alphabetically. */
-        MDS(_msgs.pByMod()) {
-            public AbstractProjectPanel create () { return new ModulesPanel(); }
+        /** Compilation units, by directory. */
+        CUS(_msgs.pByDir()) {
+            public AbstractProjectPanel create () { return new CompUnitsPanel(); }
         },
 
         /** Viewing an individual type. */
@@ -121,7 +121,7 @@ public class ProjectPage extends AbstractPage
     public void setArgs (final Args args)
     {
         final long projectId = args.get(0, 0L);
-        final Detail detail = args.get(1, Detail.class, Detail.TPS);
+        final Detail detail = args.get(1, Detail.class, Detail.MDS);
         updateNavBar(projectId, detail);
 
         // if we have no project, or the wrong project, we must load the right project

@@ -3,9 +3,6 @@
 
 package coreen.project;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.ui.Composite;
-
 import coreen.client.Args;
 import coreen.model.Project;
 import coreen.util.DefMap;

@@ -9,13 +9,9 @@
       padding-top: 5px;
     }
     .byname {
-      width: 800px;
     }
     .byname .Letter {
       font-weight: bold;
-    }
-    .byname .Gap {
-      padding-right: 5px;
     }
     .byname .Open {
       font-weight: bold;

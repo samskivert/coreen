@@ -6,10 +6,6 @@ package coreen.project;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.MouseOutEvent;
-import com.google.gwt.event.dom.client.MouseOutHandler;
-import com.google.gwt.event.dom.client.MouseOverEvent;
-import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -24,7 +20,6 @@ import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
-import com.threerings.gwt.ui.InlineLabel;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Functions;
 import com.threerings.gwt.util.Value;
@@ -51,18 +46,18 @@ public class TypeDetailPanel extends Composite
     /** Used when we're totally standalone. */
     public TypeDetailPanel (long defId)
     {
-        this(defId, new DefMap(), IdMap.create(false));
-        _linker = UsePopup.TYPE;
+        this(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE);
     }
 
     /** Used when we're part of a type hierarchy. */
-    public TypeDetailPanel (long defId, DefMap defmap, IdMap<Boolean> expanded)
+    public TypeDetailPanel (long defId, DefMap defmap, IdMap<Boolean> expanded,
+                            UsePopup.Linker linker)
     {
         initWidget(_binder.createAndBindUi(this));
         this.defId = defId;
         _defmap = defmap;
         _expanded = expanded;
-        _linker = UsePopup.BY_TYPES;
+        _linker = linker;
     }
 
     @Override // from Widget
@@ -129,7 +124,7 @@ public class TypeDetailPanel extends Composite
             addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
             addDefs(members, _msgs.tdpTerms(), detail.terms, deets);
             if (members.getWidgetCount() > 0) {
-                members.add(Widgets.newLabel(" ", _styles.Spacer()));
+                DefUtil.addClear(members);
                 contents.add(members);
             }
         }
@@ -196,13 +191,13 @@ public class TypeDetailPanel extends Composite
     {
         for (final Def def : defs) {
             // create a type detail panel for this def, which will most likely be hidden
-            final TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _expanded);
+            final TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _expanded, _linker);
             deets.addStyleName(_rsrc.styles().indent());
             Bindings.bindVisible(_expanded.get(def.id), deets);
             members.add(deets);
 
-            InlineLabel label = new InlineLabel(def.name);
-            label.addClickHandler(new ClickHandler() {
+            // add the def label and its various hangers-on
+            DefUtil.addDef(panel, def, _linker, _defmap).addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (!deets.isVisible()) {
                         deets.setVisible(true);
@@ -211,28 +206,6 @@ public class TypeDetailPanel extends Composite
                     }
                 }
             });
-            label.addMouseOverHandler(new MouseOverHandler() {
-                public void onMouseOver (MouseOverEvent event) {
-                    // if this def is already onscreen, just highlight it
-                    Widget dw = _defmap.get(def.id);
-                    if (dw != null) { // TODO: && is visible
-                        dw.addStyleName(_rsrc.styles().highlight());
-                    }
-                }
-            });
-            label.addMouseOutHandler(new MouseOutHandler() {
-                public void onMouseOut (MouseOutEvent event) {
-                    // if we've highlighted our onscreen def, unhighlight it
-                    Widget dw = _defmap.get(def.id);
-                    if (dw != null) {
-                        dw.removeStyleName(_rsrc.styles().highlight());
-                    }
-                }
-            });
-
-            new UsePopup.Popper(def.id, label, _linker, _defmap);
-            panel.add(Widgets.newFlowPanel(_styles.Member(),
-                                           TypeLabel.iconForDef(def.type), label));
         }
     }
 
@@ -244,8 +217,6 @@ public class TypeDetailPanel extends Composite
     protected interface Styles extends CssResource
     {
         String members ();
-        String /*members*/ Member ();
-        String /*members*/ Spacer ();
         String toggle ();
     }
     protected @UiField Styles _styles;

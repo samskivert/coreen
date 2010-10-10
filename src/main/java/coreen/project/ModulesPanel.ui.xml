@@ -6,10 +6,11 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.ModulesPanel.Styles" field="_styles">
     .contents {
-      padding-top: 5px;
     }
     .module {
+      border-top: 1px solid;
       font-size: small;
+      font-weight: bold;
     }
     .type {
       padding-right: 5px;

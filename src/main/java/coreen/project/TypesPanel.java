@@ -13,7 +13,7 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -74,13 +74,8 @@ public class TypesPanel extends SummaryPanel
                 table.add().setText(String.valueOf(c), _styles.Letter()).alignTop().
                     right().setWidget(Widgets.newFlowPanel(types, details));
             }
-            if (types.getWidgetCount() > 0) {
-                InlineLabel gap = new InlineLabel(" ");
-                gap.addStyleName(_styles.Gap());
-                types.add(gap);
-            }
 
-            InlineLabel label = new InlineLabel(def.name);
+            Label label = DefUtil.addDef(types, def, UsePopup.BY_TYPES, _defmap);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_types.get(def.id).get()) {
@@ -99,11 +94,10 @@ public class TypesPanel extends SummaryPanel
                     }
                 }
             });
-            new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
-            types.add(label);
 
             // create and add the detail panel (hidden) and bind its visibility to a value
-            TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _members);
+            TypeDetailPanel deets = new TypeDetailPanel(
+                def.id, _defmap, _members, UsePopup.BY_TYPES);
             Bindings.bindVisible(_types.get(def.id), deets);
             details.add(deets);
         }
@@ -114,7 +108,6 @@ public class TypesPanel extends SummaryPanel
     {
         String byname ();
         String Letter ();
-        String Gap ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;

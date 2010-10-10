@@ -9,18 +9,11 @@
       margin-top: 2px;
       padding-top: 2px;
       border-top: 1px solid;
-      width: 800px;
+      width: 100%;
     }
     .members {
       font-size: small;
       border-bottom: 1px solid;
-    }
-    .members .Member {
-      float: left;
-      padding-right: 5px;
-    }
-    .members .Spacer {
-      clear: both;
     }
     .sig {
     }

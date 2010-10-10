@@ -25,6 +25,8 @@ public interface ProjectResources extends ClientBundle
         String /*typeLabel*/ Module ();
         String /*typeLabel*/ Type ();
         String typeIcon ();
+        String defLabel ();
+        String defClear ();
     }
 
     @Source("project.css")

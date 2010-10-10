@@ -82,6 +82,12 @@ public class UsePopup extends PopupPanel
         }
     };
 
+    public static final Linker BY_MODS = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.MDS;
+        }
+    };
+
     public static class Popper implements ClickHandler, MouseOverHandler, MouseOutHandler
     {
         public Popper (long referentId, Widget target, Linker linker, DefMap defmap) {

@@ -22,6 +22,14 @@ import coreen.util.DefMap;
 public class TypeLabel extends FlowPanel
 {
     /**
+     * Adorns the supplied def label with the appropriate icon.
+     */
+    public static Widget adornDef (Def def, Widget widget)
+    {
+        return Widgets.newFlowPanel(_rsrc.styles().defLabel(), iconForDef(def.type), widget);
+    }
+
+    /**
      * Returns the appropriate icon for the supplied def.
      */
     public static Image iconForDef (Def.Type type)
