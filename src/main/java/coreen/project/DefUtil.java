@@ -25,7 +25,7 @@ public class DefUtil
                                 final DefMap defmap)
     {
         InlineLabel label = new InlineLabel(def.name);
-        new UsePopup.Popper(def.id, label, linker, defmap);
+        new UsePopup.Popper(def.id, label, linker, defmap, false);
         panel.add(TypeLabel.adornDef(def, label));
         return label;
     }

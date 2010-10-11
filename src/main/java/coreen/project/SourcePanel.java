@@ -116,7 +116,7 @@ public abstract class SourcePanel extends AbstractProjectPanel
             elems.add(new Elementer(use.start, use.start+use.length) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span, linker, _local);
+                    new UsePopup.Popper(use.referentId, span, linker, _local, true);
                     return span;
                 }
             });

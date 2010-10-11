@@ -82,7 +82,7 @@ public class TypeLabel extends FlowPanel
             if (showModules || encl.type != Def.Type.MODULE) {
                 Widget plabel = Widgets.newInlineLabel(encl.name);
                 if (encl.type != Def.Type.MODULE) {
-                    new UsePopup.Popper(encl.id, plabel, linker, defmap);
+                    new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
                 }
                 add(plabel);
                 add(Widgets.newInlineLabel(".")); // TODO: customizable path separator?

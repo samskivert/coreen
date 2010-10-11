@@ -90,13 +90,14 @@ public class UsePopup extends PopupPanel
 
     public static class Popper implements ClickHandler, MouseOverHandler, MouseOutHandler
     {
-        public Popper (long referentId, Widget target, Linker linker, DefMap defmap) {
+        public Popper (long referentId, Widget target, Linker linker, DefMap defmap,
+                       boolean addClick) {
             _referentId = referentId;
             _target = target;
             _defmap = defmap;
             _linker = linker;
 
-            if (target instanceof HasClickHandlers) {
+            if (addClick && target instanceof HasClickHandlers) {
                 ((HasClickHandlers)target).addClickHandler(this);
                 target.addStyleName(_rsrc.styles().actionable());
             }
