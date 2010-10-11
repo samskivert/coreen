@@ -3,9 +3,11 @@
 
 package coreen.persist
 
-import java.io.File
+import java.io.{File, FileWriter, PrintWriter}
 import java.sql.DriverManager
 import java.util.Date
+
+import scala.io.Source
 
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.adapters.H2Adapter
@@ -19,6 +21,9 @@ import coreen.server.{Dirs, Log, Component}
 trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
+    /** The schema version for amazing super primitive migration management system. */
+    val version = 1;
+
     /** Provides access to the projects table. */
     val projects = table[Project]
 
@@ -97,6 +102,14 @@ trait DBComponent extends Component with DB {
   override protected def initComponents {
     super.initComponents
 
+    // read the DB version file
+    val vfile = new File(_coreenDir, "dbvers.txt")
+    val overs = try {
+      Source.fromFile(vfile).getLines.next.toInt
+    } catch {
+      case e => 0
+    }
+
     // initialize the H2 database
     Class.forName("org.h2.Driver")
     val dburl = _db.dbUrl(_coreenDir)
@@ -107,8 +120,17 @@ trait DBComponent extends Component with DB {
       sess
     })
 
-    // TODO: squeryl doesn't support any sort of schema migration; sigh
-    if (_firstTime) transaction { _db.reinitSchema }
+    // TODO: do some basic schema migration at some point
+    if (overs < _db.version) {
+      println("Reinitializing schema. [have=" + overs + ", need=" + _db.version + "]")
+      transaction { _db.reinitSchema }
+      val out = new PrintWriter(new FileWriter(vfile))
+      out.println(_db.version)
+      out.close
+    } else if (_db.version < overs) {
+      println("DB on file system is higher version than code? Beware. " +
+              "[file=" + overs + ", code=" + _db.version + "]")
+    }
   }
 }
 
