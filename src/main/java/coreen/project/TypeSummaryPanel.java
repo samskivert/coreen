@@ -96,7 +96,8 @@ public class TypeSummaryPanel extends Composite
                     // make sure we fit in the view
                     DeferredCommand.addCommand(new Command() {
                         public void execute () {
-                            recenterPanel();
+                            WindowFX.scrollToPos(
+                                WindowUtil.getScrollIntoView(TypeSummaryPanel.this));
                         }
                     });
                 }
@@ -129,14 +130,14 @@ public class TypeSummaryPanel extends Composite
 
     protected void addMember (FlowPanel panel, final TypeSummary.Member member)
     {
-        final Value<Boolean> showSource = Value.create(false);
         ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
                                                new Image(_icons.codeOpen()), new ClickHandler() {
             public void onClick (ClickEvent event) {
-                showSource.update(!showSource.get());
+                Value<Boolean> expanded = _expanded.get(member.id);
+                expanded.update(!expanded.get());
             }
         });
-        toggle.setDown(showSource.get());
+        toggle.setDown(_expanded.get(member.id).get());
         toggle.addStyleName(_styles.toggle());
         panel.add(toggle);
 
@@ -148,12 +149,12 @@ public class TypeSummaryPanel extends Composite
         sig.addStyleName("inline");
         new UsePopup.Popper(member.id, sig, _linker, _defmap, false);
         Widget asig = Widgets.newFlowPanel(TypeLabel.iconForDef(member.type), sig);
-        Bindings.bindVisible(showSource.map(Functions.NOT), asig);
+        Bindings.bindVisible(_expanded.get(member.id).map(Functions.NOT), asig);
         bits.add(asig);
 
         if (member.doc != null) {
             Widget doc = Widgets.newHTML(member.doc, _rsrc.styles().doc());
-            Bindings.bindVisible(showSource, doc);
+            Bindings.bindVisible(_expanded.get(member.id), doc);
             bits.add(doc);
         }
 
@@ -170,17 +171,12 @@ public class TypeSummaryPanel extends Composite
                 }
             }
             protected void didInit () {
-                recenterPanel();
+                WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
             }
             protected boolean _loaded;
         };
-        Bindings.bindVisible(showSource, source);
+        Bindings.bindVisible(_expanded.get(member.id), source);
         bits.add(source);
-    }
-
-    protected void recenterPanel ()
-    {
-        WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
     }
 
     protected interface Styles extends CssResource
