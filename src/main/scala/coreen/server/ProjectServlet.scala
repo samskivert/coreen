@@ -11,7 +11,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
-import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail, TypedId}
+import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail, TypedId, TypeSummary}
 import coreen.persist.{DB, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -98,6 +98,17 @@ trait ProjectServlet {
       td.funcs = cmap.getOrElse(JDef.Type.FUNC, Array())
       td.terms = cmap.getOrElse(JDef.Type.TERM, Array())
       td
+    }
+
+    // from interface ProjectService
+    def getSummary (defId :Long) :TypeSummary = transaction {
+      val ts = initDefDetail(defId, new TypeSummary)
+      val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
+        Convert.toMember(_db.codeToType)) groupBy(_.`type`)
+      ts.types = cmap.getOrElse(JDef.Type.TYPE, Array())
+      ts.funcs = cmap.getOrElse(JDef.Type.FUNC, Array())
+      ts.terms = cmap.getOrElse(JDef.Type.TERM, Array())
+      ts
     }
 
     // from interface ProjectService

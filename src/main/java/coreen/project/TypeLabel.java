@@ -58,41 +58,23 @@ public class TypeLabel extends FlowPanel
     }
 
     public TypeLabel (TypedId[] parents, Def def, UsePopup.Linker linker, DefMap defmap,
-                      String docs, boolean showModules)
+                      String docs)
     {
         addStyleName(_rsrc.styles().typeLabel());
-        // haxx0r!
-        if (showModules && docs != null) {
-            add(Widgets.newHTML(docs)); // not inline
-        }
-        if (!showModules) {
-            StringBuilder buf = new StringBuilder();
-            for (TypedId encl : parents) {
-                if (encl.type == Def.Type.MODULE) {
-                    if (buf.length() > 0) {
-                        buf.append(".");
-                    }
-                    buf.append(encl.name);
-                }
-            }
-            add(Widgets.newLabel(buf.toString(), _rsrc.styles().Module()));
-        }
         add(iconForDef(def.type));
         for (TypedId encl : parents) {
-            if (showModules || encl.type != Def.Type.MODULE) {
-                Widget plabel = Widgets.newInlineLabel(encl.name);
-                if (encl.type != Def.Type.MODULE) {
-                    new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
-                }
-                add(plabel);
-                add(Widgets.newInlineLabel(".")); // TODO: customizable path separator?
+            Widget plabel = Widgets.newInlineLabel(encl.name);
+            if (encl.type != Def.Type.MODULE) {
+                new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
+            add(plabel);
+            add(Widgets.newInlineLabel(".")); // TODO: customizable path separator?
         }
         Widget dlabel = createDefLabel(def);
         dlabel.addStyleName("inline");
         add(dlabel);
-        if (!showModules && docs != null) {
-            add(Widgets.newHTML(docs, "inline"));
+        if (docs != null) {
+            add(Widgets.newHTML(docs, _rsrc.styles().doc()));
         }
     }
 

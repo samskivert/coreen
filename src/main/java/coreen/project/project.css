@@ -7,7 +7,7 @@
 
 .code {
   font-family: Courier;
-  font-size: small;
+  /* font-size: small; */
   white-space: pre;
 }
 
@@ -17,6 +17,10 @@
 
 .use {
   font-style: italic;
+}
+
+.doc p {
+  margin-bottom: 0px;
 }
 
 .usePopup {

@@ -75,7 +75,7 @@ public class SearchResultsPanel extends Composite
     {
         table.add().setText(result.project, _styles.resultCell()).alignTop().
             right().setWidget(new TypeLabel(result.path, result.def, UsePopup.SOURCE,
-                                            _defmap, result.doc, true) {
+                                            _defmap, result.doc) {
                 protected Widget createDefLabel (Def def) {
                     List<Object> args = new ArrayList<Object>();
                     args.add(result.projectId);

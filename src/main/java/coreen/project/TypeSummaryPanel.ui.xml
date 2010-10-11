@@ -4,7 +4,7 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style type="coreen.project.TypeDetailPanel.Styles" field="_styles">
+  <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
     .contents {
       margin-top: 2px;
       padding-top: 2px;
@@ -12,14 +12,9 @@
       width: 100%;
       background: #EEEEEE;
     }
-    .members {
-      font-size: small;
-      border-bottom: 1px solid;
-    }
-    .sig {
-    }
     .toggle {
-      float: right;
+      position: relative;
+      top: 2px;
     }
   </ui:style>
 

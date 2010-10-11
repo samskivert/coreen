@@ -13,6 +13,7 @@ import coreen.model.DefContent;
 import coreen.model.DefDetail;
 import coreen.model.Project;
 import coreen.model.TypeDetail;
+import coreen.model.TypeSummary;
 
 /**
  * Provides project-related services.
@@ -55,6 +56,10 @@ public interface ProjectService extends RemoteService
     /** Returns the details for the specified type.
      * @throws ServiceException with e.no_such_def if the def is unknown. */
     TypeDetail getType (long defId) throws ServiceException;
+
+    /** Returns a summary of the specified type.
+     * @throws ServiceException with e.no_such_def if the def is unknown. */
+    TypeSummary getSummary (long defId) throws ServiceException;
 
     /** Returns the contents of the specified definition.
      * @throws ServiceException with e.no_such_def if the def is unknown. */

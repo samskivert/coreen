@@ -227,7 +227,7 @@ public class UsePopup extends PopupPanel
         _popper = popper;
 
         FlowPanel panel = new FlowPanel();
-        panel.add(new TypeLabel(deet.path, deet.def, linker, defmap, deet.doc, false));
+        panel.add(new TypeLabel(deet.path, deet.def, linker, defmap, deet.doc));
         Widget sig;
         if (deet.unit.projectId > 0) {
             sig = (_link = linker.makeLink(deet));

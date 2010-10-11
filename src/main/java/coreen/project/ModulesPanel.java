@@ -71,8 +71,8 @@ public class ModulesPanel extends SummaryPanel
 
             for (int ii = 1; ii < modMems.length; ii++) {
                 final Def def = modMems[ii];
-                // create and add the detail panel (hidden) and bind its visibility to a value
-                TypeDetailPanel deets = new TypeDetailPanel(
+                // create and add the summary panel (hidden) and bind its visibility to a value
+                TypeSummaryPanel deets = new TypeSummaryPanel(
                     def.id, _defmap, _members, UsePopup.BY_MODS);
                 Bindings.bindVisible(_types.get(def.id), deets);
                 _contents.add(deets);

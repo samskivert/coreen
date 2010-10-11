@@ -22,8 +22,7 @@ object Convert
   def toJava (cu :SCompUnit) :JCompUnit = new JCompUnit(cu.id, cu.projectId, cu.path)
 
   /** Converts a Scala Def to a Java Def. */
-  def toJava (decode :Map[Int,JDef.Type])(d :SDef) :JDef = new JDef(
-    d.id, d.parentId, d.name, decode(d.typ), d.defStart)
+  def toJava (decode :Map[Int,JDef.Type])(d :SDef) :JDef = initDef(decode, d, new JDef)
 
   /** Converts a Scala Use to a Java Use. */
   def toJava (u :SUse) :JUse = new JUse(u.referentId, u.useStart, u.useEnd-u.useStart)
@@ -31,4 +30,24 @@ object Convert
   /** Converts a Scala Def to a TypedId. */
   def toTypedId (decode :Map[Int,JDef.Type])(d :SDef) :TypedId =
     new TypedId(decode(d.typ), d.id, d.name)
+
+  /** Converts a Scala Def to a TypeSummary.Member. */
+  def toMember (decode :Map[Int,JDef.Type])(d :SDef) :TypeSummary.Member =
+    initMember(decode, d, new TypeSummary.Member)
+
+  private def initDef (decode :Map[Int,JDef.Type], sdef :SDef, jdef :JDef) = {
+    jdef.id = sdef.id
+    jdef.parentId = sdef.parentId
+    jdef.name = sdef.name
+    jdef.`type` = decode(sdef.typ)
+    jdef.start = sdef.defStart
+    jdef
+  }
+
+  private def initMember (decode :Map[Int,JDef.Type], sdef :SDef, mem :TypeSummary.Member) = {
+    initDef(decode, sdef, mem)
+    mem.doc = sdef.doc.getOrElse(null)
+    mem.sig = sdef.sig.getOrElse(null)
+    mem
+  }
 }

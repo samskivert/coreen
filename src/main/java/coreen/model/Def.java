@@ -41,19 +41,6 @@ public class Def
     /** The character offset in the source file at which this def starts. */
     public int start;
 
-    /** Creates and initializes this instance. */
-    public Def (long id, long parentId, String name, Type type, int start)
-    {
-        this.id = id;
-        this.parentId = parentId;
-        this.name = name;
-        this.type = type;
-        this.start = start;
-    }
-
-    /** Used when unserializing. */
-    public Def () {}
-
     @Override // from Object
     public String toString ()
     {

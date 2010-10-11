@@ -32,12 +32,12 @@ public class TypePanel extends AbstractProjectPanel
     {
         long defId = args.get(2, 0L);
         if (_panel == null || _panel.defId != defId) {
-            ((SimplePanel)getWidget()).setWidget(_panel = new TypeDetailPanel(defId));
+            ((SimplePanel)getWidget()).setWidget(_panel = new TypeSummaryPanel(defId));
         }
         for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
             _panel.showMember(args.get(idx, 0L));
         }
     }
 
-    protected TypeDetailPanel _panel;
+    protected TypeSummaryPanel _panel;
 }
