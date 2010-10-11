@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.History;
@@ -13,39 +16,75 @@ import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.PopupCallback; // TODO: make a custom version that handles errors
 import com.threerings.gwt.util.WindowUtil;
 
 import coreen.client.Link;
 import coreen.client.Page;
-import coreen.ui.WindowFX;
-import coreen.util.DefMap;
+import coreen.model.Def;
 import coreen.model.DefDetail;
+import coreen.model.TypedId;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.WindowFX;
+import coreen.util.DefMap;
 
 /**
  * Displays information about a use when the mouse is hovered over it.
  */
 public class UsePopup extends PopupPanel
 {
-    public interface Linker {
-        public Hyperlink makeLink (DefDetail deet);
+    public static abstract class Linker {
+        public Hyperlink makeLink (DefDetail deet) {
+            List<Object> args = new ArrayList<Object>();
+            args.add(deet.unit.projectId);
+            addArgs(deet, args);
+            return Link.create(deet.sig, Page.PROJECT, args.toArray());
+        }
+
+        protected void addArgs (DefDetail deet, List<Object> args) {
+            args.add(getDetail());
+            addDetailArgs(deet, args);
+        }
+
+        protected abstract ProjectPage.Detail getDetail ();
+
+        protected void addDetailArgs (DefDetail deet, List<Object> args) {
+            for (TypedId tid : deet.path) {
+                if (tid.type != Def.Type.MODULE) {
+                    args.add(tid.id);
+                }
+            }
+            args.add(deet.def.id);
+        }
     }
 
     public static final Linker SOURCE = new Linker() {
-        public Hyperlink makeLink (DefDetail deet) {
-            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
-                               ProjectPage.Detail.SRC, deet.unit.id, deet.def.id);
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.SRC;
+        }
+        protected void addDetailArgs (DefDetail deet, List<Object> args) {
+            args.add(deet.unit.id);
+            args.add(deet.def.id);
+        }
+    };
+
+    public static final Linker TYPE = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.TYP;
         }
     };
 
     public static final Linker BY_TYPES = new Linker() {
-        public Hyperlink makeLink (DefDetail deet) {
-            return Link.create(deet.sig, Page.PROJECT, deet.unit.projectId,
-                               ProjectPage.Detail.TPS, deet.outerTypeId(), deet.outerMemberId());
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.TPS;
+        }
+    };
+
+    public static final Linker BY_MODS = new Linker() {
+        protected ProjectPage.Detail getDetail () {
+            return ProjectPage.Detail.MDS;
         }
     };
 

@@ -52,8 +52,10 @@ trait Updater {
 
     abstract class Reader {
       def invoke (p :Project, ulog :String=>Unit) {
-        _log.info("Invoking reader: " + (args :+ p.rootPath).mkString(" "))
-        val proc = Runtime.getRuntime.exec((args :+ p.rootPath).toArray)
+        val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
+        val argList = args ++ (p.rootPath :: dirList)
+        _log.info("Invoking reader: " + argList.mkString(" "))
+        val proc = Runtime.getRuntime.exec(argList.toArray)
 
         // read stderr on a separate thread so that we can ensure that stdout and stderr are both
         // actively drained, preventing the process from blocking
@@ -151,10 +153,10 @@ trait Updater {
         var accum = new StringBuilder
         val cubuf = ArrayBuffer[CompUnitElem]()
         for (line <- lines) {
-          accmode = accmode || line.trim.startsWith("<compunit");
+          accmode = accmode || line.trim.startsWith("<compunit")
           if (!accmode) ulog(line)
           else {
-            accum.append(line)
+            accum.append(line).append("\n") // TODO: need line.separator?
             accmode = !line.trim.startsWith("</compunit>")
             if (!accmode) {
               try {
@@ -185,7 +187,7 @@ trait Updater {
           (tmp, _db.loadDefNames(tmp.keySet))
         }
       }
-      println("Loaded " + edefs.size + " defs and " + emap.size + " names")
+      // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
       // figure out which defs to add, which to update, and which to delete
       val (newDefs, oldDefs) = (cu.allIds, emap.keySet)
@@ -215,16 +217,16 @@ trait Updater {
         if (!toAdd.isEmpty) {
           val added = toAdd map(nmap) map(ndefs)
           time("addNewDefs") { _db.defs.insert(added) }
-          println("Inserted " + toAdd.size + " new defs")
+          // println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
           _db.defs.update(toUpdate map(emap) map(ndefs))
-          println("Updated " + toUpdate.size + " defs")
+          // println("Updated " + toUpdate.size + " defs")
         }
         if (!toDelete.isEmpty) {
           val toDelIds = toDelete map(emap)
           time("deleteOldDefs") { _db.defs.deleteWhere(d => d.id in toDelIds) }
-          println("Deleted " + toDelete.size + " defs")
+          // println("Deleted " + toDelete.size + " defs")
         }
 
         // delete the old uses recorded for this compunit
@@ -261,7 +263,7 @@ trait Updater {
       val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
       def args = (javabin.getCanonicalPath :: "-classpath" ::
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
-                  classname :: javaArgs)
+                  "-mx512M" :: classname :: javaArgs)
     }
 
     // TEMP: profiling helper

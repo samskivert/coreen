@@ -9,45 +9,34 @@ import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
-import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
-import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
 
+import coreen.client.Args;
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
-import coreen.model.DefDetail;
+import coreen.model.Project;
 import coreen.model.Use;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
-import coreen.util.Edit;
-import coreen.util.Errors;
 import coreen.util.PanelCallback;
 
 /**
  * Displays a single compilation unit.
  */
-public abstract class SourcePanel extends Composite
+public abstract class SourcePanel extends AbstractProjectPanel
 {
     /** A source panel that displays an entire compilation unit. */
     public static class Full extends SourcePanel {
-        public Full (final long unitId, final long scrollToDefId) {
+        public Full () {
             super(new DefMap());
-            _projsvc.getCompUnit(unitId, new PanelCallback<CompUnitDetail>(_contents) {
-                public void onSuccess (CompUnitDetail detail) {
-                    init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
-                }
-            });
         }
     }
 
@@ -57,6 +46,23 @@ public abstract class SourcePanel extends Composite
         _contents.setWidget(Widgets.newLabel("Loading..."));
         _defmap = defmap;
         _local = new DefMap(_defmap);
+    }
+
+    @Override // from AbstractProjectPanel
+    public ProjectPage.Detail getId ()
+    {
+        return ProjectPage.Detail.SRC;
+    }
+
+    @Override // from AbstractProjectPanel
+    public void setArgs (Project proj, Args args)
+    {
+        final long scrollToDefId = args.get(3, 0L);
+        _projsvc.getCompUnit(args.get(2, 0L), new PanelCallback<CompUnitDetail>(_contents) {
+            public void onSuccess (CompUnitDetail detail) {
+                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
+            }
+        });
     }
 
     @Override // from Widget
@@ -203,6 +209,5 @@ public abstract class SourcePanel extends Composite
 
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
-    protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

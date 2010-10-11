@@ -15,7 +15,8 @@ object Convert
 {
   /** Converts a Scala Project to a Java Project. */
   def toJava (sp :SProject) :JProject = new JProject(
-    sp.id, sp.name, sp.rootPath, sp.version, new Date(sp.imported), new Date(sp.lastUpdated))
+    sp.id, sp.name, sp.rootPath, sp.version, sp.srcDirs.getOrElse(""),
+    new Date(sp.imported), new Date(sp.lastUpdated))
 
   /** Converts a Scala CompUnit to a Java CompUnit. */
   def toJava (cu :SCompUnit) :JCompUnit = new JCompUnit(cu.id, cu.projectId, cu.path)

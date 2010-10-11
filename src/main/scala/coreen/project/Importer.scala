@@ -9,6 +9,7 @@ import java.util.regex.Pattern
 
 import org.squeryl.PrimitiveTypeMode._
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 import coreen.model.PendingProject
 import coreen.persist.{DB, Project}
@@ -79,11 +80,11 @@ trait Importer {
 
     private def localProjectImport (source :String, file :File) {
       // try deducing the name and version from the project directory name
-      updatePending(source, "Inferring project name and version...", 0L)
+      updatePending(source, "Inferring project name and metadata...", 0L)
       val (name, vers) = inferNameAndVersion(file.getName)
 
       // create the project metadata
-      val p = createProject(source, name, file, "0.0")
+      val p = createProject(source, name, file, "0.0", inferSourceDirs(file))
 
       // update the project for the first time
       updatePending(source, "Processing project contents...", 0L)
@@ -97,20 +98,39 @@ trait Importer {
       updatePending(source, "TODO: local archive import...", 0L)
     }
 
-    private[project] def createProject (
-      source :String, name :String, rootPath :File, version :String) = {
+    private def createProject (
+      source :String, name :String, rootPath :File, version :String, srcDirs :Option[String]) = {
       val now = System.currentTimeMillis
       transaction {
-        _db.projects.insert(Project(name, rootPath.getAbsolutePath, version, now, now))
+        _db.projects.insert(Project(name, rootPath.getAbsolutePath, version, srcDirs, now, now))
       }
     }
 
     /** Attempts to extract a name and version from file or directory names like:
      * foo-1.0, foo-r25, foo-1.0beta, foo-bar-1.0, foo_1.0, etc. */
-    private[project] def inferNameAndVersion (name :String) = name match {
+    private def inferNameAndVersion (name :String) = name match {
       case NameVersionRE(name, vers) => (name, vers)
-        case _ => (name, "1.0")
+      case _ => (name, "1.0")
     }
+
+    private def inferSourceDirs (root :File) = {
+      val paths = ArrayBuffer[String]()
+      // adds the first file in the list that exists (if any) to the paths
+      def addFirstExister (files :List[File]) = files find(_.exists) foreach(
+        f => paths += f.getAbsolutePath.substring(root.getAbsolutePath.length+1))
+
+      // java project layouts
+      addFirstExister(List(mkFile(root, "src", "main", "java"),
+                           mkFile(root, "src", "java")))
+      // TODO: other common project layouts?
+
+      // if all else fails, try 'src' directory
+      if (paths.length == 0) addFirstExister(List(mkFile(root, "src")))
+
+      if (paths.isEmpty) None else Some(paths.mkString(" "))
+    }
+
+    private def mkFile (root :File, path :String*) = (root /: path)(new File(_, _))
 
     private val _projects :collection.mutable.Map[String,PendingProject] =
       new ConcurrentHashMap[String,PendingProject]()

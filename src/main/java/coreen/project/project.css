@@ -43,6 +43,10 @@
   margin-left: 5px;
 }
 
+.typeLabel .Module {
+  font-size: small;
+}
+
 .typeLabel .Type {
   padding-right: 5px;
   font-weight: bold;
@@ -52,4 +56,13 @@
   display: inline;
   position: relative;
   top: 2px;
+}
+
+.defLabel {
+  float: left;
+  padding-right: 5px;
+}
+
+.defClear {
+  clear: both;
 }

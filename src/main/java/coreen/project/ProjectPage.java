@@ -42,21 +42,36 @@ public class ProjectPage extends AbstractPage
 {
     /** Enumerates the different project detail pages. */
     public static enum Detail {
-        /** Compilation units, by directory. */
-        CUS(_msgs.pByDir()),
+        /** Modules, sorted alphabetically. */
+        MDS(_msgs.pByMod()) {
+            public AbstractProjectPanel create () { return new ModulesPanel(); }
+        },
 
         /** Types, grouped alphabetically. */
-        TPS(_msgs.pByTypes()),
+        TPS(_msgs.pByType()) {
+            public AbstractProjectPanel create () { return new TypesPanel(); }
+        },
+
+        /** Compilation units, by directory. */
+        CUS(_msgs.pByDir()) {
+            public AbstractProjectPanel create () { return new CompUnitsPanel(); }
+        },
 
         /** Viewing an individual type. */
-        TYP(null),
+        TYP(null) {
+            public AbstractProjectPanel create () { return new TypePanel(); }
+        },
 
         /** Viewing an individual source file. */
-        SRC(null);
+        SRC(null) {
+            public AbstractProjectPanel create () { return new SourcePanel.Full(); }
+        };
 
         public String title () {
             return _title;
         }
+
+        public abstract AbstractProjectPanel create ();
 
         Detail (String title) {
             _title = title;
@@ -106,14 +121,13 @@ public class ProjectPage extends AbstractPage
     public void setArgs (final Args args)
     {
         final long projectId = args.get(0, 0L);
-        final Detail detail = args.get(1, Detail.class, Detail.TPS);
+        final Detail detail = args.get(1, Detail.class, Detail.MDS);
         updateNavBar(projectId, detail);
 
         // if we have no project, or the wrong project, we must load the right project
         if (_proj.get() == null || _proj.get().id != projectId) {
             // clear out old project data
             _proj.update(null);
-            _compunits = null;
 
             // load up the metadata for this project
             _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
@@ -131,41 +145,10 @@ public class ProjectPage extends AbstractPage
             return;
         }
 
-        switch (detail) {
-        case CUS:
-            if (_compunits == null) {
-                _compunits = new CompUnitsPanel(_proj.get());
-            }
-            _contents.setWidget(_compunits);
-            break;
-        case TPS: {
-            TypesPanel panel;
-            if (_contents.getWidget() instanceof TypesPanel) {
-                panel = (TypesPanel)_contents.getWidget();
-            } else {
-                _contents.setWidget(panel = new TypesPanel());
-            }
-            panel.display(projectId, args.get(2, 0L), args.get(3, 0L));
-            break;
+        if (_panel == null || _panel.getId() != detail) {
+            _contents.setWidget(_panel = detail.create());
         }
-        case TYP: {
-            long defId = args.get(2, 0L);
-            TypeDetailPanel panel;
-            if (_contents.getWidget() instanceof TypeDetailPanel &&
-                ((TypeDetailPanel)_contents.getWidget()).defId == defId) {
-                panel = (TypeDetailPanel)_contents.getWidget();
-            } else {
-                _contents.setWidget(panel = new TypeDetailPanel(defId));
-            }
-            for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
-                panel.showMember(args.get(idx, 0L));
-            }
-            break;
-        }
-        case SRC:
-            _contents.setWidget(new SourcePanel.Full(args.get(2, 0L), args.get(3, 0L)));
-            break;
-        }
+        _panel.setArgs(_proj.get(), args);
     }
 
     protected void updateNavBar (long projectId, Detail current)
@@ -198,9 +181,7 @@ public class ProjectPage extends AbstractPage
     protected @UiField FlowPanel _navbar;
     protected @UiField SimplePanel _contents;
 
-    // keep some panels around for faster loading; eat that browser memory!
-    protected CompUnitsPanel _compunits;
-
+    protected AbstractProjectPanel _panel;
     protected Value<Project> _proj = Value.create(null);
 
     protected interface Binder extends UiBinder<Widget, ProjectPage> {}

@@ -85,6 +85,24 @@ public class Args
         return parseEnum(get(index, ""), etype, defval);
     }
 
+    /**
+     * Returns a new args array with the specified number of arguments dropped from the beginning
+     * of these args.
+     */
+    public Args drop (int offset)
+    {
+        offset = Math.min(offset, _args.length);
+        String[] subargs = new String[_args.length-offset];
+        System.arraycopy(_args, offset, subargs, 0, subargs.length);
+        return new Args(page, subargs);
+    }
+
+    protected Args (Page page, String[] args)
+    {
+        this.page = page;
+        _args = args;
+    }
+
     protected static <T extends Enum<T>> T parseEnum (String val, Class<T> etype, T defval)
     {
         try {

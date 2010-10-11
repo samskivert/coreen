@@ -10,7 +10,7 @@
     }
     .header {
       border-bottom: 1px solid;
-      width: 800px;
+      width: 100%;
     }
     .title {
       font-family: Trebuchet MS, serif;

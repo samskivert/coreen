@@ -4,7 +4,9 @@
 package coreen.library;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.CssResource;
@@ -41,9 +43,25 @@ public class SearchResultsPanel extends Composite
 
         _libsvc.search(query, new PanelCallback<LibraryService.SearchResult[]>(_contents) {
             public void onSuccess (LibraryService.SearchResult[] results) {
-                FluentTable contents = new FluentTable(5, 0);
+                // partition the results by type (TODO: rewrite with Guava Multimap)
+                Map<Def.Type, List<LibraryService.SearchResult>> bytype =
+                    new HashMap<Def.Type, List<LibraryService.SearchResult>>();
                 for (LibraryService.SearchResult result : results) {
-                    addResult(contents, result);
+                    List<LibraryService.SearchResult> rlist = bytype.get(result.def.type);
+                    if (rlist == null) {
+                        bytype.put(result.def.type,
+                                   rlist = new ArrayList<LibraryService.SearchResult>());
+                    }
+                    rlist.add(result);
+                }
+
+                FluentTable contents = new FluentTable(5, 0);
+                for (Def.Type type : Def.Type.values()) {
+                    if (bytype.containsKey(type)) {
+                        for (LibraryService.SearchResult result : bytype.get(type)) {
+                            addResult(contents, result);
+                        }
+                    }
                 }
                 if (results.length == 0) {
                     contents.add().setText("No results for '" + query + "'...");

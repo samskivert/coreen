@@ -12,47 +12,44 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
-import coreen.util.DefMap;
-import coreen.util.IdMap;
 import coreen.util.PanelCallback;
 
 /**
  * Displays the types declared in an entire project.
  */
-public class TypesPanel extends Composite
+public class TypesPanel extends SummaryPanel
 {
     public TypesPanel ()
     {
         initWidget(_binder.createAndBindUi(this));
     }
 
-    public void display (long projectId, final long typeId, final long memberId)
+    @Override // from AbstractProjectPanel
+    public ProjectPage.Detail getId ()
     {
-        if (_projectId != projectId) {
-            _projsvc.getTypes(_projectId = projectId, new PanelCallback<Def[]>(_contents) {
-                public void onSuccess (Def[] defs) {
-                    _contents.setWidget(createContents(defs));
-                }
-            });
-        }
-        _types.get(typeId).update(true);
-        _members.get(memberId).update(true);
+        return ProjectPage.Detail.TPS;
+    }
+
+    @Override // from SummaryPanel
+    protected void updateContents (long projectId)
+    {
+        _projsvc.getTypes(projectId, new PanelCallback<Def[]>(_contents) {
+            public void onSuccess (Def[] defs) {
+                _contents.setWidget(createContents(defs));
+            }
+        });
     }
 
     protected Widget createContents (Def[] defs)
@@ -77,13 +74,8 @@ public class TypesPanel extends Composite
                 table.add().setText(String.valueOf(c), _styles.Letter()).alignTop().
                     right().setWidget(Widgets.newFlowPanel(types, details));
             }
-            if (types.getWidgetCount() > 0) {
-                InlineLabel gap = new InlineLabel(" ");
-                gap.addStyleName(_styles.Gap());
-                types.add(gap);
-            }
 
-            InlineLabel label = new InlineLabel(def.name);
+            Label label = DefUtil.addDef(types, def, UsePopup.BY_TYPES, _defmap);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_types.get(def.id).get()) {
@@ -102,11 +94,10 @@ public class TypesPanel extends Composite
                     }
                 }
             });
-            new UsePopup.Popper(def.id, label, UsePopup.BY_TYPES, _defmap);
-            types.add(label);
 
             // create and add the detail panel (hidden) and bind its visibility to a value
-            TypeDetailPanel deets = new TypeDetailPanel(def.id, _defmap, _members);
+            TypeDetailPanel deets = new TypeDetailPanel(
+                def.id, _defmap, _members, UsePopup.BY_TYPES);
             Bindings.bindVisible(_types.get(def.id), deets);
             details.add(deets);
         }
@@ -117,19 +108,10 @@ public class TypesPanel extends Composite
     {
         String byname ();
         String Letter ();
-        String Gap ();
     }
-
-    protected long _projectId;
-    protected DefMap _defmap = new DefMap();
-    protected IdMap<Boolean> _types = IdMap.create(false);
-    protected IdMap<Boolean> _members = IdMap.create(false);
-
-    protected @UiField SimplePanel _contents;
     protected @UiField Styles _styles;
+    protected @UiField SimplePanel _contents;
 
     protected interface Binder extends UiBinder<Widget, TypesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
-    protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
-    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

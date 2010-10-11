@@ -53,7 +53,7 @@ object Tool extends AnyRef
   }
 
   protected def withConnection (action :(Connection => Unit)) {
-    val conn = DriverManager.getConnection(_db.mkUrl(_coreenDir), "sa", "")
+    val conn = DriverManager.getConnection(_db.dbUrl(_coreenDir), "sa", "")
     try {
       action(conn)
     } finally {

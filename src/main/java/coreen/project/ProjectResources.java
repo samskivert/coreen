@@ -5,7 +5,6 @@ package coreen.project;
 
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.CssResource;
-import com.google.gwt.resources.client.ImageResource;
 
 /**
  * Resources shared among project pages.
@@ -23,8 +22,11 @@ public interface ProjectResources extends ClientBundle
         String highlight ();
         String indent ();
         String typeLabel ();
+        String /*typeLabel*/ Module ();
         String /*typeLabel*/ Type ();
         String typeIcon ();
+        String defLabel ();
+        String defClear ();
     }
 
     @Source("project.css")

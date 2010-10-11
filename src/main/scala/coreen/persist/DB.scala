@@ -35,7 +35,8 @@ trait DB {
       // defs without having a new id assigned to them
       d.id is(indexed),
       d.unitId is(indexed),
-      d.parentId is(indexed)
+      d.parentId is(indexed),
+      d.name is (indexed, dbType("varchar_ignorecase"))
     )}
 
     /** A mapping from fully qualfied def name to id (and vice versa). */
@@ -73,9 +74,9 @@ trait DB {
     /** Maps a byte code back to a {@link JDef.Type}. */
     val codeToType = typeToCode map { case(x, y) => (y, x) }
 
-    /** Returns the URL via which our H2 database may be accessed. */
-    def mkUrl (coreenDir :File) =
-      "jdbc:h2:" + new File(coreenDir, "repository").getAbsolutePath + ";ignorecase=true"
+    /** Creates the JDBC URL to our database. */
+    def dbUrl (root :File) =
+      "jdbc:h2:" + new File(root, "repository").getAbsolutePath
 
     /** Drops all tables and recreates the schema. Annoyingly this is the only sort of "migration"
      * supported by Squeryl. */
@@ -98,7 +99,7 @@ trait DBComponent extends Component with DB {
 
     // initialize the H2 database
     Class.forName("org.h2.Driver")
-    val dburl = _db.mkUrl(_coreenDir)
+    val dburl = _db.dbUrl(_coreenDir)
     SessionFactory.concreteFactory = Some(() => {
       // TODO: use connection pools as Squeryl creates and closes a connection on every query
       val sess = Session.create(DriverManager.getConnection(dburl, "sa", ""), new H2Adapter)
@@ -119,6 +120,8 @@ case class Project (
   rootPath :String,
   /** A string identifying the imported version of this project. */
   version :String,
+  /** The source directory filters for this project (if any). */
+  srcDirs :Option[String],
   /** When this project was imported into the library. */
   imported :Long,
   /** When this project was last updated. */
@@ -130,7 +133,7 @@ case class Project (
   val id :Long = 0L
 
   /** Zero args ctor for use when unserializing. */
-  def this () = this("", "", "", 0L, 0L)
+  def this () = this("", "", "", Some(""), 0L, 0L)
 
   override def toString = "[id=" + id + ", name=" + name + ", vers=" + version + "]"
 }
