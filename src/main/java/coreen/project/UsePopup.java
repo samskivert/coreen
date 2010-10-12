@@ -204,7 +204,7 @@ public class UsePopup extends PopupPanel
         setVisible(false);
         show();
         int left = target.getAbsoluteLeft();
-        int top = target.getAbsoluteTop() - getOffsetHeight();
+        int top = Math.max(target.getAbsoluteTop() - getOffsetHeight(), 0);
         if (left + getOffsetWidth() > Window.getClientWidth()) {
             left = Math.max(0, Window.getClientWidth() - getOffsetWidth());
         }
