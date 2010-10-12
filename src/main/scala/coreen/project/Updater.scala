@@ -189,12 +189,26 @@ trait Updater {
       }
       // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
+      // if we have module ids (meaning we're processing a real compunit, not the synthetic
+      // "declare all of our modules" compunit), we want to filter out any defs for which we have
+      // no module id mapping; this filters out code from modules that have already been claimed by
+      // some other project
+      val defs = if (modIds.isEmpty) cu.defs
+                 else cu.defs filter(d => modIds.contains(d.id))
+
       // figure out which defs to add, which to update, and which to delete
-      val (newDefs, oldDefs) = (cu.allIds, emap.keySet)
+      def allIds (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
+        (ids /: defs)((s, d) => allIds(s + d.id, d.defs))
+      val (newDefs, oldDefs) = (allIds(Set(), defs), emap.keySet)
       val toDelete = oldDefs -- newDefs
-      val (toAdd, toUpdate) = (newDefs -- oldDefs -- modIds.keySet, oldDefs -- toDelete)
+      val (fullToAdd, toUpdate) = (newDefs -- oldDefs -- modIds.keySet, oldDefs -- toDelete)
 
       transaction {
+        // check to see if any of our toAdd already exist; this generally means that this project
+        // is trying to define modules/types that have already been defined by another project
+        val dupDefs = from(_db.defmap)(dn => where(dn.fqName in fullToAdd) select(dn.fqName)) toSet
+        val toAdd = fullToAdd -- dupDefs
+
         // add the new defs to the defname map to assign them ids
         time("insertNewNames") {
           _db.defmap.insert(toAdd.map(DefName(_)))
@@ -205,16 +219,24 @@ trait Updater {
         val ids = modIds ++ emap ++ nmap
 
         // now convert the defelems into defs using the fqName to id map
-        def processDefs (parentId :Long)(out :Map[Long,Def], df :DefElem) :Map[Long,Def] = {
-          val ndef = Def(ids(df.id), parentId, unitId, df.name, _db.typeToCode(df.typ),
-                         stropt(df.sig), stropt(df.doc),
-                         df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
-          ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
+        def processDefs (parentId :Long)(
+          out :Map[Long,Def], df :DefElem) :Map[Long,Def] = ids.get(df.id) match {
+          case Some(defId) => {
+            val ndef = Def(defId, parentId, unitId, df.name, _db.typeToCode(df.typ),
+                           stropt(df.sig), stropt(df.doc),
+                           df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
+            ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
+          }
+          case None => {
+            println("Skipping " + df)
+            out
+          }
         }
-        val ndefs = (Map[Long,Def]() /: cu.defs)(processDefs(0L))
+        val ndefs = (Map[Long,Def]() /: defs)(processDefs(0L))
 
         // insert, update, and delete
         if (!toAdd.isEmpty) {
+          println("Adding defs " + toAdd)
           val added = toAdd map(nmap) map(ndefs)
           time("addNewDefs") { _db.defs.insert(added) }
           // println("Inserted " + toAdd.size + " new defs")
@@ -233,13 +255,16 @@ trait Updater {
         time("deleteOldUses") { _db.uses.deleteWhere(u => u.unitId === unitId) }
 
         // convert the useelems into (use, referentFqName) pairs
-        def processUses (out :Vector[(Use,String)], df :DefElem) :Vector[(Use,String)] = {
-          val defId = ids(df.id)
-          val nuses = df.uses.map(
-            u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
-          ((out ++ nuses) /: df.defs)(processUses)
+        def processUses (out :Vector[(Use,String)],
+                         df :DefElem) :Vector[(Use,String)] = ids.get(df.id) match {
+          case Some(defId) => {
+            val nuses = df.uses.map(
+              u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
+            ((out ++ nuses) /: df.defs)(processUses)
+          }
+          case None => out
         }
-        val nuses = (Vector[(Use,String)]() /: cu.defs)(processUses)
+        val nuses = (Vector[(Use,String)]() /: defs)(processUses)
 
         // now look up the referents
         val refFqNames = Set() ++ nuses.map(_._2)
