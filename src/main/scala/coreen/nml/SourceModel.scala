@@ -5,7 +5,7 @@ package coreen.nml
 
 import scala.xml.{Node, NodeSeq, Elem}
 
-import coreen.model.{Def, Use}
+import coreen.model.Type
 
 /**
  * Models a source file as a nested collection of definitions and uses.
@@ -41,7 +41,7 @@ object SourceModel
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
-  case class DefElem (name :String, id :String, sig :String, doc :String, typ :Def.Type,
+  case class DefElem (name :String, id :String, sig :String, doc :String, typ :Type,
                       defs :Seq[DefElem], uses :Seq[UseElem],
                       start :Int, bodyStart :Int, bodyEnd :Int) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
@@ -86,9 +86,9 @@ object SourceModel
   protected def parseType (elem :Node) = {
     val text = (elem \ "@type").text
     try {
-      Enum.valueOf(classOf[Def.Type], text.toUpperCase)
+      Enum.valueOf(classOf[Type], text.toUpperCase)
     } catch {
-        case e => println(elem + " -> " + e); Def.Type.UNKNOWN
+        case e => println(elem + " -> " + e); Type.UNKNOWN
     }
   }
 

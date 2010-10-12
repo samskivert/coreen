@@ -13,7 +13,8 @@ import com.threerings.gwt.ui.Widgets;
 
 import coreen.icons.IconResources;
 import coreen.model.Def;
-import coreen.model.TypedId;
+import coreen.model.DefId;
+import coreen.model.Type;
 import coreen.util.DefMap;
 
 /**
@@ -32,7 +33,7 @@ public class TypeLabel extends FlowPanel
     /**
      * Returns the appropriate icon for the supplied def.
      */
-    public static Image iconForDef (Def.Type type)
+    public static Image iconForDef (Type type)
     {
         Image icon = new Image(rsrcForDef(type));
         icon.addStyleName(_rsrc.styles().typeIcon());
@@ -42,7 +43,7 @@ public class TypeLabel extends FlowPanel
     /**
      * Returns the appropriate icon for the supplied def.
      */
-    public static ImageResource rsrcForDef (Def.Type type)
+    public static ImageResource rsrcForDef (Type type)
     {
         switch (type) {
         default:
@@ -57,14 +58,13 @@ public class TypeLabel extends FlowPanel
         }
     }
 
-    public TypeLabel (TypedId[] parents, Def def, UsePopup.Linker linker, DefMap defmap,
-                      String docs)
+    public TypeLabel (DefId[] parents, Def def, UsePopup.Linker linker, DefMap defmap, String docs)
     {
         addStyleName(_rsrc.styles().typeLabel());
         add(iconForDef(def.type));
-        for (TypedId encl : parents) {
+        for (DefId encl : parents) {
             Widget plabel = Widgets.newInlineLabel(encl.name);
-            if (encl.type != Def.Type.MODULE) {
+            if (encl.type != Type.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
             add(plabel);

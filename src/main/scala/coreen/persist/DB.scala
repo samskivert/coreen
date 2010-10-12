@@ -14,7 +14,7 @@ import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
-import coreen.model.{Def => JDef}
+import coreen.model.{Type, Def => JDef}
 import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
@@ -66,17 +66,17 @@ trait DB {
       u.referentId is(indexed)
     )}
 
-    /** Maps {@link JDef.Type} elements to a byte that can be used in the DB. */
+    /** Maps {@link Type} elements to a byte that can be used in the DB. */
     val typeToCode = Map(
       // these mappings must never change
-      JDef.Type.MODULE -> 1,
-      JDef.Type.TYPE -> 2,
-      JDef.Type.FUNC -> 3,
-      JDef.Type.TERM -> 4,
-      JDef.Type.UNKNOWN -> 0
+      Type.MODULE -> 1,
+      Type.TYPE -> 2,
+      Type.FUNC -> 3,
+      Type.TERM -> 4,
+      Type.UNKNOWN -> 0
     )
 
-    /** Maps a byte code back to a {@link JDef.Type}. */
+    /** Maps a byte code back to a {@link Type}. */
     val codeToType = typeToCode map { case(x, y) => (y, x) }
 
     /** Creates the JDBC URL to our database. */
@@ -197,7 +197,7 @@ case class Def (
   unitId :Long,
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
   name :String,
-  /** The nature of this definition (function, term, etc.). See {@link JDef.Type}. */
+  /** The nature of this definition (function, term, etc.). See {@link Type}. */
   typ :Int,
   /** This definition's (type) signature. */
   @Column(length=1024) sig :Option[String],

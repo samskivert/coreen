@@ -29,6 +29,8 @@ import com.threerings.gwt.util.WindowUtil;
 import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefContent;
+import coreen.model.DefInfo;
+import coreen.model.Type;
 import coreen.model.TypeSummary;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -108,27 +110,27 @@ public class TypeSummaryPanel extends Composite
     protected void init (final TypeSummary sum)
     {
         FlowPanel contents = Widgets.newFlowPanel();
-        if (sum.def.type == Def.Type.TYPE) {
-            contents.add(new TypeLabel(sum.path, sum.def, _linker, _defmap, sum.doc));
+        if (sum.type == Type.TYPE) {
+            contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
         } else if (sum.doc != null) {
             contents.add(new DocLabel(sum.doc));
         }
-        contents.add(new SigLabel(sum.def, sum.sig, _defmap));
+        contents.add(new SigLabel(sum, sum.sig, _defmap));
 
-        for (TypeSummary.Member member : sum.types) {
+        for (DefInfo member : sum.types) {
             addMember(contents, member);
         }
-        for (TypeSummary.Member member : sum.funcs) {
+        for (DefInfo member : sum.funcs) {
             addMember(contents, member);
         }
-        for (TypeSummary.Member member : sum.terms) {
+        for (DefInfo member : sum.terms) {
             addMember(contents, member);
         }
 
         _contents.setWidget(contents);
     }
 
-    protected void addMember (FlowPanel panel, final TypeSummary.Member member)
+    protected void addMember (FlowPanel panel, final DefInfo member)
     {
         ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
                                                new Image(_icons.codeOpen()), new ClickHandler() {

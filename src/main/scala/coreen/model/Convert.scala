@@ -22,32 +22,38 @@ object Convert
   def toJava (cu :SCompUnit) :JCompUnit = new JCompUnit(cu.id, cu.projectId, cu.path)
 
   /** Converts a Scala Def to a Java Def. */
-  def toJava (decode :Map[Int,JDef.Type])(d :SDef) :JDef = initDef(decode, d, new JDef)
+  def toJava (decode :Map[Int,Type])(d :SDef) :JDef = initDef(decode, d, new JDef)
+
+  /** Converts a Scala Def to a DefId. */
+  def toDefId (decode :Map[Int,Type])(d :SDef) :DefId = initDefId(decode, d, new DefId)
+
+  /** Converts a Scala Def to a DefInfo. */
+  def toDefInfo (decode :Map[Int,Type])(d :SDef) :DefInfo = initDefInfo(decode, d, new DefInfo)
 
   /** Converts a Scala Use to a Java Use. */
   def toJava (u :SUse) :JUse = new JUse(u.referentId, u.useStart, u.useEnd-u.useStart)
 
-  /** Converts a Scala Def to a TypedId. */
-  def toTypedId (decode :Map[Int,JDef.Type])(d :SDef) :TypedId =
-    new TypedId(decode(d.typ), d.id, d.name)
-
-  /** Converts a Scala Def to a TypeSummary.Member. */
-  def toMember (decode :Map[Int,JDef.Type])(d :SDef) :TypeSummary.Member =
-    initMember(decode, d, new TypeSummary.Member)
-
-  private def initDef (decode :Map[Int,JDef.Type], sdef :SDef, jdef :JDef) = {
+  /** Initializes a DefId from a Scala Def. */
+  def initDefId[DT <: DefId] (decode :Map[Int,Type], sdef :SDef, jdef :DT) = {
     jdef.id = sdef.id
-    jdef.parentId = sdef.parentId
     jdef.name = sdef.name
     jdef.`type` = decode(sdef.typ)
+    jdef
+  }
+
+  /** Initializes a Java Def from a Scala Def. */
+  def initDef[DT <: JDef] (decode :Map[Int,Type], sdef :SDef, jdef :DT) = {
+    initDefId(decode, sdef, jdef)
+    jdef.parentId = sdef.parentId
     jdef.start = sdef.defStart
     jdef
   }
 
-  private def initMember (decode :Map[Int,JDef.Type], sdef :SDef, mem :TypeSummary.Member) = {
+  /** Initializes a DefInfo from a Scala Def. */
+  def initDefInfo[DT <: DefInfo] (decode :Map[Int,Type], sdef :SDef, mem :DT) = {
     initDef(decode, sdef, mem)
-    mem.doc = sdef.doc.getOrElse(null)
     mem.sig = sdef.sig.getOrElse(null)
+    mem.doc = sdef.doc.getOrElse(null)
     mem
   }
 }

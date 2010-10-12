@@ -11,7 +11,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
-import coreen.model.{CompUnitDetail, DefContent, DefDetail, TypeDetail, TypedId, TypeSummary}
+import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, Type, TypeDetail, TypeSummary}
 import coreen.persist.{DB, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -51,7 +51,7 @@ trait ProjectServlet {
     def getModsAndMembers (projectId :Long) :Array[Array[JDef]] = transaction {
       val mods = from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === _db.typeToCode(JDef.Type.MODULE)))
+              (d.typ === _db.typeToCode(Type.MODULE)))
         select(d)
       ) map(d => (d.id -> d)) toMap
 
@@ -66,7 +66,7 @@ trait ProjectServlet {
     def getTypes (projectId :Long) :Array[JDef] = transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === _db.typeToCode(JDef.Type.TYPE)))
+              (d.typ === _db.typeToCode(Type.TYPE)))
         select(d)
       ).toArray sortBy(_.name) map(Convert.toJava(_db.codeToType))
     }
@@ -94,9 +94,9 @@ trait ProjectServlet {
       val td = initDefDetail(defId, new TypeDetail)
       val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
         Convert.toJava(_db.codeToType)) groupBy(_.`type`)
-      td.types = cmap.getOrElse(JDef.Type.TYPE, Array())
-      td.funcs = cmap.getOrElse(JDef.Type.FUNC, Array())
-      td.terms = cmap.getOrElse(JDef.Type.TERM, Array())
+      td.types = cmap.getOrElse(Type.TYPE, Array())
+      td.funcs = cmap.getOrElse(Type.FUNC, Array())
+      td.terms = cmap.getOrElse(Type.TERM, Array())
       td
     }
 
@@ -104,10 +104,10 @@ trait ProjectServlet {
     def getSummary (defId :Long) :TypeSummary = transaction {
       val ts = initDefDetail(defId, new TypeSummary)
       val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
-        Convert.toMember(_db.codeToType)) groupBy(_.`type`)
-      ts.types = cmap.getOrElse(JDef.Type.TYPE, Array())
-      ts.funcs = cmap.getOrElse(JDef.Type.FUNC, Array())
-      ts.terms = cmap.getOrElse(JDef.Type.TERM, Array())
+        Convert.toDefInfo(_db.codeToType)) groupBy(_.`type`)
+      ts.types = cmap.getOrElse(Type.TYPE, Array())
+      ts.funcs = cmap.getOrElse(Type.FUNC, Array())
+      ts.terms = cmap.getOrElse(Type.TERM, Array())
       ts
     }
 
@@ -153,18 +153,16 @@ trait ProjectServlet {
     }
 
     private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
-      dd.`def` = Convert.toJava(_db.codeToType)(d)
+      Convert.initDefInfo(_db.codeToType, d, dd)
       dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
       dd.path = loadDefPath(d.parentId, Nil).toArray
-      dd.sig = d.sig.getOrElse(null)
-      dd.doc = d.doc.getOrElse(null)
       dd
     }
 
-    private def loadDefPath (defId :Long, path :List[TypedId]) :List[TypedId] =
+    private def loadDefPath (defId :Long, path :List[DefId]) :List[DefId] =
       if (defId == 0L) path else {
         val d = _db.defs.lookup(defId).get
-        loadDefPath(d.parentId, Convert.toTypedId(_db.codeToType)(d) :: path)
+        loadDefPath(d.parentId, Convert.toDefId(_db.codeToType)(d) :: path)
       }
 
     private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =

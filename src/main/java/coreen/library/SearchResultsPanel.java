@@ -22,7 +22,8 @@ import com.threerings.gwt.ui.Widgets;
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
-import coreen.model.TypedId;
+import coreen.model.DefId;
+import coreen.model.Type;
 import coreen.project.ProjectPage;
 import coreen.project.TypeLabel;
 import coreen.project.UsePopup;
@@ -44,19 +45,19 @@ public class SearchResultsPanel extends Composite
         _libsvc.search(query, new PanelCallback<LibraryService.SearchResult[]>(_contents) {
             public void onSuccess (LibraryService.SearchResult[] results) {
                 // partition the results by type (TODO: rewrite with Guava Multimap)
-                Map<Def.Type, List<LibraryService.SearchResult>> bytype =
-                    new HashMap<Def.Type, List<LibraryService.SearchResult>>();
+                Map<Type, List<LibraryService.SearchResult>> bytype =
+                    new HashMap<Type, List<LibraryService.SearchResult>>();
                 for (LibraryService.SearchResult result : results) {
-                    List<LibraryService.SearchResult> rlist = bytype.get(result.def.type);
+                    List<LibraryService.SearchResult> rlist = bytype.get(result.type);
                     if (rlist == null) {
-                        bytype.put(result.def.type,
+                        bytype.put(result.type,
                                    rlist = new ArrayList<LibraryService.SearchResult>());
                     }
                     rlist.add(result);
                 }
 
                 FluentTable contents = new FluentTable(5, 0);
-                for (Def.Type type : Def.Type.values()) {
+                for (Type type : Type.values()) {
                     if (bytype.containsKey(type)) {
                         for (LibraryService.SearchResult result : bytype.get(type)) {
                             addResult(contents, result);
@@ -74,18 +75,18 @@ public class SearchResultsPanel extends Composite
     protected void addResult (FluentTable table, final LibraryService.SearchResult result)
     {
         table.add().setText(result.project, _styles.resultCell()).alignTop().
-            right().setWidget(new TypeLabel(result.path, result.def, UsePopup.SOURCE,
+            right().setWidget(new TypeLabel(result.path, result, UsePopup.SOURCE,
                                             _defmap, result.doc) {
                 protected Widget createDefLabel (Def def) {
                     List<Object> args = new ArrayList<Object>();
-                    args.add(result.projectId);
+                    args.add(result.unit.projectId);
                     args.add(ProjectPage.Detail.TYP);
-                    for (TypedId tid : result.path) {
-                        if (tid.type != Def.Type.MODULE) {
+                    for (DefId tid : result.path) {
+                        if (tid.type != Type.MODULE) {
                             args.add(tid.id);
                         }
                     }
-                    args.add(result.def.id);
+                    args.add(result.id);
                     return Link.create(def.name, Page.PROJECT, args.toArray());
                 }
             }, _styles.resultCell());

@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.threerings.gwt.ui.Widgets;
 
 import coreen.model.Def;
+import coreen.model.Type;
 import coreen.util.DefMap;
 
 /**
@@ -42,7 +43,7 @@ public class DefUtil
     /**
      * Returns the appropriate style for a def of the specified type.
      */
-    public static String getStyle (Def.Type type)
+    public static String getStyle (Type type)
     {
         switch (type) {
         case MODULE: return _rsrc.styles().defModule();

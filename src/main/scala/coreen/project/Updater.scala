@@ -15,7 +15,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
-import coreen.model.{Def => JDef}
+import coreen.model.Type
 import coreen.persist.{DB, Project, CompUnit, Def, DefName, Use}
 import coreen.server.{Log, Exec, Dirs}
 
@@ -130,7 +130,7 @@ trait Updater {
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
-        val byId = cus.flatMap(_.allDefs) filter(_.typ == JDef.Type.MODULE) groupBy(_.id)
+        val byId = cus.flatMap(_.allDefs) filter(_.typ == Type.MODULE) groupBy(_.id)
         val modDefs = byId.values map(_.head) map(_.copy(defs = Nil))
         val modIds = processCompUnit(cuDef.id, Map(), CompUnitElem("", modDefs toSeq))
 

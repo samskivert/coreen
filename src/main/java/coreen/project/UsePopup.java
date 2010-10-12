@@ -24,7 +24,8 @@ import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
 import coreen.model.DefDetail;
-import coreen.model.TypedId;
+import coreen.model.DefId;
+import coreen.model.Type;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.WindowFX;
@@ -45,12 +46,12 @@ public class UsePopup extends PopupPanel
         }
 
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
-            for (TypedId tid : deet.path) {
-                if (tid.type != Def.Type.MODULE) {
-                    args.add(tid.id);
+            for (DefId did : deet.path) {
+                if (did.type != Type.MODULE) {
+                    args.add(did.id);
                 }
             }
-            args.add(deet.def.id);
+            args.add(deet.id);
         }
 
         protected Linker (ProjectPage.Detail detail) {
@@ -63,7 +64,7 @@ public class UsePopup extends PopupPanel
     public static final Linker SOURCE = new Linker(ProjectPage.Detail.SRC) {
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
             args.add(deet.unit.id);
-            args.add(deet.def.id);
+            args.add(deet.id);
         }
     };
 
@@ -223,7 +224,7 @@ public class UsePopup extends PopupPanel
         _popper = popper;
 
         FlowPanel panel = new FlowPanel();
-        panel.add(new TypeLabel(deet.path, deet.def, linker, defmap, deet.doc));
+        panel.add(new TypeLabel(deet.path, deet, linker, defmap, deet.doc));
         Widget sig;
         if (deet.unit.projectId > 0) {
             sig = (_link = linker.makeLink(deet));

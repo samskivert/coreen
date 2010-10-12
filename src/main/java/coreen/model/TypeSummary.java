@@ -8,20 +8,12 @@ package coreen.model;
  */
 public class TypeSummary extends DefDetail
 {
-    /** Contains information for a single member. */
-    public static class Member extends Def {
-        /** The signature of this def. */
-        public String sig;
-        /** The documentation for this def. */
-        public String doc;
-    }
-
     /** Type members of this type. */
-    public Member[] types;
+    public DefInfo[] types;
 
     /** Function members of this type. */
-    public Member[] funcs;
+    public DefInfo[] funcs;
 
     /** Term members of this type. */
-    public Member[] terms;
+    public DefInfo[] terms;
 }

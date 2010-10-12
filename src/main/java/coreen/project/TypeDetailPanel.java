@@ -28,6 +28,7 @@ import com.threerings.gwt.util.WindowUtil;
 import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefContent;
+import coreen.model.Type;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -108,15 +109,15 @@ public class TypeDetailPanel extends Composite
         _detail = detail;
 
         FlowPanel contents = Widgets.newFlowPanel();
-        if (detail.def.type == Def.Type.TYPE) {
-            contents.add(new TypeLabel(detail.path, detail.def, _linker, _defmap, detail.doc));
+        if (detail.type == Type.TYPE) {
+            contents.add(new TypeLabel(detail.path, detail, _linker, _defmap, detail.doc));
         } else if (detail.doc != null) {
             contents.add(Widgets.newHTML(detail.doc));
         }
 
         // if this is a type, display nested fields, funcs, etc.
         FlowPanel deets = null;
-        if (detail.def.type == Def.Type.TYPE) {
+        if (detail.type == Type.TYPE) {
             FlowPanel members = Widgets.newFlowPanel(_styles.members());
             deets = Widgets.newFlowPanel();
             addDefs(members, _msgs.tdpTypes(), detail.types, deets);
@@ -130,7 +131,7 @@ public class TypeDetailPanel extends Composite
 
         // show source first if we last expanded a source *and* this is not type
         final Value<Boolean> showSource = Value.create(
-            _sourceFirst && (detail.def.type != Def.Type.TYPE));
+            _sourceFirst && (detail.type != Type.TYPE));
         ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
                                                new Image(_icons.codeOpen()), new ClickHandler() {
             public void onClick (ClickEvent event) {
@@ -150,9 +151,9 @@ public class TypeDetailPanel extends Composite
             @Override public void setVisible (boolean visible) {
                 super.setVisible(visible);
                 if (visible) {
-                    _defmap.map(detail.def.id, this);
+                    _defmap.map(detail.id, this);
                 } else {
-                    _defmap.unmap(detail.def.id, this);
+                    _defmap.unmap(detail.id, this);
                 }
             }
         };
@@ -164,7 +165,7 @@ public class TypeDetailPanel extends Composite
                 super.setVisible(visible);
                 if (visible && !_loaded) {
                     _loaded = true;
-                    _projsvc.getContent(detail.def.id, new PanelCallback<DefContent>(_contents) {
+                    _projsvc.getContent(detail.id, new PanelCallback<DefContent>(_contents) {
                         public void onSuccess (DefContent content) {
                             init(content.text, content.defs, content.uses, 0L, _linker);
                         }

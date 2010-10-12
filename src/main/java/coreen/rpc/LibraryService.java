@@ -9,9 +9,9 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import coreen.model.Def;
+import coreen.model.DefDetail;
 import coreen.model.PendingProject;
 import coreen.model.Project;
-import coreen.model.TypedId;
 
 /**
  * Provides library-related services.
@@ -23,34 +23,10 @@ public interface LibraryService extends RemoteService
     public static final String ENTRY_POINT = "library";
 
     /** Used by {@link #search}. */
-    public static class SearchResult implements Serializable
+    public static class SearchResult extends DefDetail
     {
-        /** The id of the project in which this result lives. */
-        public long projectId;
-
         /** The name of the project in which this result lives. */
         public String project;
-
-        /** The path to the result. */
-        public TypedId[] path;
-
-        /** The result in question. */
-        public Def def;
-
-        /** The documentation for the result in question. */
-        public String doc;
-
-        /** Creates and populates a search result. */
-        public SearchResult (long projectId, String project, TypedId[] path, Def def, String doc) {
-            this.projectId = projectId;
-            this.project = project;
-            this.path = path;
-            this.def = def;
-            this.doc = doc;
-        }
-
-        /** Used when unserializing. */
-        public SearchResult () {}
     }
 
     /** Returns all projects known to the system. */
