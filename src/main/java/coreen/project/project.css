@@ -11,12 +11,24 @@
   white-space: pre;
 }
 
-.def {
-  font-weight: bold;
+.defModule {
+  color: #228B22;
+}
+.defType {
+  color: #228B22;
+}
+.defFunc {
+  color: #0000FF;
+}
+.defTerm {
+  color: #228B22;
+}
+.defUnknown {
+  color: #228B22;
 }
 
 .use {
-  font-style: italic;
+  color: #B8860B;
 }
 
 .doc p {
@@ -31,7 +43,7 @@
   max-width: 800px;
 }
 
-.actionable { 
+.actionable {
   cursor: pointer;
 }
 

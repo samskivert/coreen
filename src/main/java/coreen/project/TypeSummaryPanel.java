@@ -111,7 +111,7 @@ public class TypeSummaryPanel extends Composite
         if (sum.def.type == Def.Type.TYPE) {
             contents.add(new TypeLabel(sum.path, sum.def, _linker, _defmap, sum.doc));
         } else if (sum.doc != null) {
-            contents.add(Widgets.newHTML(sum.doc, _rsrc.styles().doc()));
+            contents.add(new DocLabel(sum.doc));
         }
         contents.add(new SigLabel(sum.def, sum.sig, _defmap));
 
@@ -153,7 +153,7 @@ public class TypeSummaryPanel extends Composite
         bits.add(asig);
 
         if (member.doc != null) {
-            Widget doc = Widgets.newHTML(member.doc, _rsrc.styles().doc());
+            Widget doc = new DocLabel(member.doc);
             Bindings.bindVisible(_expanded.get(member.id), doc);
             bits.add(doc);
         }

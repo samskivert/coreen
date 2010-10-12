@@ -51,12 +51,13 @@ public class ModulesPanel extends SummaryPanel
     {
         _contents.clear();
 
+        UsePopup.Linker linker = UsePopup.byModsInProject(_projectId);
         for (Def[] modMems : modsMems) {
             final Def mod = modMems[0];
             _contents.add(Widgets.newLabel(mod.name, _styles.module()));
             for (int ii = 1; ii < modMems.length; ii++) {
                 final Def def = modMems[ii];
-                Label label = DefUtil.addDef(_contents, def, UsePopup.BY_MODS, _defmap);
+                Label label = DefUtil.addDef(_contents, def, linker, _defmap);
                 label.addClickHandler(new ClickHandler() {
                     public void onClick (ClickEvent event) {
                         if (_types.get(def.id).get()) {
@@ -72,8 +73,7 @@ public class ModulesPanel extends SummaryPanel
             for (int ii = 1; ii < modMems.length; ii++) {
                 final Def def = modMems[ii];
                 // create and add the summary panel (hidden) and bind its visibility to a value
-                TypeSummaryPanel deets = new TypeSummaryPanel(
-                    def.id, _defmap, _members, UsePopup.BY_MODS);
+                TypeSummaryPanel deets = new TypeSummaryPanel(def.id, _defmap, _members, linker);
                 Bindings.bindVisible(_types.get(def.id), deets);
                 _contents.add(deets);
             }

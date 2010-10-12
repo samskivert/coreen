@@ -35,20 +35,14 @@ import coreen.util.DefMap;
  */
 public class UsePopup extends PopupPanel
 {
-    public static abstract class Linker {
+    public static class Linker {
         public Hyperlink makeLink (DefDetail deet) {
             List<Object> args = new ArrayList<Object>();
             args.add(deet.unit.projectId);
-            addArgs(deet, args);
+            args.add(_detail);
+            addDetailArgs(deet, args);
             return Link.create(deet.sig, Page.PROJECT, args.toArray());
         }
-
-        protected void addArgs (DefDetail deet, List<Object> args) {
-            args.add(getDetail());
-            addDetailArgs(deet, args);
-        }
-
-        protected abstract ProjectPage.Detail getDetail ();
 
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
             for (TypedId tid : deet.path) {
@@ -58,35 +52,37 @@ public class UsePopup extends PopupPanel
             }
             args.add(deet.def.id);
         }
+
+        protected Linker (ProjectPage.Detail detail) {
+            _detail = detail;
+        }
+
+        protected ProjectPage.Detail _detail;
     }
 
-    public static final Linker SOURCE = new Linker() {
-        protected ProjectPage.Detail getDetail () {
-            return ProjectPage.Detail.SRC;
-        }
+    public static final Linker SOURCE = new Linker(ProjectPage.Detail.SRC) {
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
             args.add(deet.unit.id);
             args.add(deet.def.id);
         }
     };
 
-    public static final Linker TYPE = new Linker() {
-        protected ProjectPage.Detail getDetail () {
-            return ProjectPage.Detail.TYP;
-        }
-    };
+    public static final Linker TYPE = new Linker(ProjectPage.Detail.TYP);
 
-    public static final Linker BY_TYPES = new Linker() {
-        protected ProjectPage.Detail getDetail () {
-            return ProjectPage.Detail.TPS;
-        }
-    };
+    public static final Linker BY_TYPES = new Linker(ProjectPage.Detail.TPS);
 
-    public static final Linker BY_MODS = new Linker() {
-        protected ProjectPage.Detail getDetail () {
-            return ProjectPage.Detail.MDS;
-        }
-    };
+    public static Linker byModsInProject (final long projectId)
+    {
+        return new Linker (ProjectPage.Detail.MDS) {
+            public Hyperlink makeLink (DefDetail deet) {
+                List<Object> args = new ArrayList<Object>();
+                args.add(deet.unit.projectId);
+                args.add(deet.unit.projectId == projectId ? _detail : ProjectPage.Detail.TYP);
+                addDetailArgs(deet, args);
+                return Link.create(deet.sig, Page.PROJECT, args.toArray());
+            }
+        };
+    }
 
     public static class Popper implements ClickHandler, MouseOverHandler, MouseOutHandler
     {

@@ -74,7 +74,7 @@ public class TypeLabel extends FlowPanel
         dlabel.addStyleName("inline");
         add(dlabel);
         if (docs != null) {
-            add(Widgets.newHTML(docs, _rsrc.styles().doc()));
+            add(new DocLabel(docs));
         }
     }
 

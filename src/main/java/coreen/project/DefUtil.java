@@ -39,5 +39,19 @@ public class DefUtil
         panel.add(Widgets.newLabel(" ", _rsrc.styles().defClear()));
     }
 
+    /**
+     * Returns the appropriate style for a def of the specified type.
+     */
+    public static String getStyle (Def.Type type)
+    {
+        switch (type) {
+        case MODULE: return _rsrc.styles().defModule();
+        case TYPE: return _rsrc.styles().defType();
+        case FUNC: return _rsrc.styles().defFunc();
+        case TERM: return _rsrc.styles().defTerm();
+        default: return _rsrc.styles().defUnknown();
+        }
+    }
+
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }
