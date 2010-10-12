@@ -20,16 +20,19 @@ import coreen.rpc.ProjectService
 
 /** Provides HTTP services. */
 trait Http {
-  this :Log with LibraryServlet with ProjectServlet =>
+  this :Log with Dirs with LibraryServlet with ProjectServlet =>
 
   /** Customizes a Jetty server and handles HTTP requests. */
   class HttpServer extends Server {
     def init {
+      // if we're running in development mode, use a special port
+      val port = if (_appdir.isDefined) _config.getHttpPort else 8081
+
       // use a custom connector that works around some jetty non-awesomeness
       setConnectors(Array(
         new SelectChannelConnector {
           setHost(_config.getBindHostname)
-          setPort(_config.getHttpPort)
+          setPort(port)
         }
       ))
 
@@ -58,7 +61,7 @@ trait Http {
 
       // if there's another Coreen running, tell it to step aside
       try {
-        val locurl = "http://" + _config.getBindHostname + ":" + _config.getHttpPort
+        val locurl = "http://" + _config.getBindHostname + ":" + port
         val rsp = Source.fromURL(locurl + "/coreen/shutdown").getLines.mkString("\n")
         if (!rsp.equals("byebye")) {
           _log.warning("Got weird repsonse when shutting down existing server: " + rsp)
@@ -116,7 +119,7 @@ trait Http {
 
 /** A concrete implementation of {@link Http}. */
 trait HttpComponent extends Component with Http {
-  this :Log with LibraryServlet with ProjectServlet =>
+  this :Log with Dirs with LibraryServlet with ProjectServlet =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer
