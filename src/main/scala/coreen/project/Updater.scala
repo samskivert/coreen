@@ -227,10 +227,7 @@ trait Updater {
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
           }
-          case None => {
-            println("Skipping " + df)
-            out
-          }
+          case None => out
         }
         val ndefs = (Map[Long,Def]() /: defs)(processDefs(0L))
 
@@ -288,7 +285,7 @@ trait Updater {
       val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
       def args = (javabin.getCanonicalPath :: "-classpath" ::
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
-                  "-mx512M" :: classname :: javaArgs)
+                  "-mx1024M" :: classname :: javaArgs)
     }
 
     // TEMP: profiling helper
