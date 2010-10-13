@@ -4,6 +4,8 @@
 package coreen.library;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -12,6 +14,7 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.EnterClickAdapter;
 import com.threerings.gwt.ui.FluentTable;
 
 import coreen.client.AbstractPage;
@@ -30,6 +33,17 @@ public class LibraryPage extends AbstractPage
     public LibraryPage ()
     {
         initWidget(_binder.createAndBindUi(this));
+        ClickHandler onSearch = new ClickHandler() {
+            public void onClick (ClickEvent event) {
+                String query = _search.getText().trim();
+                if (query.equals("")) {
+                    Link.go(Page.LIBRARY);
+                } else {
+                    Link.go(Page.LIBRARY, SEARCH, query);
+                }
+            }
+        };
+        _search.addKeyPressHandler(new EnterClickAdapter(onSearch));
     }
 
     @Override // from AbstractPage
@@ -57,16 +71,6 @@ public class LibraryPage extends AbstractPage
             });
         } else {
             _contents.setWidget(_projects);
-        }
-    }
-
-    @UiHandler("_search")
-    protected void onSearchValueChange (ValueChangeEvent<String> event)
-    {
-        if (event.getValue().trim().equals("")) {
-            Link.go(Page.LIBRARY);
-        } else {
-            Link.go(Page.LIBRARY, SEARCH, event.getValue());
         }
     }
 

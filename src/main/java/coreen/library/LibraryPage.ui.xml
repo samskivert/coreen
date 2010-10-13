@@ -21,8 +21,9 @@
 
   <g:HTMLPanel>
     <table class="{style.header}" cellpadding="0" cellspacing="0">
-    <tr><td valign="top" class="{style.title}"><ui:msg>Library</ui:msg></td>
-        <td><ui:msg>Search:</ui:msg><br/>
+    <tr><td valign="top" class="{style.title}">
+          <g:Hyperlink targetHistoryToken=""><ui:msg>Projects</ui:msg></g:Hyperlink></td>
+        <td><ui:msg>Search:</ui:msg>
             <g:TextBox ui:field="_search" visibleLength="30"/></td>
         <td align="right" valign="bottom">
           <a href="#IMPORT"><ui:msg>Import...</ui:msg></a>
