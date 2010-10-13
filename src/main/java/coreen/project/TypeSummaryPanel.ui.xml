@@ -11,6 +11,9 @@
       border-top: 1px solid;
       width: 100%;
     }
+    .nonPublic {
+      font-size: small;
+    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>

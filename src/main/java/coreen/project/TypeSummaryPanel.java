@@ -117,17 +117,27 @@ public class TypeSummaryPanel extends Composite
         }
         contents.add(new SigLabel(sum, sum.sig, _defmap));
 
-        for (DefInfo member : sum.types) {
-            addMember(contents, member);
-        }
-        for (DefInfo member : sum.funcs) {
-            addMember(contents, member);
-        }
-        for (DefInfo member : sum.terms) {
-            addMember(contents, member);
+        int added = addMembers(contents, true, sum.types, sum.funcs, sum.terms);
+        if (added < sum.types.length + sum.funcs.length + sum.terms.length) {
+            contents.add(Widgets.newLabel("Non-public members", _styles.nonPublic()));
+            addMembers(contents, false, sum.types, sum.funcs, sum.terms);
         }
 
         _contents.setWidget(contents);
+    }
+
+    protected int addMembers (FlowPanel panel, boolean access, DefInfo[]... lists)
+    {
+        int added = 0;
+        for (DefInfo[] list : lists) {
+            for (DefInfo member : list) {
+                if (member.isPublic() == access) {
+                    addMember(panel, member);
+                    added++;
+                }
+            }
+        }
+        return added;
     }
 
     protected void addMember (FlowPanel panel, final DefInfo member)
@@ -169,6 +179,7 @@ public class TypeSummaryPanel extends Composite
 
     protected interface Styles extends CssResource
     {
+        String nonPublic ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;

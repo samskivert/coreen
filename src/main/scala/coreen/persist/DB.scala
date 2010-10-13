@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 2;
+    val version = 3;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -136,6 +136,8 @@ trait DBComponent extends Component with DB {
     } else { // otherwise do migration(s)
       migrate(2, "Adding column DEF.FLAVOR...",
               "alter table DEF add column FLAVOR INTEGER(10) not null default 0")
+      migrate(3, "Adding column DEF.FLAGS...",
+              "alter table DEF add column FLAGS INTEGER(10) not null default 0")
     }
   }
 }
@@ -254,6 +256,8 @@ case class Def (
   typ :Int,
   /** The flavor of this definition (class, interface, enum, etc.). See {@link Flavor}. */
   flavor :Int,
+  /** Bits for flags. */
+  flags :Int,
   /** This definition's (type) signature. */
   @Column(length=1024) sig :Option[String],
   /** This definition's documentation. */
@@ -268,7 +272,7 @@ case class Def (
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, "", 0, 0, Some(""), Some(""), 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", pid=" + parentId + ", uid=" + unitId +
                            ", name=" + name + ", type=" + typ + "]")

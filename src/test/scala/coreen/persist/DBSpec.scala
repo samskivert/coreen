@@ -64,12 +64,12 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
     transaction {
       _db.reinitSchema
 
-      val def1 = Def(25, 1, 1, "One", 1, 1, None, None, 0, 10, 0, 10)
+      val def1 = Def(25, 1, 1, "One", 1, 1, 0, None, None, 0, 10, 0, 10)
       _db.defs.insert(def1)
       def1.id should equal(25)
 
-      val def2 = Def(99, 25, 1, "Two", 1, 1, None, None, 0, 10, 0, 10)
-      val def3 = Def(104, 25, 1, "Three", 1, 1, None, None, 0, 10, 0, 10)
+      val def2 = Def(99, 25, 1, "Two", 1, 1, 0, None, None, 0, 10, 0, 10)
+      val def3 = Def(104, 25, 1, "Three", 1, 1, 0, None, None, 0, 10, 0, 10)
       _db.defs.insert(List(def2, def3))
       def2.id should equal(99)
       def3.id should equal(104)

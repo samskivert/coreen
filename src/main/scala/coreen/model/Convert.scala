@@ -46,6 +46,7 @@ object Convert
   def initDef[DT <: JDef] (sdef :SDef, jdef :DT) = {
     initDefId(sdef, jdef)
     jdef.flavor = Decode.codeToFlavor(sdef.flavor)
+    jdef.flags = sdef.flags;
     jdef.parentId = sdef.parentId
     jdef.start = sdef.defStart
     jdef
