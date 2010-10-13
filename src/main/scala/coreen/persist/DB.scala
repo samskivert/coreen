@@ -14,7 +14,7 @@ import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
-import coreen.model.{Type, Def => JDef}
+import coreen.model.{Flavor, Type, Def => JDef}
 import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
@@ -123,18 +123,47 @@ trait DBComponent extends Component with DB {
 
 /** Contains mappings for converting between Java enums and ints for storage in the database. */
 object Decode {
-  /** Maps {@link Type} elements to a byte that can be used in the DB. */
+  /** Maps {@link Type} elements to an Int that can be used in the DB. */
   val typeToCode = Map(
-    // these mappings must never change
     Type.MODULE -> 1,
     Type.TYPE -> 2,
     Type.FUNC -> 3,
     Type.TERM -> 4,
     Type.UNKNOWN -> 0
-  )
+  ) // these mappings must never change (but can be extended)
 
-  /** Maps a byte code back to a {@link Type}. */
+  /** Maps an Int code back to a {@link Type}. */
   val codeToType = typeToCode map { case(x, y) => (y, x) }
+
+  /** Maps {@link Flavor} elements to an Int that can be used in the DB. */
+  val flavorToCode = Map(
+    // module flavors (none)
+
+    // type flavors
+    Flavor.CLASS -> 10,
+    Flavor.INTERFACE -> 11,
+    Flavor.ABSTRACT_CLASS -> 12,
+    Flavor.ENUM -> 13,
+    Flavor.ANNOTATION -> 14,
+    Flavor.OBJECT -> 15,
+    Flavor.ABSTRACT_OBJECT -> 16,
+
+    // func flavors
+    Flavor.METHOD -> 30,
+    Flavor.ABSTRACT_METHOD -> 31,
+    Flavor.STATIC_METHOD -> 32,
+
+    // term flavors
+    Flavor.FIELD -> 50,
+    Flavor.PARAM -> 51,
+    Flavor.LOCAL -> 52,
+
+    // universal flavors
+    Flavor.NONE -> 0
+  ) // these mappings must never change (but can be extended)
+
+  /** Maps an Int code back to a {@link Flavor}. */
+  val codeToFlavor = flavorToCode map { case(x, y) => (y, x) }
 }
 
 /** Contains project metadata. */
@@ -200,8 +229,10 @@ case class Def (
   unitId :Long,
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
   name :String,
-  /** The nature of this definition (function, term, etc.). See {@link Type}. */
+  /** The type of this definition (function, term, etc.). See {@link Type}. */
   typ :Int,
+  /** The flavor of this definition (class, interface, enum, etc.). See {@link Flavor}. */
+  flavor :Int,
   /** This definition's (type) signature. */
   @Column(length=1024) sig :Option[String],
   /** This definition's documentation. */
@@ -216,7 +247,7 @@ case class Def (
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, "", 0, Some(""), Some(""), 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, "", 0, 0, Some(""), Some(""), 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", pid=" + parentId + ", uid=" + unitId +
                            ", name=" + name + ", type=" + typ + "]")

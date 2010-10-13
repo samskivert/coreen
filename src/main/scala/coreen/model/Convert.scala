@@ -45,6 +45,7 @@ object Convert
   /** Initializes a Java Def from a Scala Def. */
   def initDef[DT <: JDef] (sdef :SDef, jdef :DT) = {
     initDefId(sdef, jdef)
+    jdef.flavor = Decode.codeToFlavor(sdef.flavor)
     jdef.parentId = sdef.parentId
     jdef.start = sdef.defStart
     jdef

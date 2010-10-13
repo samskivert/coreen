@@ -223,6 +223,7 @@ trait Updater {
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = ids.get(df.id) match {
           case Some(defId) => {
             val ndef = Def(defId, parentId, unitId, df.name, Decode.typeToCode(df.typ),
+                           Decode.flavorToCode(df.flavor),
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
