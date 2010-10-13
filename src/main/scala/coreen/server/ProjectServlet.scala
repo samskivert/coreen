@@ -136,6 +136,16 @@ trait ProjectServlet {
       dc
     }
 
+    /** Searches for defs in the specified project that match the specified query. */
+    def search (projectId :Long, query :String) :Array[DefDetail] = transaction {
+      _db.resolveMatches(from(_db.compunits, _db.defs)((cu, d) =>
+        where(cu.projectId === projectId and
+              d.unitId === cu.id and
+              d.name === query and
+              d.typ.~ < Decode.typeToCode(Type.TERM))
+        select(d)) toSeq, () => new DefDetail)
+    }
+
     private def requireProject (id :Long) = transaction {
       _db.projects.lookup(id) match {
         case Some(p) => p

@@ -64,4 +64,7 @@ public interface ProjectService extends RemoteService
     /** Returns the contents of the specified definition.
      * @throws ServiceException with e.no_such_def if the def is unknown. */
     DefContent getContent (long defId) throws ServiceException;
+
+    /** Searches for defs in the specified project that match the specified query. */
+    DefDetail[] search (long projectId, String query) throws ServiceException;
 }

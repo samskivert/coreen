@@ -4,7 +4,7 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style type="coreen.library.SearchResultsPanel.Styles" field="_styles">
+  <ui:style type="coreen.ui.SearchResultsPanel.Styles" field="_styles">
     .resultCell {
       border-bottom: 1px solid;
     }

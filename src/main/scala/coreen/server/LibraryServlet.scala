@@ -37,38 +37,15 @@ trait LibraryServlet {
 
     // from interface LibraryService
     def search (query :String) :Array[LibraryService.SearchResult] = transaction {
-      val matches = _db.defs.where(d => d.name === query and
-                                   d.typ.~ < Decode.typeToCode(Type.TERM)) toArray
-      val unitMap = from(_db.compunits)(cu =>
-        where(cu.id in matches.map(_.unitId).toSet) select(cu.id, cu.projectId)) toMap
-      val projMap = from(_db.projects)(p =>
-        where(p.id in unitMap.values) select(p.id, p.name)) toMap
-
-      def mapped (defs :Seq[Def]) = defs map(m => (m.id -> m)) toMap
-      def parents (defs :Seq[Def]) =  defs map(_.parentId) filter(0.!=) toSet
-      def resolveDefs (have :Map[Long, Def], want :Set[Long]) :Map[Long, Def] = {
-        val need = want -- have.keySet
-        if (need.isEmpty) have
-        else {
-          val more = _db.defs.where(d => d.id in need).toArray
-          resolveDefs(have ++ mapped(more), parents(more))
-        }
-      }
-
-      val defMap = resolveDefs(mapped(matches), parents(matches))
-      def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
-        case None => path.toArray
-        case Some(d) => mkPath(defMap.get(d.parentId), Convert.toDefId(d) :: path)
-      }
-
-      matches map { d =>
-        val pid = unitMap(d.unitId)
-        val r = Convert.initDefInfo(d, new LibraryService.SearchResult)
-        r.unit = new CompUnit(d.unitId, pid, null)
-        r.project = projMap(pid)
-        r.path = mkPath(defMap.get(d.parentId), List())
-        r
-      }
+      val res = _db.resolveMatches(
+        _db.defs.where(d => d.name === query and
+                       d.typ.~ < Decode.typeToCode(Type.TERM)).toSeq,
+        () => new LibraryService.SearchResult)
+      // resolve the names of the projects from whence these results come
+      val projIds = res map(_.unit.projectId) toSet
+      val projMap = from(_db.projects)(p => where(p.id in projIds) select(p.id, p.name)) toMap;
+      res foreach { r => r.project = projMap(r.unit.projectId) }
+      res
     }
   }
 }

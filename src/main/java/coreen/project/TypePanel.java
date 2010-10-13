@@ -18,16 +18,13 @@ public class TypePanel extends AbstractProjectPanel
         initWidget(new SimplePanel());
     }
 
-    /** Returns the detail id of the current project panel. */
+    @Override // from AbstractProjectPanel
     public ProjectPage.Detail getId ()
     {
         return ProjectPage.Detail.TYP;
     }
 
-    /**
-     * Called either immediately after this panel has been added to the UI hierarchy, or when the
-     * panel has received new arguments, due to the user clicking on an internal link.
-     */
+    @Override // from AbstractProjectPanel
     public void setArgs (Project proj, Args args)
     {
         long defId = args.get(2, 0L);

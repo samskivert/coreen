@@ -14,7 +14,7 @@ import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
 
-import coreen.model.{Flavor, Type, Def => JDef}
+import coreen.model.{Flavor, Type, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
 import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
@@ -57,6 +57,38 @@ trait DB {
     /** Returns a mapping from fqName to id for all known values in the supplied id set. */
     def loadDefNames (ids :scala.collection.Set[Long]) :Map[String,Long] =
       defmap.where(dn => dn.id in ids) map(dn => (dn.fqName, dn.id)) toMap
+
+    /** Resolves the details for a collection of search matches. */
+    def resolveMatches[DD <: DefDetail] (matches :Seq[Def], createDD :() => DD)
+                                        (implicit m :ClassManifest[DD]) :Array[DD] = {
+      val unitMap = from(_db.compunits)(cu =>
+        where(cu.id in matches.map(_.unitId).toSet) select(cu.id, cu.projectId)) toMap
+
+      def mapped (defs :Seq[Def]) = defs map(m => (m.id -> m)) toMap
+      def parents (defs :Seq[Def]) =  defs map(_.parentId) filter(0.!=) toSet
+      def resolveDefs (have :Map[Long, Def], want :Set[Long]) :Map[Long, Def] = {
+        val need = want -- have.keySet
+        if (need.isEmpty) have
+        else {
+          val more = _db.defs.where(d => d.id in need).toArray
+          resolveDefs(have ++ mapped(more), parents(more))
+        }
+      }
+
+      val defMap = resolveDefs(mapped(matches), parents(matches))
+      def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
+        case None => path.toArray
+        case Some(d) => mkPath(defMap.get(d.parentId), Convert.toDefId(d) :: path)
+      }
+
+      matches map { d =>
+        val pid = unitMap(d.unitId)
+        val r = Convert.initDefInfo(d, createDD())
+        r.unit = new JCompUnit(d.unitId, pid, null)
+        r.path = mkPath(defMap.get(d.parentId), List())
+        r
+      } toArray
+    }
 
     /** Provides access to the uses table. */
     val uses = table[Use]

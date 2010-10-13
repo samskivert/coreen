@@ -12,10 +12,15 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
-import coreen.client.Args;
+import com.threerings.gwt.ui.FluentTable;
+
 import coreen.client.AbstractPage;
+import coreen.client.Args;
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.rpc.LibraryService;
+import coreen.rpc.LibraryServiceAsync;
+import coreen.ui.SearchResultsPanel;
 
 /**
  * Displays all of the projects known to the system.
@@ -38,7 +43,18 @@ public class LibraryPage extends AbstractPage
     {
         String action = args.get(0, "");
         if (action.equals(SEARCH)) {
-            _contents.setWidget(new SearchResultsPanel(args.get(1, "").trim()));
+            final String query = args.get(1, "").trim();
+            _contents.setWidget(new SearchResultsPanel<LibraryService.SearchResult>() {
+                /* ctor */ {
+                    setQuery(query);
+                    _libsvc.search(query, createCallback());
+                }
+                @Override protected void addResult (
+                    FluentTable table, LibraryService.SearchResult result) {
+                    table.add().setText(result.project, _styles.resultCell()).alignTop().
+                        right().setWidget(createResultView(result), _styles.resultCell());
+                }
+            });
         } else {
             _contents.setWidget(_projects);
         }
@@ -63,4 +79,6 @@ public class LibraryPage extends AbstractPage
     protected static final Binder _binder = GWT.create(Binder.class);
 
     protected static final String SEARCH = "search";
+
+    protected static final LibraryServiceAsync _libsvc = GWT.create(LibraryService.class);
 }

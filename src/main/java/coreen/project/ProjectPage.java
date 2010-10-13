@@ -6,6 +6,8 @@ package coreen.project;
 import com.google.common.base.Function;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -19,6 +21,7 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
+import com.threerings.gwt.ui.EnterClickAdapter;
 import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.DateUtil;
@@ -29,9 +32,11 @@ import coreen.client.Args;
 import coreen.client.ClientMessages;
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.model.DefDetail;
 import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.SearchResultsPanel;
 import coreen.util.ClickCallback;
 import coreen.util.PanelCallback;
 
@@ -55,6 +60,11 @@ public class ProjectPage extends AbstractPage
         /** Compilation units, by directory. */
         CUS(_msgs.pByDir()) {
             public AbstractProjectPanel create () { return new CompUnitsPanel(); }
+        },
+
+        /** Viewing a search. */
+        SEARCH(null) {
+            public AbstractProjectPanel create () { return new SearchPanel(); }
         },
 
         /** Viewing an individual type. */
@@ -101,14 +111,13 @@ public class ProjectPage extends AbstractPage
             }
         };
 
-        new ClickCallback<Void>(_go, _search) {
-            protected boolean callService () {
-                return false; // TODO
-            }
-            protected boolean gotResult (Void result) {
-                return false; // TODO
+        ClickHandler onSearch = new ClickHandler() {
+            public void onClick (ClickEvent event) {
+                Link.go(Page.PROJECT, _proj.get().id, Detail.SEARCH, _search.getText().trim());
             }
         };
+        _go.addClickHandler(onSearch);
+        _search.addKeyPressHandler(new EnterClickAdapter(onSearch));
     }
 
     @Override // from AbstractPage

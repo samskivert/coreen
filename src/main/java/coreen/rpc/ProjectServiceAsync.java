@@ -24,6 +24,11 @@ public interface ProjectServiceAsync
     void getType (long defId, AsyncCallback<TypeDetail> callback);
 
     /**
+     * The async version of {@link ProjectService#search}.
+     */
+    void search (long projectId, String query, AsyncCallback<DefDetail[]> callback);
+
+    /**
      * The async version of {@link ProjectService#getContent}.
      */
     void getContent (long defId, AsyncCallback<DefContent> callback);
@@ -32,6 +37,11 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getProject}.
      */
     void getProject (long id, AsyncCallback<Project> callback);
+
+    /**
+     * The async version of {@link ProjectService#getTypes}.
+     */
+    void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
      * The async version of {@link ProjectService#updateProject}.
@@ -47,11 +57,6 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getModsAndMembers}.
      */
     void getModsAndMembers (long projectId, AsyncCallback<Def[][]> callback);
-
-    /**
-     * The async version of {@link ProjectService#getTypes}.
-     */
-    void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
      * The async version of {@link ProjectService#getMembers}.
