@@ -58,6 +58,7 @@ public class ModulesPanel extends SummaryPanel
             for (int ii = 1; ii < modMems.length; ii++) {
                 final Def def = modMems[ii];
                 Label label = DefUtil.addDef(_contents, def, linker, _defmap);
+                label.addStyleName(_rsrc.styles().actionable());
                 label.addClickHandler(new ClickHandler() {
                     public void onClick (ClickEvent event) {
                         if (_types.get(def.id).get()) {
@@ -90,4 +91,5 @@ public class ModulesPanel extends SummaryPanel
 
     protected interface Binder extends UiBinder<Widget, ModulesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }
