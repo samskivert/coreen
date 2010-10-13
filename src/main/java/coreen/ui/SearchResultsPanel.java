@@ -26,6 +26,7 @@ import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.project.ProjectPage;
+import coreen.project.ProjectResources;
 import coreen.project.TypeLabel;
 import coreen.project.UsePopup;
 import coreen.util.DefMap;
@@ -91,7 +92,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        return new TypeLabel(result.path, result, UsePopup.SOURCE, _defmap, result.doc) {
+        TypeLabel label = new TypeLabel(result.path, result, UsePopup.SOURCE, _defmap, result.doc) {
             protected Widget createDefLabel (Def def) {
                 List<Object> args = new ArrayList<Object>();
                 args.add(result.unit.projectId);
@@ -105,6 +106,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
                 return Link.create(def.name, Page.PROJECT, args.toArray());
             }
         };
+        return Widgets.newFlowPanel(label, Widgets.newLabel(result.sig, _rsrc.styles().code()));
     }
 
     protected interface Styles extends CssResource
@@ -119,4 +121,6 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected interface Binder extends UiBinder<Widget, SearchResultsPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
+    // TODO: make UI resources, factor non-project bits thereinto
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }
