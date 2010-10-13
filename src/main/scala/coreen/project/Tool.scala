@@ -6,7 +6,7 @@ package coreen.project
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.Type
-import coreen.persist.DBComponent
+import coreen.persist.{DBComponent, Decode}
 import coreen.server.{DirsComponent, ExecComponent, LogComponent}
 
 /**
@@ -54,7 +54,7 @@ object Tool extends AnyRef
     transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === pid and cu.id === d.unitId and
-              (d.typ lte _db.typeToCode(Type.TYPE)))
+              (d.typ lte Decode.typeToCode(Type.TYPE)))
         select(d)
       ) foreach { d => println(d.typ + " " + d.sig) }
     }

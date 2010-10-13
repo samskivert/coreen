@@ -8,7 +8,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, DefId, CompUnit, PendingProject, Project => JProject, Type}
-import coreen.persist.{DB, Project, Def}
+import coreen.persist.{DB, Decode, Project, Def}
 import coreen.project.Importer
 import coreen.rpc.LibraryService
 
@@ -38,7 +38,7 @@ trait LibraryServlet {
     // from interface LibraryService
     def search (query :String) :Array[LibraryService.SearchResult] = transaction {
       val matches = _db.defs.where(d => d.name === query and
-                                   d.typ.~ < _db.typeToCode(Type.TERM)) toArray
+                                   d.typ.~ < Decode.typeToCode(Type.TERM)) toArray
       val unitMap = from(_db.compunits)(cu =>
         where(cu.id in matches.map(_.unitId).toSet) select(cu.id, cu.projectId)) toMap
       val projMap = from(_db.projects)(p =>
@@ -58,12 +58,12 @@ trait LibraryServlet {
       val defMap = resolveDefs(mapped(matches), parents(matches))
       def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
         case None => path.toArray
-        case Some(d) => mkPath(defMap.get(d.parentId), Convert.toDefId(_db.codeToType)(d) :: path)
+        case Some(d) => mkPath(defMap.get(d.parentId), Convert.toDefId(d) :: path)
       }
 
       matches map { d =>
         val pid = unitMap(d.unitId)
-        val r = Convert.initDefInfo(_db.codeToType, d, new LibraryService.SearchResult)
+        val r = Convert.initDefInfo(d, new LibraryService.SearchResult)
         r.unit = new CompUnit(d.unitId, pid, null)
         r.project = projMap(pid)
         r.path = mkPath(defMap.get(d.parentId), List())

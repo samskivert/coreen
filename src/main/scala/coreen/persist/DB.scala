@@ -66,19 +66,6 @@ trait DB {
       u.referentId is(indexed)
     )}
 
-    /** Maps {@link Type} elements to a byte that can be used in the DB. */
-    val typeToCode = Map(
-      // these mappings must never change
-      Type.MODULE -> 1,
-      Type.TYPE -> 2,
-      Type.FUNC -> 3,
-      Type.TERM -> 4,
-      Type.UNKNOWN -> 0
-    )
-
-    /** Maps a byte code back to a {@link Type}. */
-    val codeToType = typeToCode map { case(x, y) => (y, x) }
-
     /** Creates the JDBC URL to our database. */
     def dbUrl (root :File) =
       "jdbc:h2:" + new File(root, "repository").getAbsolutePath
@@ -132,6 +119,22 @@ trait DBComponent extends Component with DB {
               "[file=" + overs + ", code=" + _db.version + "]")
     }
   }
+}
+
+/** Contains mappings for converting between Java enums and ints for storage in the database. */
+object Decode {
+  /** Maps {@link Type} elements to a byte that can be used in the DB. */
+  val typeToCode = Map(
+    // these mappings must never change
+    Type.MODULE -> 1,
+    Type.TYPE -> 2,
+    Type.FUNC -> 3,
+    Type.TERM -> 4,
+    Type.UNKNOWN -> 0
+  )
+
+  /** Maps a byte code back to a {@link Type}. */
+  val codeToType = typeToCode map { case(x, y) => (y, x) }
 }
 
 /** Contains project metadata. */

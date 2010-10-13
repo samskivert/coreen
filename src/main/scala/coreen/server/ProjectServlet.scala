@@ -12,7 +12,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, Type, TypeDetail, TypeSummary}
-import coreen.persist.{DB, Project, CompUnit, Def}
+import coreen.persist.{DB, Decode, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
 
@@ -51,13 +51,13 @@ trait ProjectServlet {
     def getModsAndMembers (projectId :Long) :Array[Array[JDef]] = transaction {
       val mods = from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === _db.typeToCode(Type.MODULE)))
+              (d.typ === Decode.typeToCode(Type.MODULE)))
         select(d)
       ) map(d => (d.id -> d)) toMap
 
       val members = _db.defs where(d => d.parentId in mods.keySet) toArray
       val modMems = members groupBy(_.parentId) map {
-        case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava(_db.codeToType))
+        case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava)
       }
       modMems.toArray sortBy(_.head.name)
     }
@@ -66,15 +66,14 @@ trait ProjectServlet {
     def getTypes (projectId :Long) :Array[JDef] = transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === _db.typeToCode(Type.TYPE)))
+              (d.typ === Decode.typeToCode(Type.TYPE)))
         select(d)
-      ).toArray sortBy(_.name) map(Convert.toJava(_db.codeToType))
+      ).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
-      _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
-        Convert.toJava(_db.codeToType))
+      _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
@@ -93,7 +92,7 @@ trait ProjectServlet {
     def getType (defId :Long) :TypeDetail = transaction {
       val td = initDefDetail(defId, new TypeDetail)
       val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
-        Convert.toJava(_db.codeToType)) groupBy(_.`type`)
+        Convert.toJava) groupBy(_.`type`)
       td.types = cmap.getOrElse(Type.TYPE, Array())
       td.funcs = cmap.getOrElse(Type.FUNC, Array())
       td.terms = cmap.getOrElse(Type.TERM, Array())
@@ -104,7 +103,7 @@ trait ProjectServlet {
     def getSummary (defId :Long) :TypeSummary = transaction {
       val ts = initDefDetail(defId, new TypeSummary)
       val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
-        Convert.toDefInfo(_db.codeToType)) groupBy(_.`type`)
+        Convert.toDefInfo) groupBy(_.`type`)
       ts.types = cmap.getOrElse(Type.TYPE, Array())
       ts.funcs = cmap.getOrElse(Type.FUNC, Array())
       ts.terms = cmap.getOrElse(Type.TERM, Array())
@@ -128,8 +127,7 @@ trait ProjectServlet {
         if (defs.isEmpty) defs
         else defs ++ loadDefs(defs.map(_.id) toSet)
       }
-      dc.defs = (loadDefs(Set(defId)) :+ d).toArray sortBy(_.defStart) map(
-        Convert.toJava(_db.codeToType))
+      dc.defs = (loadDefs(Set(defId)) :+ d).toArray sortBy(_.defStart) map(Convert.toJava)
       dc.defs foreach { _.start -= start }
       val defIds = dc.defs map(_.id) toSet
       val uses = _db.uses.where(u => u.ownerId in defIds).toArray
@@ -153,7 +151,7 @@ trait ProjectServlet {
     }
 
     private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
-      Convert.initDefInfo(_db.codeToType, d, dd)
+      Convert.initDefInfo(d, dd)
       dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
       dd.path = loadDefPath(d.parentId, Nil).toArray
       dd
@@ -162,7 +160,7 @@ trait ProjectServlet {
     private def loadDefPath (defId :Long, path :List[DefId]) :List[DefId] =
       if (defId == 0L) path else {
         val d = _db.defs.lookup(defId).get
-        loadDefPath(d.parentId, Convert.toDefId(_db.codeToType)(d) :: path)
+        loadDefPath(d.parentId, Convert.toDefId(d) :: path)
       }
 
     private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =
@@ -173,7 +171,7 @@ trait ProjectServlet {
       detail.unit = Convert.toJava(unit)
       detail.text = loadSource(p, detail.unit)
       detail.defs = _db.defs.where(d => d.unitId === unit.id).toArray sortBy(_.defStart) map(
-        Convert.toJava(_db.codeToType))
+        Convert.toJava)
       detail.uses = _db.uses.where(u => u.unitId === unit.id).toArray sortBy(_.useStart) map(
         Convert.toJava)
       detail

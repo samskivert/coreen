@@ -16,7 +16,7 @@ import org.squeryl.PrimitiveTypeMode._
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
 import coreen.model.Type
-import coreen.persist.{DB, Project, CompUnit, Def, DefName, Use}
+import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use}
 import coreen.server.{Log, Exec, Dirs}
 
 /** Provides project updating services. */
@@ -222,7 +222,7 @@ trait Updater {
         def processDefs (parentId :Long)(
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = ids.get(df.id) match {
           case Some(defId) => {
-            val ndef = Def(defId, parentId, unitId, df.name, _db.typeToCode(df.typ),
+            val ndef = Def(defId, parentId, unitId, df.name, Decode.typeToCode(df.typ),
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))

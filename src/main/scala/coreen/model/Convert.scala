@@ -6,6 +6,7 @@ package coreen.model
 import java.util.Date
 
 import coreen.model.{Project => JProject, CompUnit => JCompUnit, Def => JDef, Use => JUse}
+import coreen.persist.Decode
 import coreen.persist.{Project => SProject, CompUnit => SCompUnit, Def => SDef, Use => SUse}
 
 /**
@@ -22,36 +23,36 @@ object Convert
   def toJava (cu :SCompUnit) :JCompUnit = new JCompUnit(cu.id, cu.projectId, cu.path)
 
   /** Converts a Scala Def to a Java Def. */
-  def toJava (decode :Map[Int,Type])(d :SDef) :JDef = initDef(decode, d, new JDef)
+  def toJava (d :SDef) :JDef = initDef(d, new JDef)
 
   /** Converts a Scala Def to a DefId. */
-  def toDefId (decode :Map[Int,Type])(d :SDef) :DefId = initDefId(decode, d, new DefId)
+  def toDefId (d :SDef) :DefId = initDefId(d, new DefId)
 
   /** Converts a Scala Def to a DefInfo. */
-  def toDefInfo (decode :Map[Int,Type])(d :SDef) :DefInfo = initDefInfo(decode, d, new DefInfo)
+  def toDefInfo (d :SDef) :DefInfo = initDefInfo(d, new DefInfo)
 
   /** Converts a Scala Use to a Java Use. */
   def toJava (u :SUse) :JUse = new JUse(u.referentId, u.useStart, u.useEnd-u.useStart)
 
   /** Initializes a DefId from a Scala Def. */
-  def initDefId[DT <: DefId] (decode :Map[Int,Type], sdef :SDef, jdef :DT) = {
+  def initDefId[DT <: DefId] (sdef :SDef, jdef :DT) = {
     jdef.id = sdef.id
     jdef.name = sdef.name
-    jdef.`type` = decode(sdef.typ)
+    jdef.`type` = Decode.codeToType(sdef.typ)
     jdef
   }
 
   /** Initializes a Java Def from a Scala Def. */
-  def initDef[DT <: JDef] (decode :Map[Int,Type], sdef :SDef, jdef :DT) = {
-    initDefId(decode, sdef, jdef)
+  def initDef[DT <: JDef] (sdef :SDef, jdef :DT) = {
+    initDefId(sdef, jdef)
     jdef.parentId = sdef.parentId
     jdef.start = sdef.defStart
     jdef
   }
 
   /** Initializes a DefInfo from a Scala Def. */
-  def initDefInfo[DT <: DefInfo] (decode :Map[Int,Type], sdef :SDef, mem :DT) = {
-    initDef(decode, sdef, mem)
+  def initDefInfo[DT <: DefInfo] (sdef :SDef, mem :DT) = {
+    initDef(sdef, mem)
     mem.sig = sdef.sig.getOrElse(null)
     mem.doc = sdef.doc.getOrElse(null)
     mem
