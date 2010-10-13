@@ -69,9 +69,23 @@
 }
 
 .typeIcon {
-  display: inline;
+  float: left;
+  position: relative;
+}
+
+.typeIconBase {
   position: relative;
   top: 2px;
+}
+
+.typeIconUR {
+  position: absolute;
+  left: 9px;
+}
+
+.typeIconLL {
+  position: absolute;
+  top: 8px;
 }
 
 .defLabel {

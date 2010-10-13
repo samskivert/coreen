@@ -27,17 +27,21 @@ public enum Flavor
 
     // func flavors
 
-    /** A plain old class method (Java, etc.). */
+    /** A normal class method (Java, etc.). */
     METHOD,
     /** An abstract (or interface) method (Java, etc.). */
     ABSTRACT_METHOD,
     /** A static method (Java, etc.). */
     STATIC_METHOD,
+    /** An object constructor (Java, etc.). */
+    CONSTRUCTOR,
 
     // term flavors
 
     /** An object field (Java, etc.). */
     FIELD,
+    /** A class field (Java, etc.). */
+    STATIC_FIELD,
     /** A function parameter (Java, etc.). */
     PARAM,
     /** A local variable (Java, etc.). */

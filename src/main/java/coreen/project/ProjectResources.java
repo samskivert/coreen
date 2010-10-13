@@ -30,6 +30,9 @@ public interface ProjectResources extends ClientBundle
         String /*typeLabel*/ Module ();
         String /*typeLabel*/ Type ();
         String typeIcon ();
+        String typeIconBase ();
+        String typeIconUR ();
+        String typeIconLL ();
         String defLabel ();
         String defClear ();
         String toggle ();

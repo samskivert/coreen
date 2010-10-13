@@ -27,41 +27,81 @@ public class TypeLabel extends FlowPanel
      */
     public static Widget adornDef (Def def, Widget widget)
     {
-        return Widgets.newFlowPanel(_rsrc.styles().defLabel(), iconForDef(def.type), widget);
+        return Widgets.newFlowPanel(_rsrc.styles().defLabel(), iconForDef(def), widget);
     }
 
     /**
      * Returns the appropriate icon for the supplied def.
      */
-    public static Image iconForDef (Type type)
+    public static Widget iconForDef (Def def)
     {
-        Image icon = new Image(rsrcForDef(type));
-        icon.addStyleName(_rsrc.styles().typeIcon());
-        return icon;
-    }
-
-    /**
-     * Returns the appropriate icon for the supplied def.
-     */
-    public static ImageResource rsrcForDef (Type type)
-    {
-        switch (type) {
+        switch (def.type) {
         default:
         case MODULE: // TODO: module icon
-            return _icons.class_obj();
+            return makeIcon(_icons.class_obj(), null, null);
         case TYPE: // TODO: support specialization on class/ifc/enum/etc.
-            return _icons.class_obj();
+            switch (def.flavor) {
+            default:
+            case CLASS:
+                return makeIcon(_icons.class_obj(), null, null);
+            case INTERFACE:
+                return makeIcon(_icons.int_obj(), null, null);
+            case ABSTRACT_CLASS:
+                return makeIcon(_icons.class_obj(), _icons.abstract_co(), null);
+            case ENUM:
+                return makeIcon(_icons.enum_obj(), null, null);
+            case ANNOTATION:
+                return makeIcon(_icons.class_obj(), null, null); // TODO
+            case OBJECT:
+                return makeIcon(_icons.class_obj(), null, null); // TODO
+            case ABSTRACT_OBJECT:
+                return makeIcon(_icons.class_obj(), null, null); // TODO
+            }
         case FUNC: // TODO: support public/protected/private, etc.
-            return _icons.methpub_obj();
+            switch (def.flavor) {
+            default:
+            case METHOD:
+                return makeIcon(_icons.methpub_obj(), null, null);
+            case ABSTRACT_METHOD:
+                return makeIcon(_icons.methpub_obj(), _icons.abstract_co(), null);
+            case STATIC_METHOD:
+                return makeIcon(_icons.methpub_obj(), _icons.static_co(), null);
+            case CONSTRUCTOR:
+                return makeIcon(_icons.methpub_obj(), _icons.constr_ovr(), null);
+            }
         case TERM: // TODO: support public/protected/private, etc.
-            return _icons.field_public_obj();
+            switch (def.flavor) {
+            default:
+            case FIELD:
+                return makeIcon(_icons.field_public_obj(), null, null);
+            case STATIC_FIELD:
+                return makeIcon(_icons.field_public_obj(), _icons.static_co(), null);
+            case PARAM:
+                return makeIcon(_icons.field_public_obj(), null, null); // TODO
+            case LOCAL:
+                return makeIcon(_icons.field_public_obj(), null, null); // TODO
+            }
         }
+    }
+
+    protected static Widget makeIcon (ImageResource base,
+                                      ImageResource upright, ImageResource lowleft)
+    {
+        FlowPanel icon = Widgets.newFlowPanel(_rsrc.styles().typeIcon());
+        icon.add(Widgets.newImage(base, _rsrc.styles().typeIconBase()));
+        if (upright != null) {
+            icon.add(Widgets.newImage(upright, _rsrc.styles().typeIconUR()));
+        }
+        if (lowleft != null) {
+            icon.add(Widgets.newImage(lowleft, _rsrc.styles().typeIconLL()));
+        }
+        return icon;
     }
 
     public TypeLabel (DefId[] parents, Def def, UsePopup.Linker linker, DefMap defmap, String docs)
     {
         addStyleName(_rsrc.styles().typeLabel());
-        add(iconForDef(def.type));
+        add(iconForDef(def));
         for (DefId encl : parents) {
             Widget plabel = Widgets.newInlineLabel(encl.name);
             if (encl.type != Type.MODULE) {

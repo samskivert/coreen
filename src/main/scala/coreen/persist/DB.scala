@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 1;
+    val version = 2;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -96,6 +96,10 @@ trait DBComponent extends Component with DB {
     } catch {
       case e => 0
     }
+    if (_db.version < overs) {
+      println("DB on file system is higher version than code? Beware. " +
+              "[file=" + overs + ", code=" + _db.version + "]")
+    }
 
     // initialize the H2 database
     Class.forName("org.h2.Driver")
@@ -107,16 +111,31 @@ trait DBComponent extends Component with DB {
       sess
     })
 
-    // TODO: do some basic schema migration at some point
-    if (overs < _db.version) {
-      println("Reinitializing schema. [have=" + overs + ", need=" + _db.version + "]")
+    // handles migrations
+    def migrate (version :Int, descrip :String, sql :String) {
+      if (overs < version) transaction {
+        println(descrip)
+
+        // perform the migration
+        val stmt = Session.currentSession.connection.createStatement
+        try stmt.executeUpdate(sql)
+        finally stmt.close
+
+        // note that we're consistent with the specified version
+        val out = new PrintWriter(new FileWriter(vfile))
+        out.println(version)
+        out.close
+      }
+    }
+
+    // if we have no version string, we need to initialize the database
+    if (overs < 1) {
+      println("Initializing schema. [vers=" + _db.version + "]")
       transaction { _db.reinitSchema }
-      val out = new PrintWriter(new FileWriter(vfile))
-      out.println(_db.version)
-      out.close
-    } else if (_db.version < overs) {
-      println("DB on file system is higher version than code? Beware. " +
-              "[file=" + overs + ", code=" + _db.version + "]")
+
+    } else { // otherwise do migration(s)
+      migrate(2, "Adding column DEF.FLAVOR...",
+              "alter table DEF add column FLAVOR INTEGER(10) not null default 0")
     }
   }
 }
@@ -152,11 +171,13 @@ object Decode {
     Flavor.METHOD -> 30,
     Flavor.ABSTRACT_METHOD -> 31,
     Flavor.STATIC_METHOD -> 32,
+    Flavor.CONSTRUCTOR -> 33,
 
     // term flavors
     Flavor.FIELD -> 50,
     Flavor.PARAM -> 51,
     Flavor.LOCAL -> 52,
+    Flavor.STATIC_FIELD -> 53,
 
     // universal flavors
     Flavor.NONE -> 0

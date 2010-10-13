@@ -97,7 +97,7 @@ object SourceModel
     try {
       Enum.valueOf(classOf[Flavor], text.toUpperCase)
     } catch {
-        case e => println(elem + " -> " + e); Flavor.NONE
+        case e => e.printStackTrace; println(elem + " -> " + e); Flavor.NONE
     }
   }
 

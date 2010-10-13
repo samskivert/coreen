@@ -12,24 +12,24 @@ import org.scalatest.matchers.ShouldMatchers
 class SourceModelSpec extends FlatSpec with ShouldMatchers
 {
   val sample = <compunit src="test/path">
-    <def start="5" end="12" name="TestA" type="TYPE">
-      <def start="34" end="48" name="A" type="TYPE">
-        <def start="70" end="81" name="value" type="TERM">
+    <def start="5" end="12" name="TestA" type="TYPE" flavor="class">
+      <def start="34" end="48" name="A" type="TYPE" flavor="none">
+        <def start="70" end="81" name="value" type="TERM" flavor="none">
           <use start="77" end="77" target="int"></use>
         </def>
       </def>
-      <def start="106" end="120" name="B" type="TYPE">
-        <def start="142" end="154" name="noop" type="FUNC">
+      <def start="106" end="120" name="B" type="TYPE" flavor="none">
+        <def start="142" end="154" name="noop" type="FUNC" flavor="none">
         </def>
       </def>
-      <def start="196" end="215" name="main" type="FUNC">
-        <def start="221" end="230" name="args" type="TERM">
+      <def start="196" end="215" name="main" type="FUNC" flavor="none">
+        <def start="221" end="230" name="args" type="TERM" flavor="none">
           <use start="221" end="227" target="java.lang.String[]"></use>
         </def>
-        <def start="250" end="254" name="av" type="TERM">
+        <def start="250" end="254" name="av" type="TERM" flavor="none">
           <use start="250" end="250" target="int"></use>
         </def>
-        <def start="286" end="288" name="b" type="TERM">
+        <def start="286" end="288" name="b" type="TERM" flavor="none">
           <use start="286" end="286" target="TestA.B"></use>
         </def>
       </def>

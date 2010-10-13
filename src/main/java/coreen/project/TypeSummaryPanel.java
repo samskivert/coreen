@@ -137,7 +137,7 @@ public class TypeSummaryPanel extends Composite
                 SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 sig.addStyleName("inline");
                 new UsePopup.Popper(member.id, sig, _linker, _defmap, false);
-                return Widgets.newFlowPanel(TypeLabel.iconForDef(member.type), sig);
+                return Widgets.newFlowPanel(TypeLabel.iconForDef(member), sig);
             }
             protected Widget createExpanded () {
                 if (member.type == Type.TYPE) {
