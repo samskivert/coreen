@@ -32,6 +32,7 @@ public interface ProjectResources extends ClientBundle
         String typeIcon ();
         String defLabel ();
         String defClear ();
+        String toggle ();
     }
 
     @Source("project.css")

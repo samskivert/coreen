@@ -82,3 +82,8 @@
 .defClear {
   clear: both;
 }
+
+.toggle {
+  position: relative;
+  top: 2px;
+}

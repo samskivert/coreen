@@ -132,58 +132,37 @@ public class TypeSummaryPanel extends Composite
 
     protected void addMember (FlowPanel panel, final DefInfo member)
     {
-        ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
-                                               new Image(_icons.codeOpen()), new ClickHandler() {
-            public void onClick (ClickEvent event) {
-                Value<Boolean> expanded = _expanded.get(member.id);
-                expanded.update(!expanded.get());
+        panel.add(new TogglePanel(_expanded.get(member.id)) {
+            protected Widget createCollapsed () {
+                SigLabel sig = new SigLabel(member, member.sig, _defmap);
+                sig.addStyleName("inline");
+                new UsePopup.Popper(member.id, sig, _linker, _defmap, false);
+                return Widgets.newFlowPanel(TypeLabel.iconForDef(member.type), sig);
             }
-        });
-        toggle.setDown(_expanded.get(member.id).get());
-        toggle.addStyleName(_styles.toggle());
-        panel.add(toggle);
-
-        FlowPanel bits = new FlowPanel();
-        panel.add(new FluentTable(0, 0).add().setWidget(toggle).alignTop().
-                  right().setWidget(bits).table());
-
-        SigLabel sig = new SigLabel(member, member.sig, _defmap);
-        sig.addStyleName("inline");
-        new UsePopup.Popper(member.id, sig, _linker, _defmap, false);
-        Widget asig = Widgets.newFlowPanel(TypeLabel.iconForDef(member.type), sig);
-        Bindings.bindVisible(_expanded.get(member.id).map(Functions.NOT), asig);
-        bits.add(asig);
-
-        if (member.doc != null) {
-            Widget doc = new DocLabel(member.doc);
-            Bindings.bindVisible(_expanded.get(member.id), doc);
-            bits.add(doc);
-        }
-
-        SourcePanel source = new SourcePanel(_defmap) {
-            public void setVisible (boolean visible) {
-                super.setVisible(visible);
-                if (visible && !_loaded) {
-                    _loaded = true;
-                    _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
-                        public void onSuccess (DefContent content) {
-                            init(content.text, content.defs, content.uses, 0L, _linker);
-                        }
-                    });
+            protected Widget createExpanded () {
+                SourcePanel src = new SourcePanel(_defmap) {
+                    /* ctor */ {
+                        _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
+                            public void onSuccess (DefContent content) {
+                                init(content.text, content.defs, content.uses, 0L, _linker);
+                            }
+                        });
+                    }
+                    protected void didInit () {
+                        WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
+                    }
+                };
+                if (member.doc == null) {
+                    return src;
+                } else {
+                    return Widgets.newFlowPanel(new DocLabel(member.doc), src);
                 }
             }
-            protected void didInit () {
-                WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
-            }
-            protected boolean _loaded;
-        };
-        Bindings.bindVisible(_expanded.get(member.id), source);
-        bits.add(source);
+        });
     }
 
     protected interface Styles extends CssResource
     {
-        String toggle ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;
@@ -197,6 +176,4 @@ public class TypeSummaryPanel extends Composite
     protected static final Binder _binder = GWT.create(Binder.class);
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectMessages _msgs = GWT.create(ProjectMessages.class);
-    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
-    protected static final IconResources _icons = GWT.create(IconResources.class);
 }

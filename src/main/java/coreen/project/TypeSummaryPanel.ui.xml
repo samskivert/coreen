@@ -12,10 +12,6 @@
       width: 100%;
       background: #EEEEEE;
     }
-    .toggle {
-      position: relative;
-      top: 2px;
-    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
