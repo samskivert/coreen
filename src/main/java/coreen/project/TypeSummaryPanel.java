@@ -140,25 +140,31 @@ public class TypeSummaryPanel extends Composite
                 return Widgets.newFlowPanel(TypeLabel.iconForDef(member.type), sig);
             }
             protected Widget createExpanded () {
-                SourcePanel src = new SourcePanel(_defmap) {
-                    /* ctor */ {
-                        _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
-                            public void onSuccess (DefContent content) {
-                                init(content.text, content.defs, content.uses, 0L, _linker);
-                            }
-                        });
-                    }
-                    protected void didInit () {
-                        WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
-                    }
-                };
-                if (member.doc == null) {
-                    return src;
+                if (member.type == Type.TYPE) {
+                    return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
+                } else if (member.doc == null) {
+                    return createSourceView(member);
                 } else {
-                    return Widgets.newFlowPanel(new DocLabel(member.doc), src);
+                    return Widgets.newFlowPanel(new DocLabel(member.doc), createSourceView(member));
                 }
             }
         });
+    }
+
+    protected Widget createSourceView (final DefInfo member)
+    {
+        return new SourcePanel(_defmap) {
+            /* ctor */ {
+                _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
+                    public void onSuccess (DefContent content) {
+                        init(content.text, content.defs, content.uses, 0L, _linker);
+                    }
+                });
+            }
+            protected void didInit () {
+                WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
+            }
+        };
     }
 
     protected interface Styles extends CssResource
