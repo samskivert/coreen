@@ -24,11 +24,8 @@ import coreen.icons.IconResources;
  */
 public abstract class TogglePanel extends FlexTable
 {
-    public TogglePanel (final Value<Boolean> model)
+    public static ToggleButton makeToggleButton (final Value<Boolean> model)
     {
-        setCellSpacing(0);
-        setCellPadding(0);
-
         ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
                                                new Image(_icons.codeOpen()), new ClickHandler() {
             public void onClick (ClickEvent event) {
@@ -37,7 +34,15 @@ public abstract class TogglePanel extends FlexTable
         });
         toggle.setDown(model.get());
         toggle.addStyleName(_rsrc.styles().toggle());
-        setWidget(0, 0, toggle);
+        return toggle;
+    }
+
+    public TogglePanel (Value<Boolean> model)
+    {
+        setCellSpacing(0);
+        setCellPadding(0);
+
+        setWidget(0, 0, makeToggleButton(model));
         getFlexCellFormatter().setVerticalAlignment(0, 0, HasAlignment.ALIGN_TOP);
 
         model.addListenerAndTrigger(new Value.Listener<Boolean>() {

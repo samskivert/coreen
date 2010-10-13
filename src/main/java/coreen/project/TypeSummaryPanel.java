@@ -119,8 +119,20 @@ public class TypeSummaryPanel extends Composite
 
         int added = addMembers(contents, true, sum.types, sum.funcs, sum.terms);
         if (added < sum.types.length + sum.funcs.length + sum.terms.length) {
-            contents.add(Widgets.newLabel("Non-public members", _styles.nonPublic()));
-            addMembers(contents, false, sum.types, sum.funcs, sum.terms);
+            FlowPanel nonpubs = new FlowPanel() {
+                public void setVisible (boolean visible) {
+                    if (visible && getWidgetCount() == 0) {
+                        addMembers(this, false, sum.types, sum.funcs, sum.terms);
+                    }
+                    super.setVisible(visible);
+                }
+            };
+            Value<Boolean> model = Value.create(false);
+            Bindings.bindVisible(model, nonpubs);
+            contents.add(new FluentTable(0, 0, _styles.nonPublic()).
+                         add().setWidget(TogglePanel.makeToggleButton(model)).
+                         right().setText("Non-public members").table());
+            contents.add(nonpubs);
         }
 
         _contents.setWidget(contents);
