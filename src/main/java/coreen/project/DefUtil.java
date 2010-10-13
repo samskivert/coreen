@@ -87,7 +87,7 @@ public class DefUtil
             case ENUM:
                 return makeIcon(_icons.enum_obj(), null, null);
             case ANNOTATION:
-                return makeIcon(_icons.class_obj(), null, null); // TODO
+                return makeIcon(_icons.int_obj(), null, null); // TODO
             case OBJECT:
                 return makeIcon(_icons.class_obj(), null, null); // TODO
             case ABSTRACT_OBJECT:
