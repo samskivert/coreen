@@ -22,13 +22,15 @@ public class DocLabel extends FlowPanel
     {
         addStyleName(_rsrc.styles().doc());
 
-        final int didx = docHTML.indexOf(". "); // TODO: smarter "sentence" detection
-        if (didx == -1 || docHTML.substring(didx+1).trim().length() == 0) {
+        // TODO: smarter "sentence" detection?
+        String[] bits = docHTML.split("\\.(\\s|<br/>|<br>)+");
+        if (bits.length == 1) {
             add(Widgets.newHTML(docHTML));
         } else {
+            final String shortDoc = bits[0] + ".";
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
-                    return Widgets.newHTML(docHTML.substring(0, didx+1));
+                    return Widgets.newHTML(shortDoc);
                 }
                 protected Widget createExpanded () {
                     return Widgets.newHTML(docHTML);
