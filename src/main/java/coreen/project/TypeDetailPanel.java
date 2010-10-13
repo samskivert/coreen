@@ -161,7 +161,7 @@ public class TypeDetailPanel extends Composite
         contents.add(sig);
 
         SourcePanel source = new SourcePanel(_defmap) {
-            public void setVisible (boolean visible) {
+            @Override public void setVisible (boolean visible) {
                 super.setVisible(visible);
                 if (visible && !_loaded) {
                     _loaded = true;
@@ -172,7 +172,7 @@ public class TypeDetailPanel extends Composite
                     });
                 }
             }
-            protected void didInit () {
+            @Override protected void didInit (FlowPanel contents) {
                 recenterPanel();
             }
             protected boolean _loaded;

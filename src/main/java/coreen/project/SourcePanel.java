@@ -155,10 +155,10 @@ public abstract class SourcePanel extends AbstractProjectPanel
 
         _contents.setWidget(code);
         _local.addTo(_defmap);
-        didInit();
+        didInit(code);
     }
 
-    protected void didInit ()
+    protected void didInit (FlowPanel contents)
     {
     }
 

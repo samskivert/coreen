@@ -167,13 +167,16 @@ public class TypeSummaryPanel extends Composite
             /* ctor */ {
                 _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
                     public void onSuccess (DefContent content) {
+                        _deficon = DefUtil.iconForDef(content);
                         init(content.text, content.defs, content.uses, 0L, _linker);
                     }
                 });
             }
-            protected void didInit () {
+            @Override protected void didInit (FlowPanel contents) {
+                contents.insert(_deficon, 0);
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
             }
+            protected Widget _deficon;
         };
     }
 
