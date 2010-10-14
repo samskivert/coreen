@@ -144,6 +144,11 @@ trait DBComponent extends Component with DB {
     })
 
     // handles migrations
+    def writeVersion (version :Int) {
+      val out = new PrintWriter(new FileWriter(vfile))
+      out.println(version)
+      out.close
+    }
     def migrate (version :Int, descrip :String, sql :String) {
       if (overs < version) transaction {
         println(descrip)
@@ -154,9 +159,7 @@ trait DBComponent extends Component with DB {
         finally stmt.close
 
         // note that we're consistent with the specified version
-        val out = new PrintWriter(new FileWriter(vfile))
-        out.println(version)
-        out.close
+        writeVersion(version);
       }
     }
 
@@ -164,6 +167,7 @@ trait DBComponent extends Component with DB {
     if (overs < 1) {
       println("Initializing schema. [vers=" + _db.version + "]")
       transaction { _db.reinitSchema }
+      writeVersion(_db.version)
 
     } else { // otherwise do migration(s)
       migrate(2, "Adding column DEF.FLAVOR...",
