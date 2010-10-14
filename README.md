@@ -22,9 +22,9 @@ display, but new functionality is being added daily.
 Coreen is an application that runs on your local machine. Download the
 installer appropriate to your platform here:
 
-* [Linux](http://github.com/samskivert/coreen-client/raw/master/installers/coreen-install.bin)
-* [Mac OS X](http://github.com/samskivert/coreen-client/raw/master/installers/coreen-install.dmg)
-* [Windows](http://github.com/samskivert/coreen-client/raw/master/installers/coreen-install.exe)
+* [Linux](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.bin)
+* [Mac OS X](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.dmg)
+* [Windows](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.exe)
 
 ## Contact
 
