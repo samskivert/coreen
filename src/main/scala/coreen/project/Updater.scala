@@ -319,7 +319,7 @@ trait Updater {
     def createJavaJavaReader = _appdir match {
       case Some(appdir) => new JavaReader(
         "coreen.java.Main",
-        List(getToolsJar, mkFile(appdir, "code", "coreen-java-reader.jar")),
+        List(getToolsJar, mkFile(appdir, "coreen-java-reader.jar")),
         List())
       case None => new JavaReader(
         "coreen.java.Main",
