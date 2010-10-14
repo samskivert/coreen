@@ -1,7 +1,7 @@
 <!-- project build configuration -->
 <project name="Coreen Installers" default="client" basedir=".">
   <!-- the root URL from which the client is downloaded (minus getdown subdir) -->
-  <property name="root_url" value="http://github.com/samskivert/coreen-client/raw/master"/>
+  <property name="root_url" value="http://github.com/downloads/samskivert/coreen/"/>
   <!-- for now we build only English language installers -->
   <property name="default_locale" value="en"/>
 
@@ -35,7 +35,7 @@
     <jarbundler dir="${img.dir}" name="${base.name}" 
       mainclass="com.threerings.getdown.launcher.Getdown" 
       workingdirectory="$APP_PACKAGE/Contents/Resources/Java"
-      jars="../getdown/code/getdown.jar"
+      jars="../getdown/getdown.jar"
       vmoptions="-Dappdir=."
       version="1.0"
       jvmversion="1.6+"
@@ -44,7 +44,7 @@
       stubfile="mac/JavaApplicationStub"/>
     <copy todir="${img.dir}/${app.name}/${jdir}/" file="../getdown/background.png"/>
     <echo file="${img.dir}/${app.name}/${jdir}/getdown.txt"
-          message="appbase = ${root_url}/getdown/${line.separator}"/>
+          message="appbase = ${root_url}${line.separator}"/>
 
     <!-- prepare the disk image -->
     <copy file="mac/dot_DS_Store" tofile="${img.dir}/.DS_Store"/>
@@ -94,13 +94,13 @@
     <mkdir dir="${temp.dir}"/>
 
     <copy todir="${temp.dir}">
-      <fileset dir="../getdown/code" includes="getdown.jar"/>
+      <fileset dir="../getdown" includes="getdown.jar"/>
       <fileset dir="../getdown" includes="background.png"/>
       <fileset dir="linux" includes="coreen"/>
       <fileset dir="linux" includes="desktop.png"/>
     </copy>
 
-    <echo file="${temp.dir}/getdown.txt" message="appbase=${root_url}/getdown/${line.separator}"/>
+    <echo file="${temp.dir}/getdown.txt" message="appbase=${root_url}${line.separator}"/>
 
     <copy todir="${temp.dir}" overwrite="true" encoding="UTF-8">
       <fileset dir="linux" includes="finish_install.sh"/>

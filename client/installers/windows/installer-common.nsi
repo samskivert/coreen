@@ -139,14 +139,14 @@ Section "Install" InstStuff
 
   ; Install Getdown and the configuration
   SetOutPath $INSTDIR
-  File "${DATADIR}\code\getdown.jar"
+  File "${DATADIR}\getdown.jar"
   File "jRegistryKey.dll"
   File "${DATADIR}\background.png"
   File "${RSRCDIR}\app_icon.ico"
 
   ; Create our bootstrap getdown.txt file
   FileOpen $9 "$INSTDIR\getdown.txt" "w"
-  FileWrite $9 "appbase = ${HOST}/getdown$\r$\n"
+  FileWrite $9 "appbase = ${APPBASE}\r$\n"
   FileClose $9
 
   ; Create our main launcher "shortcut"
