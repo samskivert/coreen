@@ -1,0 +1,47 @@
+Building Coreen
+---------------
+
+A fair number of manual steps are currently needed to set up a Coreen build.
+These instructions will hopefully help you to navigate that twisty maze of
+passages.
+
+First, install a couple of actively changing dependent libraries. These require
+Maven to build. If you don't already have it installed, I apologize for
+bringing this horror into your life.
+
+% cd somewherethatyouliketokeepprojects
+% svn checkout http://ooo-gwt-utils.googlecode.com/svn/trunk/ gwt-utils
+% cd gwt-utils
+% mvn clean install
+
+% cd somewherethatyouliketokeepprojects
+% svn checkout http://getdown.googlecode.com/svn/trunk/ getdown
+% cd getdown
+% mvn clean install
+
+You will also need coreen-java-reader if you don't already have it. It needs to
+live under the coreen build directory in a directory named 'java-reader':
+
+% cd coreen
+% git clone clone git@github.com:samskivert/coreen-java-reader.git
+% mv coreen-java-reader java-reader
+% cd java-reader
+% sbt update proguard
+
+Now you should be able to compile and run Coreen:
+
+% cd coreen
+% sbt update run
+
+This will build and run the Coreen server. Coreen is architected as a Java
+server and a GWT web client. To run the web client (in GWT's development mode),
+use the script in coreen/bin/gdevmode. In another shell, execute:
+
+% cd coreen
+% ./bin/gdevmode
+
+(I'm assuming you're running Mac OS X or Linux. If you're on Windows, you're on
+your own.)
+
+That's it. You should now have a fully operational development installation of
+Coreen. It is now time to get crazy with the Cheez Whiz.
