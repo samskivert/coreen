@@ -1,0 +1,58 @@
+<!-- project build configuration -->
+<project name="Bang Linux Installer" default="client" basedir=".">
+
+  <!-- load up our configuration information -->
+  <property name="base.dir" value="${basedir}/../../.."/>
+  <property name="deploy.dir" value="dist"/>
+  <property name="temp.dir" value="bang_install"/>
+
+  <!-- load up our build settings and deployment (just for default_locale) -->
+  <property file="${base.dir}/${deploy.dir}/build_settings.properties"/>
+  <property file="${base.dir}/${deploy.dir}/deployment.properties"/>
+
+  <!-- creates an install -->
+  <target name="client">
+    <mkdir dir="${temp.dir}"/>
+
+    <copy todir="${temp.dir}">
+      <fileset dir="../data" includes="getdown-pro.jar"/>
+      <fileset dir="../${default_locale}" includes="license.txt"/>
+      <fileset dir="." includes="bang"/>
+      <fileset dir="." includes="bangeditor"/>
+      <fileset dir="." includes="desktop.png"/>
+      <fileset dir="../${default_locale}">
+        <include name="background.png"/>
+        <include name="progress.png"/>
+      </fileset>
+    </copy>
+
+    <echo file="${temp.dir}/getdown.txt" message="appbase = ${root_url}/client/${line.separator}"/>
+
+    <copy todir="${temp.dir}" overwrite="true" encoding="UTF-8">
+      <fileset dir="." includes="finish_install.sh"/>
+      <filterset>
+        <filter token="client_ident" value="${client_ident}"/>
+        <filter token="client_title" value="${client_title}"/>
+        <filter token="editor_title" value="${editor_title}"/>
+      </filterset>
+    </copy>
+
+    <exec executable="chmod" failonerror="true">
+      <arg line="a+rx"/>
+      <arg line="${temp.dir}/finish_install.sh"/>
+      <arg line="${temp.dir}/bang"/>
+      <arg line="${temp.dir}/bangeditor"/>
+    </exec>
+
+    <exec executable="makeself" failonerror="true" outputproperty="make.output">
+      <arg line="${temp.dir}"/>
+      <arg line="../${deploy.dir}/bang-install.bin"/>
+      <arg line="${client_ident}"/>
+      <arg line="./finish_install.sh"/>
+      <arg line="$0"/>
+    </exec>
+    <echo level="info">${make.output}</echo>
+
+    <delete dir="${temp.dir}"/>
+  </target>
+</project>

@@ -1,0 +1,46 @@
+;
+; $Id$
+;
+; Localized messages for the installer
+
+!insertmacro MUI_LANGUAGE "English"
+
+LangString company_name ${LANG_ENGLISH} "MDB"
+LangString branding ${LANG_ENGLISH} "MDB"
+
+LangString already_installed ${LANG_ENGLISH} \
+  "${NAME} is already installed. Do you want to run it now?"
+
+LangString reinstall ${LANG_ENGLISH} \
+  "Do you want to re-install ${NAME}?"
+
+LangString no_create_instdir ${LANG_ENGLISH} \
+  "Could not create installation directory. Please try again."
+
+LangString install_where ${LANG_ENGLISH} \
+  "Please select the directory where you would like ${NAME} \
+  to be installed."
+
+LangString dl_header ${LANG_ENGLISH} "Downloading installation files..."
+LangString dl_subheader ${LANG_ENGLISH} \
+  "From here many files must be downloaded, but everything will proceed \
+  automatically. Feel free to minimize this window and go do something fun."
+
+LangString download_fail_pre ${LANG_ENGLISH} \
+  "We were unable to download necessary installation files due to the \
+  following error:"
+LangString download_fail_post ${LANG_ENGLISH} \
+  "This may be due to temporary network problems or a more serious error. \
+  You may try again later or we can display a web page that provides \
+  alternative installation options. Would you like to view the web page?"
+
+LangString jre_error ${LANG_ENGLISH} \
+  "A problem was discovered with your Java Runtime. A web page should have \
+  been displayed with instructions on working around these problems and \
+  getting ${NAME} installed: http://${HOST}/jre_download_failed.html$\r$\r\
+  Please click OK to exit the installer."
+
+LangString shortcut_name ${LANG_ENGLISH} "${NAME}"
+LangString shortcut_hint ${LANG_ENGLISH} "Start ${NAME}"
+LangString uninstaller_name ${LANG_ENGLISH} "uninstall.exe"
+LangString uninstaller_link ${LANG_ENGLISH} "Uninstall ${NAME}"

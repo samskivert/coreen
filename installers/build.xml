@@ -1,0 +1,131 @@
+<!-- project build configuration -->
+<project name="Coreen Installers" default="client" basedir=".">
+  <!-- the root URL from which the client is downloaded (minus getdown subdir) -->
+  <property name="root_url" value="http://github.com/samskivert/coreen-client/raw/master"/>
+  <!-- for now we build only English language installers -->
+  <property name="default_locale" value="en"/>
+
+  <target name="windows" description="Builds Windows installer.">
+    <copy tofile="windows/coreen-installer.nsi" overwrite="true" encoding="UTF-8"
+          file="windows/coreen-installer.nsi.in">
+      <filterset>
+        <filter token="root_url" value="${root_url}"/>
+      </filterset>
+    </copy>
+    <exec dir="windows" executable="makensis" failonerror="true">
+      <arg line="-V2"/>
+      <arg line="coreen-installer.nsi"/>
+    </exec>
+    <delete file="windows/coreen-installer.nsi"/>
+  </target>
+
+  <target name="mac" description="Builds Mac OS installer image.">
+    <property name="base.name" value="Coreen"/>
+    <property name="app.name" value="${base.name}.app"/>
+    <property name="jdir" value="Contents/Resources/Java"/>
+    <property name="img.dir" value="mac-image"/>
+
+    <!-- be sure the app base directory is empty -->
+    <delete dir="${img.dir}"/>
+    <mkdir dir="${img.dir}"/>
+
+    <!-- prepare the application directory -->
+    <taskdef name="jarbundler" classpath="lib/jarbundler-1.2.jar"
+      classname="com.loomcom.ant.tasks.jarbundler.JarBundler"/>
+    <jarbundler dir="${img.dir}" name="${base.name}" 
+      mainclass="com.threerings.getdown.launcher.Getdown" 
+      workingdirectory="$APP_PACKAGE/Contents/Resources/Java"
+      jars="../getdown/code/getdown.jar"
+      vmoptions="-Dappdir=."
+      version="1.0"
+      jvmversion="1.6+"
+      infostring="${base.name} Installer"
+      icon="mac/desktop.icns"
+      stubfile="mac/JavaApplicationStub"/>
+    <copy todir="${img.dir}/${app.name}/${jdir}/" file="../getdown/background.png"/>
+    <echo file="${img.dir}/${app.name}/${jdir}/getdown.txt"
+          message="appbase = ${root_url}/getdown/${line.separator}"/>
+
+    <!-- prepare the disk image -->
+    <copy file="mac/dot_DS_Store" tofile="${img.dir}/.DS_Store"/>
+    <copy file="mac/dot_VolumeIcon.icns" tofile="${img.dir}/.VolumeIcon.icns"/>
+    <mkdir dir="${img.dir}/.background"/>
+    <copy todir="${img.dir}/.background/" file="mac/backgroundImage.jpg"/>
+    <exec executable="/bin/ln" dir="${img.dir}">
+      <arg line="-s"/>
+      <arg line="/Applications"/>
+      <arg line="Applications"/>
+    </exec>
+
+    <!-- fix permissions, no matter how silly the umask made them -->
+    <exec executable="/bin/chmod">
+      <arg line="-R"/>
+      <arg line="u+w,go-w,a+r"/>
+      <arg line="'${img.dir}'"/>
+    </exec>
+    <exec executable="/bin/chmod">
+      <arg line="a+x"/>
+      <arg line="'${img.dir}/${app.name}/Contents/MacOS/JavaApplicationStub'"/>
+    </exec>
+
+    <!-- finally create the disk image -->
+    <exec executable="mkisofs" failonerror="true">
+      <arg line="-quiet"/>
+      <arg line="-hide-rr-moved"/>
+      <arg line="-hide-joliet"/>
+      <arg line=".rr_moved"/>
+      <arg line="-uid"/>
+      <arg line="0"/>
+      <arg line="-gid"/>
+      <arg line="0"/>
+      <arg line="-J"/>
+      <arg line="-V"/>
+      <arg line="'${base.name}'"/>
+      <arg line="-o"/>
+      <arg line="'coreen-install.dmg'"/>
+      <arg file="${img.dir}"/>
+    </exec>
+
+    <delete dir="${img.dir}"/>
+  </target> 
+
+  <target name="linux" description="Creates the Linux installer.">
+    <property name="temp.dir" value="linux-image"/>
+    <mkdir dir="${temp.dir}"/>
+
+    <copy todir="${temp.dir}">
+      <fileset dir="../getdown/code" includes="getdown.jar"/>
+      <fileset dir="../getdown" includes="background.png"/>
+      <fileset dir="linux" includes="coreen"/>
+      <fileset dir="linux" includes="desktop.png"/>
+    </copy>
+
+    <echo file="${temp.dir}/getdown.txt" message="appbase=${root_url}/getdown/${line.separator}"/>
+
+    <copy todir="${temp.dir}" overwrite="true" encoding="UTF-8">
+      <fileset dir="linux" includes="finish_install.sh"/>
+      <filterset>
+        <filter token="client_ident" value="${client_ident}"/>
+        <filter token="client_title" value="${client_title}"/>
+        <filter token="editor_title" value="${editor_title}"/>
+      </filterset>
+    </copy>
+
+    <exec executable="chmod" failonerror="true">
+      <arg line="a+rx"/>
+      <arg line="${temp.dir}/finish_install.sh"/>
+      <arg line="${temp.dir}/coreen"/>
+    </exec>
+
+    <exec executable="makeself" failonerror="true" outputproperty="make.output">
+      <arg line="${temp.dir}"/>
+      <arg line="coreen-install.bin"/>
+      <arg line="coreen"/>
+      <arg line="./finish_install.sh"/>
+      <arg line="$0"/>
+    </exec>
+    <echo level="info">${make.output}</echo>
+
+    <delete dir="${temp.dir}"/>
+  </target>
+</project>

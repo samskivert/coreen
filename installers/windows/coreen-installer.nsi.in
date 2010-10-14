@@ -1,0 +1,16 @@
+;
+; $Id$
+;
+; Coreen Installer for Windows x86
+
+!define LOCALE "en"
+!define NAME "Coreen"
+!define INSTALL_DIR "Coreen"
+!define HOST "@root_url@"
+!define OUTFILENAME "..\coreen-install.exe"
+
+; comment this out to enable the code that automatically downloads
+; the JVM from the web and installs it
+; !define BUNDLE_JVM true
+
+!include "installer-common.nsi"

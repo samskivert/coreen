@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# $Id$
+#
+# Runs the Coreen updater/launcher.
+
+INSTDIR=`dirname $0`
+
+# Do our best to locate the appropriate version of Java
+JAVA=java
+if [ -x $INSTDIR/java/bin/java ]; then
+    JAVA=$INSTDIR/java/bin/java
+elif [ -x $JAVA_HOME/bin/java ]; then
+    JAVA=$JAVA_HOME/bin/java
+fi
+
+# run the updater/launcher
+exec $JAVA $* -jar $INSTDIR/getdown.jar $INSTDIR
