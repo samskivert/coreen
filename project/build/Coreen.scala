@@ -1,5 +1,6 @@
-import java.io.File
+import java.io.{File, FileInputStream}
 import sbt._
+import net.ps.github.Uploader
 
 class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProject {
   // need our local repository for gwt-utils snapshot
@@ -108,29 +109,42 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   )
 
   // copies the necessary files into place for our Getdown client
-  def clientPath = "client" / "getdown"
-  def clientCodePath = clientPath / "code"
+  def clientOutPath = outputPath / "client"
   def javaReaderJarPath = "java-reader" / "target" / "scala_2.8.0" ** "coreen-java-reader_*.min.jar"
   lazy val prepclient = task {
-    // clean out any previous code bits
-    FileUtilities.clean(clientCodePath, log)
+    // clean out any previous bits
+    FileUtilities.clean(clientOutPath, log)
+
+    // copy our stock metadata
+    FileUtilities.copyFlat(("client" / "getdown" * "*").get, clientOutPath, log)
 
     // copy all of the appropriate jars into the target directory
-    FileUtilities.copyFlat(minJarPath.get, clientCodePath, log)
-    FileUtilities.copyFlat(packageGwtJar.get, clientCodePath, log)
-    FileUtilities.copyFlat(depPath("getdown").get, clientCodePath, log)
-    FileUtilities.copyFlat(javaReaderJarPath.get, clientCodePath, log)
+    FileUtilities.copyFlat(minJarPath.get, clientOutPath, log)
+    FileUtilities.copyFlat(packageGwtJar.get, clientOutPath, log)
+    FileUtilities.copyFlat(depPath("getdown").get, clientOutPath, log)
+    FileUtilities.copyFlat(javaReaderJarPath.get, clientOutPath, log)
 
     // sanitize our project jar files, version numbers will get in the way of patching
     def sanitize (jar :File) = {
       val sname = jar.getName.replaceAll("""(_2.\d+.\d+)?-\d+.\d+(-SNAPSHOT)?(.min)?""", "")
       jar.renameTo(new File(jar.getParentFile, sname))
     }
-    (clientCodePath ** "*.jar").get foreach(f => sanitize(f.asFile))
+    (clientOutPath ** "*.jar").get foreach(f => sanitize(f.asFile))
 
     None
   }
   lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
-                            compileClasspath, List(clientPath.asFile.getPath))
+                            compileClasspath, List(clientOutPath.asFile.getPath))
   lazy val client = packageAction && proguard && gwtjar && prepclient && digest
+
+  lazy val pubclient = task {
+    val creds = (Path.userHome / ".github" / "credentials").asFile
+    if (!creds.exists) Some("Missing " + creds)
+    else {
+      val List(login, token) = io.Source.fromFile(creds).getLines.map(_.trim).toList
+      val files = (clientOutPath * "*").get.map(_.asFile).toList
+      new Uploader(login, token, "coreen") upload(files :_*)
+      None
+    }
+  } dependsOn(client)
 }

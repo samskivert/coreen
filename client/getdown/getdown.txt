@@ -1,0 +1,32 @@
+#
+# Getdown control file for Coreen client
+
+# version = currently using timestamp versioning
+appbase = http://github.com/downloads/samskivert/coreen/
+
+# Configure the update UI
+ui.name = Coreen
+ui.background_image = background.png
+ui.progress = 17, 321, 458, 22
+ui.progress_bar = 336600
+ui.progress_text = FFFFFF
+ui.status = 57, 245, 373, 68
+ui.status_text = 000000
+
+# Main jar files
+code = coreen.jar
+code = coreen-gwt.jar
+code = getdown.jar
+
+# Reader code (not in our main classpath)
+resource = coreen-java-reader.jar
+
+# Non-code resources
+resource = background.png
+
+# Parameters passed to the JVM
+# jvmarg = -Xmx512M
+jvmarg = -Dappdir=%APPDIR%
+
+# Main entry point
+class = coreen.server.Main
