@@ -7,11 +7,11 @@
   <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
     .contents {
       width: 100%;
+      padding-top: 2px;
     }
     .topgap {
       border-top: 1px solid;
       margin-top: 2px;
-      padding-top: 2px;
     }
     .nonPublic {
       font-size: small;
