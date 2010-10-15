@@ -26,13 +26,18 @@ public abstract class TogglePanel extends FlexTable
 {
     public static ToggleButton makeToggleButton (final Value<Boolean> model)
     {
-        ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
-                                               new Image(_icons.codeOpen()), new ClickHandler() {
+        final ToggleButton toggle = new ToggleButton(
+            new Image(_icons.codeClosed()), new Image(_icons.codeOpen()));
+        toggle.addClickHandler(new ClickHandler() {
             public void onClick (ClickEvent event) {
-                model.update(!model.get());
+                model.update(toggle.isDown());
             }
         });
-        toggle.setDown(model.get());
+        model.addListenerAndTrigger(new Value.Listener<Boolean>() {
+            public void valueChanged (Boolean value) {
+                toggle.setDown(value);
+            }
+        });
         toggle.addStyleName(_rsrc.styles().toggle());
         return toggle;
     }
@@ -45,7 +50,10 @@ public abstract class TogglePanel extends FlexTable
         setWidget(0, 0, makeToggleButton(model));
         getFlexCellFormatter().setVerticalAlignment(0, 0, HasAlignment.ALIGN_TOP);
 
-        model.addListenerAndTrigger(new Value.Listener<Boolean>() {
+        // we keep a reference to the model in case clients want to make their collapsed widget a
+        // clickable label that expands the toggle panel
+        _model = model;
+        _model.addListenerAndTrigger(new Value.Listener<Boolean>() {
             public void valueChanged (Boolean value) {
                 if (value) {
                     if (_expanded == null) {
@@ -65,6 +73,8 @@ public abstract class TogglePanel extends FlexTable
 
     protected abstract Widget createCollapsed ();
     protected abstract Widget createExpanded ();
+
+    protected Value<Boolean> _model;
 
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
     protected static final IconResources _icons = GWT.create(IconResources.class);
