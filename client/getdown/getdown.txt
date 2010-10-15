@@ -29,4 +29,4 @@ resource = background.png
 jvmarg = -Dappdir=%APPDIR%
 
 # Main entry point
-class = coreen.server.Main
+class = coreen.server.Coreen
