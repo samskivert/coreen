@@ -15,6 +15,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
@@ -40,44 +41,60 @@ public class ModulesPanel extends SummaryPanel
     @Override // from SummaryPanel
     protected void updateContents (long projectId)
     {
-        _projsvc.getModsAndMembers(projectId, new PanelCallback<Def[][]>(_contents) {
-            public void onSuccess (Def[][] modsMems) {
-                initContents(modsMems);
+        _linker = UsePopup.byModsInProject(_projectId);
+        _projsvc.getModules(projectId, new PanelCallback<Def[]>(_contents) {
+            public void onSuccess (Def[] modules) {
+                initContents(modules);
             }
         });
     }
 
-    protected void initContents (Def[][] modsMems)
+    protected void initContents (Def[] modules)
     {
         _contents.clear();
 
-        UsePopup.Linker linker = UsePopup.byModsInProject(_projectId);
-        for (Def[] modMems : modsMems) {
-            final Def mod = modMems[0];
-            _contents.add(Widgets.newLabel(mod.name, _styles.module()));
-            for (int ii = 1; ii < modMems.length; ii++) {
-                final Def def = modMems[ii];
-                Label label = DefUtil.addDef(_contents, def, linker, _defmap);
-                label.addStyleName(_rsrc.styles().actionable());
-                label.addClickHandler(new ClickHandler() {
-                    public void onClick (ClickEvent event) {
-                        if (_types.get(def.id).get()) {
-                            _types.get(def.id).update(false);
-                        } else {
-                            Link.go(Page.PROJECT, _projectId, ProjectPage.Detail.MDS, def.id);
+        for (final Def mod : modules) {
+            _contents.add(new TogglePanel(Value.create(false)) {
+                protected Widget createCollapsed () {
+                    return Widgets.newLabel(mod.name, _styles.module());
+                }
+                protected Widget createExpanded () {
+                    final FlowPanel defs = new FlowPanel();
+                    defs.add(Widgets.newLabel("Loading..."));
+                    _projsvc.getMembers(mod.id, new PanelCallback<Def[]>(defs) {
+                        public void onSuccess (Def[] members) {
+                            defs.clear();
+                            addMembers(defs, members);
                         }
-                    }
-                });
-            }
-            DefUtil.addClear(_contents);
+                    });
+                    return Widgets.newFlowPanel(Widgets.newLabel(mod.name, _styles.module()), defs);
+                }
+            });
+        }
+    }
 
-            for (int ii = 1; ii < modMems.length; ii++) {
-                final Def def = modMems[ii];
-                // create and add the summary panel (hidden) and bind its visibility to a value
-                TypeSummaryPanel deets = new TypeSummaryPanel(def.id, _defmap, _members, linker);
-                Bindings.bindVisible(_types.get(def.id), deets);
-                _contents.add(deets);
-            }
+    protected void addMembers (FlowPanel panel, Def[] members)
+    {
+        for (final Def def : members) {
+            Label label = DefUtil.addDef(panel, def, _linker, _defmap);
+            label.addStyleName(_rsrc.styles().actionable());
+            label.addClickHandler(new ClickHandler() {
+                public void onClick (ClickEvent event) {
+                    if (_types.get(def.id).get()) {
+                        _types.get(def.id).update(false);
+                    } else {
+                        Link.go(Page.PROJECT, _projectId,
+                                ProjectPage.Detail.MDS, def.id);
+                    }
+                }
+            });
+        }
+        DefUtil.addClear(panel);
+        for (final Def def : members) {
+            // create and add the summary panel (hidden) and bind its visibility to a value
+            TypeSummaryPanel deets = new TypeSummaryPanel(def.id, _defmap, _members, _linker);
+            Bindings.bindVisible(_types.get(def.id), deets);
+            panel.add(deets);
         }
     }
 
@@ -88,6 +105,8 @@ public class ModulesPanel extends SummaryPanel
     }
     protected @UiField Styles _styles;
     protected @UiField FlowPanel _contents;
+
+    protected UsePopup.Linker _linker;
 
     protected interface Binder extends UiBinder<Widget, ModulesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

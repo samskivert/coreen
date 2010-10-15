@@ -49,17 +49,17 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def getModsAndMembers (projectId :Long) :Array[Array[JDef]] = transaction {
-      val mods = from(_db.compunits, _db.defs)((cu, d) =>
-        where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === Decode.typeToCode(Type.MODULE)))
-        select(d)
-      ) map(d => (d.id -> d)) toMap
-
+      val mods = _db.loadModules(projectId) map(d => (d.id -> d)) toMap
       val members = _db.defs where(d => d.parentId in mods.keySet) toArray
       val modMems = members groupBy(_.parentId) map {
         case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava)
       }
       modMems.toArray sortBy(_.head.name)
+    }
+
+    /** Returns all modules in the specified project. */
+    def getModules (projectId :Long) :Array[JDef] = transaction {
+      _db.loadModules(projectId).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService

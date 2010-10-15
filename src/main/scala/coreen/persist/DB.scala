@@ -10,6 +10,7 @@ import java.util.Date
 import scala.io.Source
 
 import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.Query
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.annotations.Column
 import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
@@ -49,6 +50,13 @@ trait DB {
     on(defmap) { dn => declare(
       dn.fqName is(indexed, unique)
     )}
+
+    /** Returns a query that yields all modules in the specified project. */
+    def loadModules (projectId :Long) :Query[Def] =
+      from(_db.compunits, _db.defs)((cu, d) =>
+        where(cu.projectId === projectId and cu.id === d.unitId and
+              (d.typ === Decode.typeToCode(Type.MODULE)))
+        select(d))
 
     /** Returns a mapping from fqName to id for all known values in the supplied fqName set. */
     def loadDefIds (fqNames :scala.collection.Set[String]) :Map[String,Long] =

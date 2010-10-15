@@ -44,6 +44,16 @@ public interface ProjectServiceAsync
     void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
+     * The async version of {@link ProjectService#getSummary}.
+     */
+    void getSummary (long defId, AsyncCallback<TypeSummary> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
+
+    /**
      * The async version of {@link ProjectService#updateProject}.
      */
     void updateProject (long id, AsyncCallback<Void> callback);
@@ -64,17 +74,12 @@ public interface ProjectServiceAsync
     void getMembers (long defId, AsyncCallback<Def[]> callback);
 
     /**
-     * The async version of {@link ProjectService#getCompUnit}.
-     */
-    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
-
-    /**
      * The async version of {@link ProjectService#getDef}.
      */
     void getDef (long defId, AsyncCallback<DefDetail> callback);
 
     /**
-     * The async version of {@link ProjectService#getSummary}.
+     * The async version of {@link ProjectService#getModules}.
      */
-    void getSummary (long defId, AsyncCallback<TypeSummary> callback);
+    void getModules (long projectId, AsyncCallback<Def[]> callback);
 }
