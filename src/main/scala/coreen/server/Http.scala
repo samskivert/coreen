@@ -108,7 +108,7 @@ trait Http {
         val out = rsp.getWriter
         out.write("byebye")
         out.close
-        Main.shutdown
+        Coreen.shutdown
       }
     }
 
