@@ -47,20 +47,17 @@ public class TypeSummaryPanel extends Composite
     public final long defId;
 
     /** Used when we're totally standalone. */
-    public TypeSummaryPanel (long defId)
+    public TypeSummaryPanel (long defId, boolean headerless)
     {
-        this(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE);
+        this(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE, headerless);
     }
 
     /** Used when we're part of a type hierarchy. */
     public TypeSummaryPanel (long defId, DefMap defmap, IdMap<Boolean> expanded,
                              UsePopup.Linker linker)
     {
-        initWidget(_binder.createAndBindUi(this));
-        this.defId = defId;
-        _defmap = defmap;
-        _expanded = expanded;
-        _linker = linker;
+        this(defId, defmap, expanded, linker, false);
+        addStyleName(_styles.topgap());
     }
 
     @Override // from Widget
@@ -87,6 +84,18 @@ public class TypeSummaryPanel extends Composite
         _expanded.get(memberId).update(true);
     }
 
+    /** Used when we're part of a type hierarchy. */
+    protected TypeSummaryPanel (long defId, DefMap defmap, IdMap<Boolean> expanded,
+                                UsePopup.Linker linker, boolean headerless)
+    {
+        initWidget(_binder.createAndBindUi(this));
+        this.defId = defId;
+        _defmap = defmap;
+        _expanded = expanded;
+        _linker = linker;
+        _headerless = headerless;
+    }
+
     protected void ensureLoaded ()
     {
         if (!_loaded) {
@@ -110,10 +119,12 @@ public class TypeSummaryPanel extends Composite
     protected void init (final TypeSummary sum)
     {
         FlowPanel contents = Widgets.newFlowPanel();
-        if (sum.type == Type.TYPE) {
-            contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
-        } else if (sum.doc != null) {
-            contents.add(new DocLabel(sum.doc));
+        if (!_headerless) {
+            if (sum.type == Type.TYPE) {
+                contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
+            } else if (sum.doc != null) {
+                contents.add(new DocLabel(sum.doc));
+            }
         }
         contents.add(new SigLabel(sum, sum.sig, _defmap));
 
@@ -194,12 +205,13 @@ public class TypeSummaryPanel extends Composite
 
     protected interface Styles extends CssResource
     {
+        String topgap ();
         String nonPublic ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;
 
-    protected boolean _loaded;
+    protected boolean _loaded, _headerless;
     protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
     protected UsePopup.Linker _linker;

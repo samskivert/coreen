@@ -18,6 +18,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
@@ -27,7 +28,9 @@ import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
+import coreen.project.TogglePanel;
 import coreen.project.TypeLabel;
+import coreen.project.TypeSummaryPanel;
 import coreen.project.UsePopup;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
@@ -106,7 +109,14 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
                 return Link.create(def.name, Page.PROJECT, args.toArray());
             }
         };
-        return Widgets.newFlowPanel(label, Widgets.newLabel(result.sig, _rsrc.styles().code()));
+        return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
+            protected Widget createCollapsed () {
+                return Widgets.newLabel(result.sig, _rsrc.styles().code());
+            }
+            protected Widget createExpanded () {
+                return new TypeSummaryPanel(result.id, true);
+            }
+        });
     }
 
     protected interface Styles extends CssResource

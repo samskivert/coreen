@@ -6,10 +6,12 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
     .contents {
+      width: 100%;
+    }
+    .topgap {
+      border-top: 1px solid;
       margin-top: 2px;
       padding-top: 2px;
-      border-top: 1px solid;
-      width: 100%;
     }
     .nonPublic {
       font-size: small;
