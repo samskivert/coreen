@@ -53,10 +53,12 @@ public class ModulesPanel extends SummaryPanel
     {
         _contents.clear();
 
+        // start everything expanded if we have less than 10 modules
+        boolean expand = (modules.length <= 10);
         for (final Def mod : modules) {
-            _contents.add(new TogglePanel(Value.create(false)) {
+            _contents.add(new TogglePanel(Value.create(expand)) {
                 protected Widget createCollapsed () {
-                    return Widgets.newLabel(mod.name, _styles.module());
+                    return makeModuleLabel();
                 }
                 protected Widget createExpanded () {
                     final FlowPanel defs = new FlowPanel();
@@ -67,7 +69,11 @@ public class ModulesPanel extends SummaryPanel
                             addMembers(defs, members);
                         }
                     });
-                    return Widgets.newFlowPanel(Widgets.newLabel(mod.name, _styles.module()), defs);
+                    return Widgets.newFlowPanel(makeModuleLabel(), defs);
+                }
+                protected Widget makeModuleLabel () {
+                    return Widgets.makeActionLabel(Widgets.newLabel(mod.name, _styles.module()),
+                                                   Bindings.makeToggler(_model));
                 }
             });
         }
