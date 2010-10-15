@@ -28,6 +28,7 @@ public abstract class TogglePanel extends FlexTable
     {
         final ToggleButton toggle = new ToggleButton(
             new Image(_icons.codeClosed()), new Image(_icons.codeOpen()));
+        toggle.addStyleName(_rsrc.styles().toggle());
         toggle.addClickHandler(new ClickHandler() {
             public void onClick (ClickEvent event) {
                 model.update(toggle.isDown());
@@ -38,7 +39,6 @@ public abstract class TogglePanel extends FlexTable
                 toggle.setDown(value);
             }
         });
-        toggle.addStyleName(_rsrc.styles().toggle());
         return toggle;
     }
 
