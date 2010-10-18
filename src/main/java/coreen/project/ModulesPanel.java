@@ -56,7 +56,10 @@ public class ModulesPanel extends SummaryPanel
         // start everything expanded if we have less than 10 modules
         boolean expand = (modules.length <= 10);
         for (final Def mod : modules) {
-            _contents.add(new TogglePanel(expand || _showing.get(mod.id)) {
+            if (expand) {
+                _showing.get(mod.id).update(true);
+            }
+            _contents.add(new TogglePanel(_showing.get(mod.id)) {
                 protected Widget createCollapsed () {
                     return makeModuleLabel();
                 }
