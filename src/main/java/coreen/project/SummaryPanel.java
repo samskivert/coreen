@@ -18,23 +18,17 @@ public abstract class SummaryPanel extends AbstractProjectPanel
     {
         if (_projectId != proj.id) {
             updateContents(_projectId = proj.id);
-            // reset our type and id maps when we switch projects
-            _types = IdMap.create(false);
-            _members = IdMap.create(false);
+            // reset our showing map when we switch projects
+            _showing = IdMap.create(false);
         }
-        // activate the type and members specified in the args
-        updateId(_types, args.get(2, 0L));
-        for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
-            updateId(_members, args.get(idx, 0L));
-        }
-    }
-
-    protected static void updateId (IdMap<Boolean> map, long id)
-    {
-        if (id > 0) {
-            map.get(id).update(true);
-        } else {
-            map.get(-id).update(false);
+        // toggle def showingness as dictated by the args
+        for (int idx = 2; args.get(idx, 0L) != 0L; idx++) {
+            long id = args.get(idx, 0L);
+            if (id > 0) {
+                _showing.get(id).update(true);
+            } else {
+                _showing.get(-id).update(false);
+            }
         }
     }
 
@@ -42,6 +36,5 @@ public abstract class SummaryPanel extends AbstractProjectPanel
 
     protected long _projectId;
     protected DefMap _defmap = new DefMap();
-    protected IdMap<Boolean> _types = IdMap.create(false);
-    protected IdMap<Boolean> _members = IdMap.create(false);
+    protected IdMap<Boolean> _showing = IdMap.create(false);
 }

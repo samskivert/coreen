@@ -56,7 +56,7 @@ public class ModulesPanel extends SummaryPanel
         // start everything expanded if we have less than 10 modules
         boolean expand = (modules.length <= 10);
         for (final Def mod : modules) {
-            _contents.add(new TogglePanel(Value.create(expand)) {
+            _contents.add(new TogglePanel(_showing.get(mod.id)) {
                 protected Widget createCollapsed () {
                     return makeModuleLabel();
                 }
@@ -66,7 +66,7 @@ public class ModulesPanel extends SummaryPanel
                     _projsvc.getMembers(mod.id, new PanelCallback<Def[]>(defs) {
                         public void onSuccess (Def[] members) {
                             defs.clear();
-                            addMembers(defs, members);
+                            addMembers(defs, mod, members);
                         }
                     });
                     return Widgets.newFlowPanel(makeModuleLabel(), defs);
@@ -79,19 +79,19 @@ public class ModulesPanel extends SummaryPanel
         }
     }
 
-    protected void addMembers (FlowPanel panel, Def[] members)
+    protected void addMembers (FlowPanel panel, final Def mod, Def[] members)
     {
         for (final Def def : members) {
             Label label = DefUtil.addDef(panel, def, _linker, _defmap);
             label.addStyleName(_rsrc.styles().actionable());
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
-                    if (_types.get(def.id).get()) {
+                    if (_showing.get(def.id).get()) {
                         Link.go(Page.PROJECT, _projectId,
-                                ProjectPage.Detail.MDS, -def.id);
+                                ProjectPage.Detail.MDS, mod.id, -def.id);
                     } else {
                         Link.go(Page.PROJECT, _projectId,
-                                ProjectPage.Detail.MDS, def.id);
+                                ProjectPage.Detail.MDS, mod.id, def.id);
                     }
                 }
             });
@@ -99,8 +99,8 @@ public class ModulesPanel extends SummaryPanel
         DefUtil.addClear(panel);
         for (final Def def : members) {
             // create and add the summary panel (hidden) and bind its visibility to a value
-            TypeSummaryPanel deets = new TypeSummaryPanel(def.id, _defmap, _members, _linker);
-            Bindings.bindVisible(_types.get(def.id), deets);
+            TypeSummaryPanel deets = new TypeSummaryPanel(def.id, _defmap, _showing, _linker);
+            Bindings.bindVisible(_showing.get(def.id), deets);
             panel.add(deets);
         }
     }

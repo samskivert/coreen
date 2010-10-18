@@ -78,8 +78,8 @@ public class TypesPanel extends SummaryPanel
             Label label = DefUtil.addDef(types, def, UsePopup.BY_TYPES, _defmap);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
-                    if (_types.get(def.id).get()) {
-                        _types.get(def.id).update(false);
+                    if (_showing.get(def.id).get()) {
+                        _showing.get(def.id).update(false);
                     } else {
                         long outerId = def.id, innerId = 0L;
                         Def d = def;
@@ -97,8 +97,8 @@ public class TypesPanel extends SummaryPanel
 
             // create and add the detail panel (hidden) and bind its visibility to a value
             TypeDetailPanel deets = new TypeDetailPanel(
-                def.id, _defmap, _members, UsePopup.BY_TYPES);
-            Bindings.bindVisible(_types.get(def.id), deets);
+                def.id, _defmap, _showing, UsePopup.BY_TYPES);
+            Bindings.bindVisible(_showing.get(def.id), deets);
             details.add(deets);
         }
         return table;
