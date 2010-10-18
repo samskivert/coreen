@@ -286,7 +286,7 @@ trait Updater {
       val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
       def args = (javabin.getCanonicalPath :: "-classpath" ::
                   classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
-                  "-mx1024M" :: classname :: javaArgs)
+                  "-mx2048M" :: classname :: javaArgs)
     }
 
     // TEMP: profiling helper
