@@ -32,6 +32,10 @@ public interface ProjectService extends RemoteService
      * @throws ServiceException with e.no_such_project if project unknown. */
     void updateProject (long id) throws ServiceException;
 
+    /** Requests that the specifide project be deleted.
+     * @throws ServiceException with e.no_such_project if project unknown. */
+    void deleteProject (long id) throws ServiceException;
+
     /** Returns all compilation units associated with the specified project. */
     CompUnit[] getCompUnits (long projectId) throws ServiceException;
 

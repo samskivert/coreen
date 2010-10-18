@@ -82,4 +82,9 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getModules}.
      */
     void getModules (long projectId, AsyncCallback<Def[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#deleteProject}.
+     */
+    void deleteProject (long id, AsyncCallback<Void> callback);
 }

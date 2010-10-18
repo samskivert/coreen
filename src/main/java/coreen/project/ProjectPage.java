@@ -97,7 +97,7 @@ public class ProjectPage extends AbstractPage
         Value<Boolean> projp = _proj.map(new Function<Project,Boolean>() {
             public Boolean apply (Project proj) { return (proj != null); }
         });
-        Bindings.bindEnabled(projp, _search, _go, _update);
+        Bindings.bindEnabled(projp, _search, _go, _update, _delete);
         Bindings.bindVisible(projp, _header);
 
         new ClickCallback<Void>(_update) {
@@ -110,6 +110,18 @@ public class ProjectPage extends AbstractPage
                 return true;
             }
         };
+
+        new ClickCallback<Void>(_delete) {
+            protected boolean callService () {
+                _projsvc.deleteProject(_proj.get().id, this);
+                return true;
+            }
+            protected boolean gotResult (Void result) {
+                Popups.infoNear(_msgs.pProjectDeleted(), _delete);
+                Link.go(Page.LIBRARY);
+                return false;
+            }
+        }.setConfirmText(_msgs.pDeleteConfirm());
 
         ClickHandler onSearch = new ClickHandler() {
             public void onClick (ClickEvent event) {
@@ -186,7 +198,7 @@ public class ProjectPage extends AbstractPage
     protected @UiField Hyperlink _name;
     protected @UiField Label _version, _imported, _lastUpdated;
     protected @UiField TextBox _search;
-    protected @UiField Button _update, _go;
+    protected @UiField Button _update, _delete, _go;
     protected @UiField FlowPanel _navbar;
     protected @UiField SimplePanel _contents;
 

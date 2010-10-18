@@ -51,6 +51,14 @@ trait DB {
       dn.fqName is(indexed, unique)
     )}
 
+    /** Provides access to the uses table. */
+    val uses = table[Use]
+    on(uses) { u => declare(
+      u.unitId is(indexed),
+      u.ownerId is(indexed),
+      u.referentId is(indexed)
+    )}
+
     /** Returns a query that yields all modules in the specified project. */
     def loadModules (projectId :Long) :Query[Def] =
       from(_db.compunits, _db.defs)((cu, d) =>
@@ -97,14 +105,6 @@ trait DB {
         r
       } toArray
     }
-
-    /** Provides access to the uses table. */
-    val uses = table[Use]
-    on(uses) { u => declare(
-      u.unitId is(indexed),
-      u.ownerId is(indexed),
-      u.referentId is(indexed)
-    )}
 
     /** Creates the JDBC URL to our database. */
     def dbUrl (root :File) =
