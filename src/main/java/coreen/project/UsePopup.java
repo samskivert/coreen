@@ -47,9 +47,7 @@ public class UsePopup extends PopupPanel
 
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
             for (DefId did : deet.path) {
-                if (did.type != Type.MODULE) {
-                    args.add(did.id);
-                }
+                args.add(did.id);
             }
             args.add(deet.id);
         }
