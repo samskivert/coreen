@@ -23,7 +23,7 @@ You will also need coreen-java-reader if you don't already have it. It needs to
 live under the coreen build directory in a directory named 'java-reader':
 
 % cd coreen
-% git clone clone git@github.com:samskivert/coreen-java-reader.git
+% git clone git://github.com/samskivert/coreen-java-reader.git
 % mv coreen-java-reader java-reader
 % cd java-reader
 % sbt update proguard
