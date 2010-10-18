@@ -87,7 +87,8 @@ public class ModulesPanel extends SummaryPanel
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_types.get(def.id).get()) {
-                        _types.get(def.id).update(false);
+                        Link.go(Page.PROJECT, _projectId,
+                                ProjectPage.Detail.MDS, -def.id);
                     } else {
                         Link.go(Page.PROJECT, _projectId,
                                 ProjectPage.Detail.MDS, def.id);

@@ -120,7 +120,8 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            if (!highlightTarget() && (_popup == null || !_popup.isShowing())) {
+            if (!UseHighlighter.highlightTarget(_defmap, _referentId) &&
+                (_popup == null || !_popup.isShowing())) {
                 _timer.schedule(500);
             }
         }
@@ -130,26 +131,14 @@ public class UsePopup extends PopupPanel
             _timer.cancel();
 
             // if we've highlighted our onscreen def, unhighlight it
-            Widget def = _defmap.get(_referentId);
-            if (def != null) {
-                def.removeStyleName(_rsrc.styles().highlight());
-            }
-        }
-
-        protected boolean highlightTarget () {
-            Widget def = _defmap.get(_referentId);
-            if (def != null && WindowUtil.isScrolledIntoView(def)) {
-                def.addStyleName(_rsrc.styles().highlight());
-                return true;
-            }
-            return false;
+            UseHighlighter.clearTarget(_defmap, _referentId);
         }
 
         protected void showPopup () {
             hidePopup();
 
             // if the def came into view while we were waiting, just highlight it
-            if (highlightTarget()) {
+            if (UseHighlighter.highlightTarget(_defmap, _referentId)) {
                 return;
             }
 

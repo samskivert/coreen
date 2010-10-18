@@ -19,6 +19,7 @@ public class SigLabel extends Label
         super(sig);
         _def = def;
         _defmap = defmap;
+        _defmap.map(_def.id, this); // we start out visible
         addStyleName(_rsrc.styles().code());
     }
 

@@ -30,7 +30,8 @@ public class DefUtil
                                 final DefMap defmap)
     {
         InlineLabel label = new InlineLabel(def.name);
-        new UsePopup.Popper(def.id, label, linker, defmap, false);
+        // new UsePopup.Popper(def.id, label, linker, defmap, false);
+        UseHighlighter.bind(def.id, label, defmap);
         panel.add(adornDef(def, label));
         return label;
     }

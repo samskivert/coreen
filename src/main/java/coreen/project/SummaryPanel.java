@@ -23,9 +23,18 @@ public abstract class SummaryPanel extends AbstractProjectPanel
             _members = IdMap.create(false);
         }
         // activate the type and members specified in the args
-        _types.get(args.get(2, 0L)).update(true);
+        updateId(_types, args.get(2, 0L));
         for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
-            _members.get(args.get(idx, 0L)).update(true);
+            updateId(_members, args.get(idx, 0L));
+        }
+    }
+
+    protected static void updateId (IdMap<Boolean> map, long id)
+    {
+        if (id > 0) {
+            map.get(id).update(true);
+        } else {
+            map.get(-id).update(false);
         }
     }
 
