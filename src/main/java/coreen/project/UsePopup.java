@@ -102,6 +102,11 @@ public class UsePopup extends PopupPanel
             }
         }
 
+        public Popper setHighlight (boolean highlight) {
+            _highlight = highlight;
+            return this;
+        }
+
         public void onClick (ClickEvent event) {
             Widget def = _defmap.get(_referentId);
             if (def != null) {
@@ -118,8 +123,10 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            if (!UseHighlighter.highlightTarget(_defmap, _referentId) &&
-                (_popup == null || !_popup.isShowing())) {
+            if (_highlight && UseHighlighter.highlightTarget(_defmap, _referentId)) {
+                return;
+            }
+            if ((_popup == null || !_popup.isShowing())) {
                 _timer.schedule(500);
             }
         }
@@ -129,14 +136,16 @@ public class UsePopup extends PopupPanel
             _timer.cancel();
 
             // if we've highlighted our onscreen def, unhighlight it
-            UseHighlighter.clearTarget(_defmap, _referentId);
+            if (_highlight) {
+                UseHighlighter.clearTarget(_defmap, _referentId);
+            }
         }
 
         protected void showPopup () {
             hidePopup();
 
             // if the def came into view while we were waiting, just highlight it
-            if (UseHighlighter.highlightTarget(_defmap, _referentId)) {
+            if (_highlight && UseHighlighter.highlightTarget(_defmap, _referentId)) {
                 return;
             }
 
@@ -176,6 +185,7 @@ public class UsePopup extends PopupPanel
         protected Widget _target;
         protected Linker _linker;
         protected DefMap _defmap;
+        protected boolean _highlight = true;
 
         protected UsePopup _popup;
         protected long _lastPopdown;

@@ -169,7 +169,7 @@ public class TypeSummaryPanel extends Composite
             protected Widget createCollapsed () {
                 SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 sig.addStyleName("inline");
-                new UsePopup.Popper(member.id, sig, _linker, _defmap, false);
+                new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
             }
             protected Widget createExpanded () {
