@@ -192,7 +192,6 @@ trait Updater {
     }
 
     def processCompUnit (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
-      println("Processing " + defs.size + " defs in " + unitId)
       // load up existing defs for this compunit, and a mapping from fqName to defId
       val (edefs, emap) = time("loadNames") {
         transaction {
@@ -200,7 +199,7 @@ trait Updater {
           (tmp, _db.loadDefNames(tmp.keySet))
         }
       }
-      println("Loaded " + edefs.size + " defs and " + emap.size + " names")
+      // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
       // figure out which defs to add, which to update, and which to delete
       def allIds (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
@@ -280,7 +279,6 @@ trait Updater {
         // look up the ids of referents that we don't already know about
         val refFqNames = Set() ++ (nuses map(_._2) filter(!defMap.contains(_)))
         if (!refFqNames.isEmpty) {
-          println("Loading ids for " + refFqNames.size + " unseen external defs.")
           defMap ++= time("loadRefIds") { _db.loadDefIds(refFqNames) }
         }
 
