@@ -12,10 +12,9 @@ import scala.io.Source
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import org.squeryl.adapters.H2Adapter
-import org.squeryl.annotations.Column
-import org.squeryl.{KeyedEntity, Schema, Session, SessionFactory}
+import org.squeryl.{Schema, Session, SessionFactory}
 
-import coreen.model.{Flavor, Type, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
+import coreen.model.{Type, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
 import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
@@ -23,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 4;
+    val version = 5;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -57,6 +56,13 @@ trait DB {
       u.unitId is(indexed),
       u.ownerId is(indexed),
       u.referentId is(indexed)
+    )}
+
+    /** Provides access to the supers table. */
+    val supers = table[Super]
+    on(supers) { s => declare(
+      columns(s.defId, s.superId) are(unique),
+      s.superId is(indexed)
     )}
 
     /** Returns a query that yields all modules in the specified project. */
@@ -157,13 +163,13 @@ trait DBComponent extends Component with DB {
       out.println(version)
       out.close
     }
-    def migrate (version :Int, descrip :String, sql :String) {
+    def migrate (version :Int, descrip :String, sqls :Seq[String]) {
       if (overs < version) transaction {
         _log.info(descrip)
 
         // perform the migration
         val stmt = Session.currentSession.connection.createStatement
-        try stmt.executeUpdate(sql)
+        try sqls foreach { stmt.executeUpdate(_) }
         finally stmt.close
 
         // note that we're consistent with the specified version
@@ -179,170 +185,15 @@ trait DBComponent extends Component with DB {
 
     } else { // otherwise do migration(s)
       migrate(2, "Adding column DEF.FLAVOR...",
-              "alter table DEF add column FLAVOR INTEGER(10) not null default 0")
+              List("alter table DEF add column FLAVOR INTEGER(10) not null default 0"))
       migrate(3, "Adding column DEF.FLAGS...",
-              "alter table DEF add column FLAGS INTEGER(10) not null default 0")
+              List("alter table DEF add column FLAGS INTEGER(10) not null default 0"))
       migrate(4, "Changing DEF.PARENTID to DEF.OUTERID...",
-              "alter table DEF alter column PARENTID rename to OUTERID")
+              List("alter table DEF alter column PARENTID rename to OUTERID"))
+      migrate(5, "Adding SUPER table...",
+              List("create table Super (defId bigint not null, superId bigint not null)",
+                   "create index superIdx on Super (superId)",
+                   "create unique index defSuperIdx on Super (defId,superId)"))
     }
   }
-}
-
-/** Contains mappings for converting between Java enums and ints for storage in the database. */
-object Decode {
-  /** Maps {@link Type} elements to an Int that can be used in the DB. */
-  val typeToCode = Map(
-    Type.MODULE -> 1,
-    Type.TYPE -> 2,
-    Type.FUNC -> 3,
-    Type.TERM -> 4,
-    Type.UNKNOWN -> 0
-  ) // these mappings must never change (but can be extended)
-
-  /** Maps an Int code back to a {@link Type}. */
-  val codeToType = typeToCode map { case(x, y) => (y, x) }
-
-  /** Maps {@link Flavor} elements to an Int that can be used in the DB. */
-  val flavorToCode = Map(
-    // module flavors (none)
-
-    // type flavors
-    Flavor.CLASS -> 10,
-    Flavor.INTERFACE -> 11,
-    Flavor.ABSTRACT_CLASS -> 12,
-    Flavor.ENUM -> 13,
-    Flavor.ANNOTATION -> 14,
-    Flavor.OBJECT -> 15,
-    Flavor.ABSTRACT_OBJECT -> 16,
-
-    // func flavors
-    Flavor.METHOD -> 30,
-    Flavor.ABSTRACT_METHOD -> 31,
-    Flavor.STATIC_METHOD -> 32,
-    Flavor.CONSTRUCTOR -> 33,
-
-    // term flavors
-    Flavor.FIELD -> 50,
-    Flavor.PARAM -> 51,
-    Flavor.LOCAL -> 52,
-    Flavor.STATIC_FIELD -> 53,
-
-    // universal flavors
-    Flavor.NONE -> 0
-  ) // these mappings must never change (but can be extended)
-
-  /** Maps an Int code back to a {@link Flavor}. */
-  val codeToFlavor = flavorToCode map { case(x, y) => (y, x) }
-}
-
-/** Contains project metadata. */
-case class Project (
-  /** The (human readable) name of this project. */
-  name :String,
-  /** The path to the root of this project. */
-  rootPath :String,
-  /** A string identifying the imported version of this project. */
-  version :String,
-  /** The source directory filters for this project (if any). */
-  srcDirs :Option[String],
-  /** When this project was imported into the library. */
-  imported :Long,
-  /** When this project was last updated. */
-  lastUpdated :Long
-) extends KeyedEntity[Long] {
-  /* ctor */ { assert(!rootPath.endsWith("/")) }
-
-  /** A unique identifier for this project (1 or higher). */
-  val id :Long = 0L
-
-  /** Zero args ctor for use when unserializing. */
-  def this () = this("", "", "", Some(""), 0L, 0L)
-
-  override def toString = "[id=" + id + ", name=" + name + ", vers=" + version + "]"
-}
-
-/** Contains metadata for a single compilation unit. */
-case class CompUnit (
-  /** The id of the project to which this compilation unit belongs. */
-  projectId :Long,
-  /** The path (relative to the project root) to this compilation unit. */
-  path :String,
-  /** The time at which this compilation unit was last updated. */
-  lastUpdated :Long
-) extends KeyedEntity[Long] {
-  /** A unique identifier for this project (1 or higher). */
-  val id :Long = 0L
-
-  /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, "", 0L)
-
-  override def toString = "[id=" + id + ", pid=" + projectId + ", path=" + path + "]"
-}
-
-/** A mapping from fully qualified name to id for defs. */
-case class DefName (
-  /** The fully qualified name of this def. */
-  @Column(length=1024) fqName :String
-) extends KeyedEntity[Long] {
-  /** A unique identifier for this definition (1 or higher). */
-  val id :Long = 0L
-}
-
-/** Contains metadata for a definition. */
-case class Def (
-  /** A unique identifier for this definition (1 or higher). */
-  id :Long,
-  /** The id of this definition's enclosing definition, or 0 if none. */
-  outerId :Long,
-  /** The id of this definition's enclosing compunit. */
-  unitId :Long,
-  /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
-  name :String,
-  /** The type of this definition (function, term, etc.). See {@link Type}. */
-  typ :Int,
-  /** The flavor of this definition (class, interface, enum, etc.). See {@link Flavor}. */
-  flavor :Int,
-  /** Bits for flags. */
-  flags :Int,
-  /** This definition's (type) signature. */
-  @Column(length=1024) sig :Option[String],
-  /** This definition's documentation. */
-  @Column(length=32768) doc :Option[String],
-  /** The character offset in the source file of the start of this definition. */
-  defStart :Int,
-  /** The character offset in the source file of the end of this definition. */
-  defEnd :Int,
-  /** The character offset in the file at which this definition's body starts. */
-  bodyStart :Int,
-  /** The character offset in the file at which this definition's body ends. */
-  bodyEnd :Int
-) extends KeyedEntity[Long] {
-  /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
-
-  override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
-                           ", name=" + name + ", type=" + typ + "]")
-}
-
-/** Contains metadata for a use. */
-case class Use (
-  /** The id of the compunit in which this use appears. */
-  unitId :Long,
-
-  /** The id of the immediately enclosing definition in which this use occurs. */
-  ownerId :Long,
-
-  /** The id of the definition of the referent of this use. */
-  referentId :Long,
-
-  /** The location in the source file of the start of this use. */
-  useStart :Int,
-
-  /** The location in the source file of the end of this use. */
-  useEnd :Int
-) {
-  /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, 0, 0)
-
-  override def toString = ("[owner=" + ownerId + ", ref=" + referentId + "]")
 }
