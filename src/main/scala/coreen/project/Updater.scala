@@ -17,7 +17,7 @@ import org.squeryl.PrimitiveTypeMode._
 import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
 import coreen.model.Type
-import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use}
+import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Super}
 import coreen.server.{Log, Exec, Dirs}
 
 /** Provides project updating services. */
@@ -136,20 +136,26 @@ trait Updater {
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
         val byId = cus.flatMap(_.allDefs) filter(_.typ == Type.MODULE) groupBy(_.id)
-        processCompUnit(cuDef.id, defMap, byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
+        processDefs(cuDef.id, defMap, byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
 
         // first process all of the definitions in all of the compunits...
         for (cu <- cus) {
           ulog("Processing defs in " + cu.src + "...")
           // we want to filter out any defs for which we have no module id mapping; this filters
           // out code from modules that have already been claimed by some other project
-          processCompUnit(cuIds(cu.src), defMap, cu.defs filter(d => defMap.contains(d.id)))
+          processDefs(cuIds(cu.src), defMap, cu.defs filter(d => defMap.contains(d.id)))
         }
 
         // then process all of the uses (which may reference the newly added defs)...
         for (cu <- cus) {
           ulog("Processing uses in " + cu.src + "...")
           processUses(cuIds(cu.src), defMap, cu.defs)
+        }
+
+        // finally record supertype relationships (which may also reference newly added defs)...
+        for (cu <- cus) {
+          ulog("Processing supers in " + cu.src + "...")
+          processSupers(cuIds(cu.src), defMap, cu.defs)
         }
 
         ulog("Processing complete!")
@@ -191,7 +197,7 @@ trait Updater {
       def args :List[String]
     }
 
-    def processCompUnit (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+    def processDefs (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
       // load up existing defs for this compunit, and a mapping from fqName to defId
       val (edefs, emap) = time("loadNames") {
         transaction {
@@ -227,18 +233,18 @@ trait Updater {
         defMap ++= nmap
 
         // now convert the defelems into defs using the fqName to id map
-        def processDefs (outerId :Long)(
+        def makeDefs (outerId :Long)(
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = defMap.get(df.id) match {
           case Some(defId) => {
-            val ndef = Def(defId, outerId, unitId, df.name, Decode.typeToCode(df.typ),
+            val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.typeToCode(df.typ),
                            Decode.flavorToCode(df.flavor), df.flags,
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
-            ((out + (ndef.id -> ndef)) /: df.defs)(processDefs(ndef.id))
+            ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
           case None => out
         }
-        val ndefs = (Map[Long,Def]() /: defs)(processDefs(0L))
+        val ndefs = (Map[Long,Def]() /: defs)(makeDefs(0L))
 
         // insert, update, and delete
         if (!toAdd.isEmpty) {
@@ -265,15 +271,15 @@ trait Updater {
         time("deleteOldUses") { _db.uses.deleteWhere(u => u.unitId === unitId) }
 
         // convert the useelems into (use, referentFqName) pairs
-        def processUses (out :Vector[(Use,String)],
-                         df :DefElem) :Vector[(Use,String)] = defMap.get(df.id) match {
-          case Some(defId) => {
-            val nuses = df.uses.map(
-              u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
-            ((out ++ nuses) /: df.defs)(processUses)
+        def processUses (out :Vector[(Use,String)], df :DefElem) :Vector[(Use,String)] =
+          defMap.get(df.id) match {
+            case Some(defId) => {
+              val nuses = df.uses.map(
+                u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
+              ((out ++ nuses) /: df.defs)(processUses)
+            }
+            case None => out
           }
-          case None => out
-        }
         val nuses = (Vector[(Use,String)]() /: defs)(processUses)
 
         // look up the ids of referents that we don't already know about
@@ -290,6 +296,58 @@ trait Updater {
             case None => (acc._1, up :: acc._2)
         })
         time("insertUses") { _db.uses.insert(bound) }
+      }
+    }
+
+    def processSupers (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+      transaction {
+        // load up all existing super relationships for all defs in this compunit
+        val oldSups = from(_db.supers, _db.defs)((s, d) =>
+          where(d.unitId === unitId and s.defId === d.id) select(s))
+        val superMap = oldSups groupBy(_.defId) mapValues(_ map(_.superId) toSet)
+
+        // collect the fqNames of all super types so we can resolve their ids
+        def getSuperNames (names :Set[String], d :DefElem) :Set[String] =
+          ((names ++ d.supers) /: d.defs)(getSuperNames)
+        val refFqNames = (Set[String]() /: defs)(getSuperNames) filter(!defMap.contains(_))
+        if (!refFqNames.isEmpty) {
+          defMap ++= time("loadSuperIds") { _db.loadDefIds(refFqNames) }
+        }
+
+        // TODO: generate placeholder defs for unknown referents
+        val missingIds = refFqNames -- defMap.keySet
+
+        // now we'll accumulate the supers that need adding and deleting
+        val (toAdd, toDel) = (ArrayBuffer[Super](), ArrayBuffer[Super]())
+        val toUpdate = MMap[Long,Long]()
+
+        // note all of the super additions, deletions and updates that are needed
+        def processDef (d :DefElem) {
+          val defId = defMap(d.id)
+          val osups = superMap getOrElse(defId, Set())
+          val nsups = (d.supers.toSet -- missingIds) map(defMap) toSet; // grr!
+          // note the deletions and additions to be made
+          (osups -- nsups) foreach { id => toDel += Super(defId, id) }
+          (nsups -- osups) foreach { id => toAdd += Super(defId, id) }
+          // note the primary supertype
+          if (!d.supers.isEmpty) {
+            defMap.get(d.supers.head) match {
+              case Some(superId) => toUpdate += (defId -> superId)
+              case None =>
+            }
+          }
+          // finally process this def's children
+          d.defs foreach(processDef)
+        }
+        defs foreach(processDef)
+
+        // do the adding, deleting and updating
+        if (!toAdd.isEmpty) _db.supers.insert(toAdd)
+        toDel foreach { s => _db.supers.delete(s.id) }
+        toUpdate foreach {
+          case (defId, superId) => _db.defs update(d =>
+            where(d.id === defId) set(d.superId := superId))
+        }
       }
     }
 

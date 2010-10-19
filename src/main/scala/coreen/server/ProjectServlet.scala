@@ -6,6 +6,7 @@ package coreen.server
 import java.io.File
 
 import scala.io.Source
+import scala.collection.mutable.ArrayBuffer
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
@@ -149,7 +150,27 @@ trait ProjectServlet {
       dc
     }
 
-    /** Searches for defs in the specified project that match the specified query. */
+    // from interface ProjectService
+    def getSuperTypes (defId :Long) :Array[Array[JDef]] = transaction {
+      val d = requireDef(defId)
+      val buf = ArrayBuffer[Array[JDef]]()
+      def addSuperTypes (d :Def) {
+        val sdefs = _db.supers.left(d).toList
+        if (!sdefs.isEmpty) {
+          val (pdef, darray) = sdefs.find(_.id == d.superId) match {
+            case None => (None, (null :: sdefs map(Convert.toJava)) toArray)
+            case Some(pd) =>
+              (Some(pd), (pd :: sdefs.filterNot(_.id == pd.id)) map(Convert.toJava) toArray)
+          }
+          if (!pdef.isEmpty) addSuperTypes(pdef.get)
+          buf += darray
+        }
+      }
+      addSuperTypes(d)
+      buf.toArray
+    }
+
+    // from interface ProjectService
     def search (projectId :Long, query :String) :Array[DefDetail] = transaction {
       _db.resolveMatches(from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and

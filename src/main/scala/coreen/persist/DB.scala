@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 5;
+    val version = 6;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -59,11 +59,13 @@ trait DB {
     )}
 
     /** Provides access to the supers table. */
-    val supers = table[Super]
+    val supers = manyToManyRelation(defs, defs).via[Super](
+      (dd, ss, s) => (s.defId === dd.id, s.superId === ss.id))
     on(supers) { s => declare(
-      columns(s.defId, s.superId) are(unique),
       s.superId is(indexed)
     )}
+    supers.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
+    supers.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Returns a query that yields all modules in the specified project. */
     def loadModules (projectId :Long) :Query[Def] =
@@ -193,7 +195,13 @@ trait DBComponent extends Component with DB {
       migrate(5, "Adding SUPER table...",
               List("create table Super (defId bigint not null, superId bigint not null)",
                    "create index superIdx on Super (superId)",
-                   "create unique index defSuperIdx on Super (defId,superId)"))
+                   "alter table Super add constraint SuperFK1 foreign key (defId)" +
+                   "  references Def(id) on delete cascade",
+                   "alter table Super add constraint SuperFK2 foreign key (superId)" +
+                   "  references Def(id) on delete cascade",
+                   "alter table Super add constraint SuperCPK unique(defId,superId)"))
+      migrate(6, "Adding column DEF.SUPERID...",
+              List("alter table DEF add column SUPERID BIGINT not null default 0"))
     }
   }
 }

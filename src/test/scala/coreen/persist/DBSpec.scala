@@ -64,15 +64,51 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
     transaction {
       _db.reinitSchema
 
-      val def1 = Def(25, 1, 1, "One", 1, 1, 0, None, None, 0, 10, 0, 10)
+      val def1 = fakeDef(25, 0, 0, 1, "One")
       _db.defs.insert(def1)
       def1.id should equal(25)
 
-      val def2 = Def(99, 25, 1, "Two", 1, 1, 0, None, None, 0, 10, 0, 10)
-      val def3 = Def(104, 25, 1, "Three", 1, 1, 0, None, None, 0, 10, 0, 10)
+      val def2 = fakeDef(99, 25, 0, 1, "Two")
+      val def3 = fakeDef(104, 25, 0, 1, "Three")
       _db.defs.insert(List(def2, def3))
       def2.id should equal(99)
       def3.id should equal(104)
     }
   }
+
+  "DB" should "properly obey foreign key constraints for supers" in {
+    SessionFactory.concreteFactory = Some(() => testSession)
+    transaction {
+      _db.reinitSchema
+
+      val def1 = fakeDef(1, 0, 0, 1, "One")
+      val def2 = fakeDef(2, 0, 1, 1, "Two")
+      _db.defs.insert(def1)
+      _db.defs.insert(def2)
+
+      // insert a super relationship and make sure it exists
+      _db.supers.insert(Super(2, 1))
+      _db.supers.left(def2).head should equal(def1)
+      _db.supers.right(def1).head should equal(def2)
+
+      // now delete the source def and ensure that the relationship goes away
+      _db.defs.delete(1L)
+      _db.supers.left(def2).size should equal(0)
+      _db.supers.right(def1).size should equal(0)
+
+      // reestablish the relationship
+      _db.defs.insert(def1)
+      _db.supers.insert(Super(2, 1))
+      _db.supers.left(def2).head should equal(def1)
+      _db.supers.right(def1).head should equal(def2)
+
+      // now delete the target def and ensure that the relationship goes away
+      _db.defs.delete(2L)
+      _db.supers.left(def2).size should equal(0)
+      _db.supers.right(def1).size should equal(0)
+    }
+  }
+
+  def fakeDef (id :Long, outerId :Long, superId :Long, unitId :Long, name :String) =
+    Def(id, outerId, superId, unitId, name, 1, 1, 0, None, None, 0, 10, 0, 10)
 }

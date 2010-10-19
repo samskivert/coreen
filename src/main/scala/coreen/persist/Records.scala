@@ -3,8 +3,10 @@
 
 package coreen.persist
 
-import org.squeryl.annotations.Column
 import org.squeryl.KeyedEntity
+import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.annotations.Column
+import org.squeryl.dsl.CompositeKey2
 
 /** Contains project metadata. */
 case class Project (
@@ -65,6 +67,8 @@ case class Def (
   id :Long,
   /** The id of this definition's enclosing definition, or 0 if none. */
   outerId :Long,
+  /** The id of this definition's primary super(type) definition, or 0 if none. */
+  superId :Long,
   /** The id of this definition's enclosing compunit. */
   unitId :Long,
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
@@ -89,7 +93,7 @@ case class Def (
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
                            ", name=" + name + ", type=" + typ + "]")
@@ -120,9 +124,12 @@ case class Super (
   defId :Long,
   /** The id of (one of) this def's supertype(s). */
   superId :Long
-) {
+) extends KeyedEntity[CompositeKey2[Long,Long]] {
   /** Zero args ctor for use when unserializing. */
   def this () = this(0L, 0L)
+
+  /** Defines our primary key. */
+  def id = compositeKey(defId, superId)
 
   override def toString = (defId + " -> " + superId)
 }

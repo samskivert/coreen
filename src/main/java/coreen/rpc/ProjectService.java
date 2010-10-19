@@ -72,6 +72,15 @@ public interface ProjectService extends RemoteService
      * @throws ServiceException with e.no_such_def if the def is unknown. */
     DefContent getContent (long defId) throws ServiceException;
 
+    /** Returns the supertypes of the specified definition. The 2D array is of the form:
+     * { ..., { grandparent, pextra1, pextra2 }, { parent, extra1, extra2 } }, where parent is the
+     * primary supertype of the def, and grandparent is the primary supertype of parent. The
+     * "extra" types are extra supertypes of the definition, and the "pextra" supertypes are extra
+     * supertypes of the parent. Note that it is possible for the grandparentmost primary type to
+     * be null, if the root has extra supertypes but no primary.
+     * @throws ServiceException with e.no_such_def if the def is unknown. */
+    Def[][] getSuperTypes (long defId) throws ServiceException;
+
     /** Searches for defs in the specified project that match the specified query. */
     DefDetail[] search (long projectId, String query) throws ServiceException;
 }

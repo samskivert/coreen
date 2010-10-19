@@ -4,14 +4,13 @@
 package coreen.project;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasAlignment;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.util.Value;
 
 import coreen.icons.IconResources;
@@ -24,21 +23,12 @@ import coreen.icons.IconResources;
  */
 public abstract class TogglePanel extends FlexTable
 {
-    public static ToggleButton makeToggleButton (final Value<Boolean> model)
+    public static ToggleButton makeToggleButton (Value<Boolean> model)
     {
-        final ToggleButton toggle = new ToggleButton(
+        ToggleButton toggle = new ToggleButton(
             new Image(_icons.codeClosed()), new Image(_icons.codeOpen()));
         toggle.addStyleName(_rsrc.styles().toggle());
-        toggle.addClickHandler(new ClickHandler() {
-            public void onClick (ClickEvent event) {
-                model.update(toggle.isDown());
-            }
-        });
-        model.addListenerAndTrigger(new Value.Listener<Boolean>() {
-            public void valueChanged (Boolean value) {
-                toggle.setDown(value);
-            }
-        });
+        Bindings.bindDown(model, toggle);
         return toggle;
     }
 

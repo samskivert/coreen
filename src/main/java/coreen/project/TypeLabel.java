@@ -5,9 +5,12 @@ package coreen.project;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.model.Def;
 import coreen.model.DefId;
@@ -34,6 +37,18 @@ public class TypeLabel extends FlowPanel
         Widget dlabel = createDefLabel(def);
         dlabel.addStyleName("inline");
         add(dlabel);
+
+        Label supers = Widgets.newInlineLabel(" ↑ ", _rsrc.styles().actionable());
+        add(supers);
+        Label subs = Widgets.newInlineLabel(" ↓ ", _rsrc.styles().actionable());
+        add(subs);
+
+        SuperTypesPanel spanel = new SuperTypesPanel(def, linker, defmap);
+        Value<Boolean> showSupers = Value.create(false);
+        supers.addClickHandler(Bindings.makeToggler(showSupers));
+        Bindings.bindVisible(showSupers, spanel);
+        add(spanel);
+
         if (docs != null) {
             add(new DocLabel(docs));
         }

@@ -44,19 +44,14 @@ public interface ProjectServiceAsync
     void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
-     * The async version of {@link ProjectService#getSummary}.
-     */
-    void getSummary (long defId, AsyncCallback<TypeSummary> callback);
-
-    /**
-     * The async version of {@link ProjectService#getCompUnit}.
-     */
-    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
-
-    /**
      * The async version of {@link ProjectService#updateProject}.
      */
     void updateProject (long id, AsyncCallback<Void> callback);
+
+    /**
+     * The async version of {@link ProjectService#deleteProject}.
+     */
+    void deleteProject (long id, AsyncCallback<Void> callback);
 
     /**
      * The async version of {@link ProjectService#getCompUnits}.
@@ -69,9 +64,19 @@ public interface ProjectServiceAsync
     void getModsAndMembers (long projectId, AsyncCallback<Def[][]> callback);
 
     /**
+     * The async version of {@link ProjectService#getModules}.
+     */
+    void getModules (long projectId, AsyncCallback<Def[]> callback);
+
+    /**
      * The async version of {@link ProjectService#getMembers}.
      */
     void getMembers (long defId, AsyncCallback<Def[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
 
     /**
      * The async version of {@link ProjectService#getDef}.
@@ -79,12 +84,12 @@ public interface ProjectServiceAsync
     void getDef (long defId, AsyncCallback<DefDetail> callback);
 
     /**
-     * The async version of {@link ProjectService#getModules}.
+     * The async version of {@link ProjectService#getSummary}.
      */
-    void getModules (long projectId, AsyncCallback<Def[]> callback);
+    void getSummary (long defId, AsyncCallback<TypeSummary> callback);
 
     /**
-     * The async version of {@link ProjectService#deleteProject}.
+     * The async version of {@link ProjectService#getSuperTypes}.
      */
-    void deleteProject (long id, AsyncCallback<Void> callback);
+    void getSuperTypes (long defId, AsyncCallback<Def[][]> callback);
 }
