@@ -23,7 +23,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 3;
+    val version = 4;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -41,7 +41,7 @@ trait DB {
       // defs without having a new id assigned to them
       d.id is(indexed),
       d.unitId is(indexed),
-      d.parentId is(indexed),
+      d.outerId is(indexed),
       d.name is (indexed, dbType("varchar_ignorecase"))
     )}
 
@@ -81,7 +81,7 @@ trait DB {
         where(cu.id in matches.map(_.unitId).toSet) select(cu.id, cu.projectId)) toMap
 
       def mapped (defs :Seq[Def]) = defs map(m => (m.id -> m)) toMap
-      def parents (defs :Seq[Def]) =  defs map(_.parentId) filter(0.!=) toSet
+      def parents (defs :Seq[Def]) =  defs map(_.outerId) filter(0.!=) toSet
       def resolveDefs (have :Map[Long, Def], want :Set[Long]) :Map[Long, Def] = {
         val need = want -- have.keySet
         if (need.isEmpty) have
@@ -94,14 +94,14 @@ trait DB {
       val defMap = resolveDefs(mapped(matches), parents(matches))
       def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
         case None => path.toArray
-        case Some(d) => mkPath(defMap.get(d.parentId), Convert.toDefId(d) :: path)
+        case Some(d) => mkPath(defMap.get(d.outerId), Convert.toDefId(d) :: path)
       }
 
       matches map { d =>
         val pid = unitMap(d.unitId)
         val r = Convert.initDefInfo(d, createDD())
         r.unit = new JCompUnit(d.unitId, pid, null)
-        r.path = mkPath(defMap.get(d.parentId), List())
+        r.path = mkPath(defMap.get(d.outerId), List())
         r
       } toArray
     }
@@ -137,8 +137,8 @@ trait DBComponent extends Component with DB {
       case e => 0
     }
     if (_db.version < overs) {
-      println("DB on file system is higher version than code? Beware. " +
-              "[file=" + overs + ", code=" + _db.version + "]")
+      _log.warning("DB on file system is higher version than code? Beware.",
+                   "file", overs, "code", _db.version)
     }
 
     // initialize the H2 database
@@ -159,7 +159,7 @@ trait DBComponent extends Component with DB {
     }
     def migrate (version :Int, descrip :String, sql :String) {
       if (overs < version) transaction {
-        println(descrip)
+        _log.info(descrip)
 
         // perform the migration
         val stmt = Session.currentSession.connection.createStatement
@@ -173,7 +173,7 @@ trait DBComponent extends Component with DB {
 
     // if we have no version string, we need to initialize the database
     if (overs < 1) {
-      println("Initializing schema. [vers=" + _db.version + "]")
+      _log.info("Initializing schema. [vers=" + _db.version + "]")
       transaction { _db.reinitSchema }
       writeVersion(_db.version)
 
@@ -182,6 +182,8 @@ trait DBComponent extends Component with DB {
               "alter table DEF add column FLAVOR INTEGER(10) not null default 0")
       migrate(3, "Adding column DEF.FLAGS...",
               "alter table DEF add column FLAGS INTEGER(10) not null default 0")
+      migrate(4, "Changing DEF.PARENTID to DEF.OUTERID...",
+              "alter table DEF alter column PARENTID rename to OUTERID")
     }
   }
 }
@@ -291,7 +293,7 @@ case class Def (
   /** A unique identifier for this definition (1 or higher). */
   id :Long,
   /** The id of this definition's enclosing definition, or 0 if none. */
-  parentId :Long,
+  outerId :Long,
   /** The id of this definition's enclosing compunit. */
   unitId :Long,
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
@@ -318,7 +320,7 @@ case class Def (
   /** Zero args ctor for use when unserializing. */
   def this () = this(0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
 
-  override def toString = ("[id=" + id + ", pid=" + parentId + ", uid=" + unitId +
+  override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
                            ", name=" + name + ", type=" + typ + "]")
 }
 

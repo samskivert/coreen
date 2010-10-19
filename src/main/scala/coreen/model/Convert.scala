@@ -47,7 +47,7 @@ object Convert
     initDefId(sdef, jdef)
     jdef.flavor = Decode.codeToFlavor(sdef.flavor)
     jdef.flags = sdef.flags;
-    jdef.parentId = sdef.parentId
+    jdef.outerId = sdef.outerId
     jdef.start = sdef.defStart
     jdef
   }

@@ -18,7 +18,7 @@ public class Def extends DefId
     public int flags;
 
     /** A unique identifier for this definition's enclosing def (or 0 if they have none). */
-    public long parentId;
+    public long outerId;
 
     /** The character offset in the source file at which this def starts. */
     public int start;

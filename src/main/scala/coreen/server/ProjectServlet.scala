@@ -63,8 +63,8 @@ trait ProjectServlet {
     // from interface ProjectService
     def getModsAndMembers (projectId :Long) :Array[Array[JDef]] = transaction {
       val mods = _db.loadModules(projectId) map(d => (d.id -> d)) toMap
-      val members = _db.defs where(d => d.parentId in mods.keySet) toArray
-      val modMems = members groupBy(_.parentId) map {
+      val members = _db.defs where(d => d.outerId in mods.keySet) toArray
+      val modMems = members groupBy(_.outerId) map {
         case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava)
       }
       modMems.toArray sortBy(_.head.name)
@@ -86,7 +86,7 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
-      _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(Convert.toJava)
+      _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
@@ -104,7 +104,7 @@ trait ProjectServlet {
     // from interface ProjectService
     def getType (defId :Long) :TypeDetail = transaction {
       val td = initDefDetail(defId, new TypeDetail)
-      val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
+      val cmap = _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(
         Convert.toJava) groupBy(_.`type`)
       td.types = cmap.getOrElse(Type.TYPE, Array())
       td.funcs = cmap.getOrElse(Type.FUNC, Array())
@@ -115,7 +115,7 @@ trait ProjectServlet {
     // from interface ProjectService
     def getSummary (defId :Long) :TypeSummary = transaction {
       val ts = initDefDetail(defId, new TypeSummary)
-      val cmap = _db.defs.where(d => d.parentId === defId).toArray sortBy(_.name) map(
+      val cmap = _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(
         Convert.toDefInfo) groupBy(_.`type`)
       ts.types = cmap.getOrElse(Type.TYPE, Array())
       ts.funcs = cmap.getOrElse(Type.FUNC, Array())
@@ -136,7 +136,7 @@ trait ProjectServlet {
 
       // load up all defs and uses that are children of the def in question
       def loadDefs (parents :Set[Long]) :Seq[Def] = {
-        val defs = _db.defs.where(d => d.parentId in parents).toSeq
+        val defs = _db.defs.where(d => d.outerId in parents).toSeq
         if (defs.isEmpty) defs
         else defs ++ loadDefs(defs.map(_.id) toSet)
       }
@@ -176,14 +176,14 @@ trait ProjectServlet {
     private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
       Convert.initDefInfo(d, dd)
       dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
-      dd.path = loadDefPath(d.parentId, Nil).toArray
+      dd.path = loadDefPath(d.outerId, Nil).toArray
       dd
     }
 
     private def loadDefPath (defId :Long, path :List[DefId]) :List[DefId] =
       if (defId == 0L) path else {
         val d = _db.defs.lookup(defId).get
-        loadDefPath(d.parentId, Convert.toDefId(d) :: path)
+        loadDefPath(d.outerId, Convert.toDefId(d) :: path)
       }
 
     private def initDefDetail[DD <: DefDetail] (defId :Long, dd :DD) :DD =

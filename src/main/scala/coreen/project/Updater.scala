@@ -227,10 +227,10 @@ trait Updater {
         defMap ++= nmap
 
         // now convert the defelems into defs using the fqName to id map
-        def processDefs (parentId :Long)(
+        def processDefs (outerId :Long)(
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = defMap.get(df.id) match {
           case Some(defId) => {
-            val ndef = Def(defId, parentId, unitId, df.name, Decode.typeToCode(df.typ),
+            val ndef = Def(defId, outerId, unitId, df.name, Decode.typeToCode(df.typ),
                            Decode.flavorToCode(df.flavor), df.flags,
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)

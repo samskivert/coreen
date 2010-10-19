@@ -84,7 +84,7 @@ public class TypesPanel extends SummaryPanel
                         long outerId = def.id, innerId = 0L;
                         Def d = def;
                         while (d != null) {
-                            d = byid.get(d.parentId);
+                            d = byid.get(d.outerId);
                             if (d != null) {
                                 innerId = outerId;
                                 outerId = d.id;
