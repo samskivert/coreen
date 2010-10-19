@@ -8,6 +8,7 @@ import java.net.URI
 import java.util.concurrent.Callable
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{Map => MMap}
 import scala.io.Source
 import scala.xml.{XML, Elem}
 
@@ -92,7 +93,7 @@ trait Updater {
         val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
         val toAdd = newPaths -- (oldCUs map(_.path))
         val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id) toSet
-        val cuIds = collection.mutable.Map[String,Long]()
+        val cuIds = MMap[String,Long]()
         val now = System.currentTimeMillis
         transaction {
           if (!toDelete.isEmpty) {
@@ -125,19 +126,30 @@ trait Updater {
             getOrElse(_db.compunits.insert(CompUnit(p.id, "", now)))
         }
 
+        // this map will contain a mapping from fqName to defId for all referable defs (i.e. those
+        // that are not internal to a function or initialization expression)
+        val defMap = MMap[String,Long]()
+
         // we extract all of the module definitions, map them by id, and then select (arbitrarily)
         // the first occurance of a definition for the specified module id to represent that
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
         val byId = cus.flatMap(_.allDefs) filter(_.typ == Type.MODULE) groupBy(_.id)
-        val modDefs = byId.values map(_.head) map(_.copy(defs = Nil))
-        val modIds = processCompUnit(cuDef.id, Map(), CompUnitElem("", modDefs toSeq))
+        processCompUnit(cuDef.id, defMap, byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
 
-        // process each compunit individually
+        // first process all of the definitions in all of the compunits...
         for (cu <- cus) {
-          ulog("Processing " + cu.src + "...")
-          processCompUnit(cuIds(cu.src), modIds, cu)
+          ulog("Processing defs in " + cu.src + "...")
+          // we want to filter out any defs for which we have no module id mapping; this filters
+          // out code from modules that have already been claimed by some other project
+          processCompUnit(cuIds(cu.src), defMap, cu.defs filter(d => defMap.contains(d.id)))
+        }
+
+        // then process all of the uses (which may reference the newly added defs)...
+        for (cu <- cus) {
+          ulog("Processing uses in " + cu.src + "...")
+          processUses(cuIds(cu.src), defMap, cu.defs)
         }
 
         ulog("Processing complete!")
@@ -179,7 +191,8 @@ trait Updater {
       def args :List[String]
     }
 
-    def processCompUnit (unitId :Long, modIds :Map[String,Long], cu :CompUnitElem) = {
+    def processCompUnit (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+      println("Processing " + defs.size + " defs in " + unitId)
       // load up existing defs for this compunit, and a mapping from fqName to defId
       val (edefs, emap) = time("loadNames") {
         transaction {
@@ -187,21 +200,14 @@ trait Updater {
           (tmp, _db.loadDefNames(tmp.keySet))
         }
       }
-      // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
-
-      // if we have module ids (meaning we're processing a real compunit, not the synthetic
-      // "declare all of our modules" compunit), we want to filter out any defs for which we have
-      // no module id mapping; this filters out code from modules that have already been claimed by
-      // some other project
-      val defs = if (modIds.isEmpty) cu.defs
-                 else cu.defs filter(d => modIds.contains(d.id))
+      println("Loaded " + edefs.size + " defs and " + emap.size + " names")
 
       // figure out which defs to add, which to update, and which to delete
       def allIds (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
         (ids /: defs)((s, d) => allIds(s + d.id, d.defs))
       val (newDefs, oldDefs) = (allIds(Set(), defs), emap.keySet)
       val toDelete = oldDefs -- newDefs
-      val (fullToAdd, toUpdate) = (newDefs -- oldDefs -- modIds.keySet, oldDefs -- toDelete)
+      val (fullToAdd, toUpdate) = (newDefs -- oldDefs -- defMap.keySet, oldDefs -- toDelete)
 
       transaction {
         // check to see if any of our toAdd already exist; this generally means that this project
@@ -216,11 +222,14 @@ trait Updater {
         // we have to load the newly assigned ids back out of the db as there's no way to get the
         // newly assigned ids when using a batch update
         val nmap = time("loadDefIds") { _db.loadDefIds(toAdd) }
-        val ids = modIds ++ emap ++ nmap
+
+        // add our existing and new mappings to the def map
+        defMap ++= emap
+        defMap ++= nmap
 
         // now convert the defelems into defs using the fqName to id map
         def processDefs (parentId :Long)(
-          out :Map[Long,Def], df :DefElem) :Map[Long,Def] = ids.get(df.id) match {
+          out :Map[Long,Def], df :DefElem) :Map[Long,Def] = defMap.get(df.id) match {
           case Some(defId) => {
             val ndef = Def(defId, parentId, unitId, df.name, Decode.typeToCode(df.typ),
                            Decode.flavorToCode(df.flavor), df.flags,
@@ -248,13 +257,17 @@ trait Updater {
           time("deleteOldDefs") { _db.defs.deleteWhere(d => d.id in toDelIds) }
           // println("Deleted " + toDelete.size + " defs")
         }
+      }
+    }
 
+    def processUses (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+      transaction {
         // delete the old uses recorded for this compunit
         time("deleteOldUses") { _db.uses.deleteWhere(u => u.unitId === unitId) }
 
         // convert the useelems into (use, referentFqName) pairs
         def processUses (out :Vector[(Use,String)],
-                         df :DefElem) :Vector[(Use,String)] = ids.get(df.id) match {
+                         df :DefElem) :Vector[(Use,String)] = defMap.get(df.id) match {
           case Some(defId) => {
             val nuses = df.uses.map(
               u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
@@ -264,19 +277,21 @@ trait Updater {
         }
         val nuses = (Vector[(Use,String)]() /: defs)(processUses)
 
-        // now look up the referents
-        val refFqNames = Set() ++ nuses.map(_._2)
-        val refIds = time("loadRefIds") { _db.loadDefIds(refFqNames) }
+        // look up the ids of referents that we don't already know about
+        val refFqNames = Set() ++ (nuses map(_._2) filter(!defMap.contains(_)))
+        if (!refFqNames.isEmpty) {
+          println("Loading ids for " + refFqNames.size + " unseen external defs.")
+          defMap ++= time("loadRefIds") { _db.loadDefIds(refFqNames) }
+        }
+
         // TODO: generate placeholder defs for unknown referents
-        val missingIds = refFqNames -- refIds.keySet
+        val missingIds = refFqNames -- defMap.keySet
         val (bound, unbound) = ((List[Use](),List[(Use,String)]()) /: nuses)((
-          acc, up) => refIds.get(up._2) match {
+          acc, up) => defMap.get(up._2) match {
           case Some(id) => ((up._1 copy (referentId = id)) :: acc._1, acc._2)
-          case None => (acc._1, up :: acc._2)
+            case None => (acc._1, up :: acc._2)
         })
         time("insertUses") { _db.uses.insert(bound) }
-
-        ids // return the mapping from fqName to id for all defs in this compunit
       }
     }
 
@@ -297,7 +312,7 @@ trait Updater {
       _timings(id) = elapsed + _timings.getOrElse(id, 0L)
       r
     }
-    val _timings = collection.mutable.Map[String,Long]()
+    val _timings = MMap[String,Long]()
     // END TEMP
 
     def stropt (text :String) = text match {
