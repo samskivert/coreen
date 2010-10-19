@@ -45,8 +45,10 @@ trait ProjectServlet {
     // from interface ProjectService
     def deleteProject (id :Long) :Unit = transaction {
       // TODO: redo all of this with foreign keys and let the database sort it out
-      _db.uses.deleteWhere(u => u.referentId in from(_db.defs, _db.compunits)(
-        (d, cu) => where(d.unitId === cu.id and cu.projectId === id) select(d.id)))
+      val defIds = from(_db.defs, _db.compunits)(
+        (d, cu) => where(d.unitId === cu.id and cu.projectId === id) select(d.id))
+      _db.uses.deleteWhere(u => u.referentId in defIds)
+      _db.defmap.deleteWhere(dn => dn.id in defIds)
       _db.defs.deleteWhere(d => d.id in from(_db.compunits)(
         cu => where(cu.projectId === id) select(cu.id)))
       _db.compunits.deleteWhere(cu => cu.projectId === id)
