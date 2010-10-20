@@ -198,14 +198,13 @@ trait Updater {
     }
 
     def processDefs (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
-      // load up existing defs for this compunit, and a mapping from fqName to defId
-      val (edefs, emap) = time("loadNames") {
-        transaction {
-          val tmp = _db.defs.where(d => d.unitId === unitId) map(d => (d.id, d)) toMap; // grumble
-          (tmp, _db.loadDefNames(tmp.keySet))
-        }
-      }
-      // println("Loaded " + edefs.size + " defs and " + emap.size + " names")
+      // load up the fqNames for all existing defs in this compunit
+      val emap = time("loadNames") { transaction {
+        from(_db.defs, _db.defmap) { (d, dn) =>
+          where(d.unitId === unitId and d.id === dn.id) select((dn.fqName, dn.id))
+        } toMap
+      }}
+      // println("Loaded " + emap.size + " names")
 
       // figure out which defs to add, which to update, and which to delete
       def allIds (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
