@@ -116,8 +116,21 @@ trait ProjectServlet {
     // from interface ProjectService
     def getSummary (defId :Long) :TypeSummary = transaction {
       val ts = initDefDetail(defId, new TypeSummary)
-      val cmap = _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(
-        Convert.toDefInfo) groupBy(_.`type`)
+      val mems = _db.defs.where(d => d.outerId === defId).toArray
+      // load up all of the members defined in supertypes (TODO: filter members of Object/root?)
+      def loadSupers (superId :Long, filterIds :Set[Long]) :Array[Def] = {
+        _db.defs.lookup(superId) match {
+          case Some(sd) => {
+            println("Adding supers for " + sd.name)
+            val smems = _db.defs.where(d => d.outerId === superId and
+                                       not (d.id in filterIds)) toArray;
+            smems ++ loadSupers(sd.superId, filterIds ++ smems.map(_.superId))
+          }
+          case None => Array[Def]()
+        }
+      }
+      val supers = loadSupers(ts.superId, mems map(_.superId) toSet)
+      val cmap = (mems ++ supers) sortBy(_.name) map(Convert.toDefInfo) groupBy(_.`type`)
       ts.types = cmap.getOrElse(Type.TYPE, Array())
       ts.funcs = cmap.getOrElse(Type.FUNC, Array())
       ts.terms = cmap.getOrElse(Type.TERM, Array())
