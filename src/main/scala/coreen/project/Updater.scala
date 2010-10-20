@@ -243,7 +243,7 @@ trait Updater {
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
           case None => {
-            println("*** No mapping for " + df.id)
+            println("*** No mapping for " + df.id) // TODO: why?
             out
           }
         }
@@ -257,6 +257,7 @@ trait Updater {
           // println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
+          // TODO: remove this reporting and filtering when above bug is fixed
           toUpdate filter(id => !ndefs.contains(emap(id))) foreach {
             mid => println("*** Missing " + mid) }
           _db.defs.update(toUpdate map(emap) filter(ndefs.contains) map(ndefs))
