@@ -48,6 +48,7 @@ object Convert
     jdef.flavor = Decode.codeToFlavor(sdef.flavor)
     jdef.flags = sdef.flags;
     jdef.outerId = sdef.outerId
+    jdef.superId = sdef.superId
     jdef.start = sdef.defStart
     jdef
   }

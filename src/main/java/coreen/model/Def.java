@@ -20,6 +20,9 @@ public class Def extends DefId
     /** A unique identifier for this definition's enclosing def (or 0 if they have none). */
     public long outerId;
 
+    /** The id of this def's primary super def (or 0 if they have none). */
+    public long superId;
+
     /** The character offset in the source file at which this def starts. */
     public int start;
 
