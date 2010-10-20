@@ -8,12 +8,6 @@ package coreen.model;
  */
 public class TypeDetail extends DefDetail
 {
-    /** Type members of this type. */
-    public Def[] types;
-
-    /** Function members of this type. */
-    public Def[] funcs;
-
-    /** Term members of this type. */
-    public Def[] terms;
+    /** Members of this type. */
+    public Def[] members;
 }
