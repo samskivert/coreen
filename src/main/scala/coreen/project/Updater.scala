@@ -242,7 +242,10 @@ trait Updater {
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
-          case None => out
+          case None => {
+            println("*** No mapping for " + df.id)
+            out
+          }
         }
         val ndefs = (Map[Long,Def]() /: defs)(makeDefs(0L))
 
@@ -254,7 +257,9 @@ trait Updater {
           // println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
-          _db.defs.update(toUpdate map(emap) map(ndefs))
+          toUpdate filter(id => !ndefs.contains(emap(id))) foreach {
+            mid => println("*** Missing " + mid) }
+          _db.defs.update(toUpdate map(emap) filter(ndefs.contains) map(ndefs))
           // println("Updated " + toUpdate.size + " defs")
         }
         if (!toDelete.isEmpty) {
@@ -322,8 +327,7 @@ trait Updater {
         val toUpdate = MMap[Long,Long]()
 
         // note all of the super additions, deletions and updates that are needed
-        def processDef (d :DefElem) {
-          val defId = defMap(d.id)
+        def processDef (d :DefElem) :Unit = defMap.get(d.id) foreach { defId =>
           val osups = superMap getOrElse(defId, Set())
           val nsups = (d.supers.toSet -- missingIds) map(defMap) toSet; // grr!
           // note the deletions and additions to be made
