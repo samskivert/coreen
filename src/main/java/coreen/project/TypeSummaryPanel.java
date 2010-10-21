@@ -15,6 +15,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -181,16 +182,19 @@ public class TypeSummaryPanel extends Composite
             protected Widget createCollapsed () {
                 SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 sig.addStyleName("inline");
-                new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
+                if (member.docs != null) {
+                    final PopupPanel docup = new PopupPanel();
+                    docup.setWidget(new DocLabel(member.docs));
+                    // TODO: wire up mouse enter and leave on siglabel to pop and hide the docup
+                }
+                // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
             }
             protected Widget createExpanded () {
                 if (member.type == Type.TYPE) {
                     return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
-                } else if (member.doc == null) {
-                    return createSourceView(member);
                 } else {
-                    return Widgets.newFlowPanel(new DocLabel(member.doc), createSourceView(member));
+                    return createSourceView(member);
                 }
             }
         });
