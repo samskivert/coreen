@@ -166,7 +166,7 @@ trait ProjectServlet {
         val sdefs = _db.supers.left(d).toList
         if (!sdefs.isEmpty) {
           val (pdef, darray) = sdefs.find(_.id == d.superId) match {
-            case None => (None, (null :: sdefs map(Convert.toJava)) toArray)
+            case None => (None, (null :: sdefs.map(Convert.toJava)) toArray)
             case Some(pd) =>
               (Some(pd), (pd :: sdefs.filterNot(_.id == pd.id)) map(Convert.toJava) toArray)
           }
