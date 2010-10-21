@@ -67,6 +67,9 @@ public class SuperTypesPanel extends SimplePanel
 
     protected Widget makeLabel (Def def, boolean popper)
     {
+        if (def == null) {
+            return Widgets.newInlineLabel("");
+        }
         Widget label = Widgets.newInlineLabel(def.name);
         if (popper) {
             new UsePopup.Popper(def.id, label, _linker, _defmap, true);
