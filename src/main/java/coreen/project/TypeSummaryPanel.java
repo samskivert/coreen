@@ -15,6 +15,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -128,36 +129,48 @@ public class TypeSummaryPanel extends Composite
         }
         contents.add(new SigLabel(sum, sum.sig, _defmap));
 
-        int added = addMembers(contents, true, sum.types, sum.funcs, sum.terms);
-        if (added < sum.types.length + sum.funcs.length + sum.terms.length) {
+        int added = addMembers(contents, true, sum.members);
+        if (added < sum.members.length) {
             FlowPanel nonpubs = new FlowPanel() {
                 public void setVisible (boolean visible) {
                     if (visible && getWidgetCount() == 0) {
-                        addMembers(this, false, sum.types, sum.funcs, sum.terms);
+                        addMembers(this, false, sum.members);
                     }
                     super.setVisible(visible);
                 }
             };
-            Value<Boolean> model = Value.create(false);
-            Bindings.bindVisible(model, nonpubs);
+            Bindings.bindVisible(_npshowing, nonpubs);
             contents.add(new FluentTable(0, 0, _styles.nonPublic()).
-                         add().setWidget(TogglePanel.makeToggleButton(model)).
+                         add().setWidget(TogglePanel.makeToggleButton(_npshowing)).
                          right().setText("Non-public members").table());
             contents.add(nonpubs);
+        }
+
+        // add a listener to all non-public members that shows the non-public members section
+        // whenever any of them are marked as showing
+        Value.Listener<Boolean> syncer = new Value.Listener<Boolean>() {
+            public void valueChanged (Boolean value) {
+                if (value) {
+                    _npshowing.update(true);
+                }
+            }
+        };
+        for (DefInfo member : sum.members) {
+            if (!member.isPublic()) {
+                _expanded.get(member.id).addListenerAndTrigger(syncer);
+            }
         }
 
         _contents.setWidget(contents);
     }
 
-    protected int addMembers (FlowPanel panel, boolean access, DefInfo[]... lists)
+    protected int addMembers (FlowPanel panel, boolean access, DefInfo[] members)
     {
         int added = 0;
-        for (DefInfo[] list : lists) {
-            for (DefInfo member : list) {
-                if (member.isPublic() == access) {
-                    addMember(panel, member);
-                    added++;
-                }
+        for (DefInfo member : members) {
+            if (member.isPublic() == access) {
+                addMember(panel, member);
+                added++;
             }
         }
         return added;
@@ -169,16 +182,19 @@ public class TypeSummaryPanel extends Composite
             protected Widget createCollapsed () {
                 SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 sig.addStyleName("inline");
-                new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
+                if (member.docs != null) {
+                    final PopupPanel docup = new PopupPanel();
+                    docup.setWidget(new DocLabel(member.docs));
+                    // TODO: wire up mouse enter and leave on siglabel to pop and hide the docup
+                }
+                // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
             }
             protected Widget createExpanded () {
                 if (member.type == Type.TYPE) {
                     return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
-                } else if (member.doc == null) {
-                    return createSourceView(member);
                 } else {
-                    return Widgets.newFlowPanel(new DocLabel(member.doc), createSourceView(member));
+                    return createSourceView(member);
                 }
             }
         });
@@ -215,6 +231,7 @@ public class TypeSummaryPanel extends Composite
     protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
     protected UsePopup.Linker _linker;
+    protected Value<Boolean> _npshowing = Value.create(false);
 
     protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

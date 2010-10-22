@@ -12,7 +12,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
-import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, Type, TypeDetail, TypeSummary}
+import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
+import coreen.model.{Type, Flavor}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -66,14 +67,14 @@ trait ProjectServlet {
       val mods = _db.loadModules(projectId) map(d => (d.id -> d)) toMap
       val members = _db.defs where(d => d.outerId in mods.keySet) toArray
       val modMems = members groupBy(_.outerId) map {
-        case (id, dfs) => (mods(id) +: dfs.sortBy(_.name)) map(Convert.toJava)
+        case (id, dfs) => (mods(id) +: dfs.sorted(ByFlavorName)) map(Convert.toJava)
       }
       modMems.toArray sortBy(_.head.name)
     }
 
     /** Returns all modules in the specified project. */
     def getModules (projectId :Long) :Array[JDef] = transaction {
-      _db.loadModules(projectId).toArray sortBy(_.name) map(Convert.toJava)
+      _db.loadModules(projectId).toArray sorted(ByFlavorName) map(Convert.toJava)
     }
 
     // from interface ProjectService
@@ -82,12 +83,12 @@ trait ProjectServlet {
         where(cu.projectId === projectId and cu.id === d.unitId and
               (d.typ === Decode.typeToCode(Type.TYPE)))
         select(d)
-      ).toArray sortBy(_.name) map(Convert.toJava)
+      ).toArray sorted(ByFlavorName) map(Convert.toJava)
     }
 
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
-      _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(Convert.toJava)
+      _db.defs.where(d => d.outerId === defId).toArray sorted(ByFlavorName) map(Convert.toJava)
     }
 
     // from interface ProjectService
@@ -105,11 +106,8 @@ trait ProjectServlet {
     // from interface ProjectService
     def getType (defId :Long) :TypeDetail = transaction {
       val td = initDefDetail(defId, new TypeDetail)
-      val cmap = _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(
-        Convert.toJava) groupBy(_.`type`)
-      td.types = cmap.getOrElse(Type.TYPE, Array())
-      td.funcs = cmap.getOrElse(Type.FUNC, Array())
-      td.terms = cmap.getOrElse(Type.TERM, Array())
+      td.members = _db.defs.where(d => d.outerId === defId).toArray sorted(ByFlavorName) map(
+        Convert.toJava)
       td
     }
 
@@ -130,10 +128,7 @@ trait ProjectServlet {
         }
       }
       val supers = loadSupers(ts.superId, mems map(_.superId) toSet)
-      val cmap = (mems ++ supers) sortBy(_.name) map(Convert.toDefInfo) groupBy(_.`type`)
-      ts.types = cmap.getOrElse(Type.TYPE, Array())
-      ts.funcs = cmap.getOrElse(Type.FUNC, Array())
-      ts.terms = cmap.getOrElse(Type.TERM, Array())
+      ts.members = (mems ++ supers) sorted(ByFlavorName) map(Convert.toDefInfo)
       ts
     }
 
@@ -171,7 +166,7 @@ trait ProjectServlet {
         val sdefs = _db.supers.left(d).toList
         if (!sdefs.isEmpty) {
           val (pdef, darray) = sdefs.find(_.id == d.superId) match {
-            case None => (None, (null :: sdefs map(Convert.toJava)) toArray)
+            case None => (None, (null :: sdefs.map(Convert.toJava)) toArray)
             case Some(pd) =>
               (Some(pd), (pd :: sdefs.filterNot(_.id == pd.id)) map(Convert.toJava) toArray)
           }
@@ -238,6 +233,29 @@ trait ProjectServlet {
 
     private def loadSource (p :Project, unit :JCompUnit) =
       Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).mkString("")
+
+    // defines the sort ordering of def flavors
+    private val FlavorPriority = List(Flavor.ENUM,
+                                      Flavor.INTERFACE,
+                                      Flavor.ABSTRACT_CLASS,
+                                      Flavor.CLASS,
+                                      Flavor.ANNOTATION,
+                                      Flavor.OBJECT,
+                                      Flavor.ABSTRACT_OBJECT,
+                                      Flavor.STATIC_FIELD,
+                                      Flavor.STATIC_METHOD,
+                                      Flavor.FIELD,
+                                      Flavor.CONSTRUCTOR,
+                                      Flavor.ABSTRACT_METHOD,
+                                      Flavor.METHOD
+                                    ).map(Decode.flavorToCode).zipWithIndex.toMap
+
+    private val ByFlavorName = new Ordering[Def] {
+      def compare (a :Def, b :Def) = {
+        val rv = FlavorPriority.getOrElse(a.flavor, 99) - FlavorPriority.getOrElse(b.flavor, 99)
+        if (rv == 0) a.name.compareTo(b.name) else rv
+      }
+    }
 
     private val LineSeparator = System.getProperty("line.separator")
   }

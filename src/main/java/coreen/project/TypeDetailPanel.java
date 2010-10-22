@@ -120,9 +120,9 @@ public class TypeDetailPanel extends Composite
         if (detail.type == Type.TYPE) {
             FlowPanel members = Widgets.newFlowPanel(_styles.members());
             deets = Widgets.newFlowPanel();
-            addDefs(members, _msgs.tdpTypes(), detail.types, deets);
-            addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
-            addDefs(members, _msgs.tdpTerms(), detail.terms, deets);
+            addDefs(members, _msgs.tdpTypes(), detail.members, deets);
+            // addDefs(members, _msgs.tdpFuncs(), detail.funcs, deets);
+            // addDefs(members, _msgs.tdpTerms(), detail.terms, deets);
             if (members.getWidgetCount() > 0) {
                 DefUtil.addClear(members);
                 contents.add(members);
