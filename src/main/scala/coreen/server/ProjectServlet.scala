@@ -120,13 +120,13 @@ trait ProjectServlet {
       // load up all of the members defined in supertypes (TODO: filter members of Object/root?)
       def loadSupers (superId :Long, filterIds :Set[Long]) :Array[Def] = {
         _db.defs.lookup(superId) match {
-          case Some(sd) => {
+          case Some(sd) if (!isRoot(sd)) => {
             println("Adding supers for " + sd.name)
             val smems = _db.defs.where(d => d.outerId === superId and
                                        not (d.id in filterIds)) toArray;
             smems ++ loadSupers(sd.superId, filterIds ++ smems.map(_.superId))
           }
-          case None => Array[Def]()
+          case _ => Array[Def]()
         }
       }
       val supers = loadSupers(ts.superId, mems map(_.superId) toSet)
@@ -192,6 +192,8 @@ trait ProjectServlet {
               d.typ.~ < Decode.typeToCode(Type.TERM))
         select(d)) toSeq, () => new DefDetail)
     }
+
+    private def isRoot (df :Def) = df.name == "Object" // TODO!
 
     private def requireProject (id :Long) = transaction {
       _db.projects.lookup(id) match {
