@@ -127,7 +127,7 @@ public class TypeSummaryPanel extends Composite
             if (sum.type == Type.TYPE) {
                 contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
             } else if (sum.doc != null) {
-                contents.add(new DocLabel(sum.doc, true));
+                contents.add(new DocLabel(sum.doc));
             }
         }
         contents.add(new SigLabel(sum, sum.sig, _defmap));
@@ -190,7 +190,7 @@ public class TypeSummaryPanel extends Composite
                         if (_docpop == null) {
                             _docpop = new PopupPanel(true);
                             _docpop.setStyleName(_rsrc.styles().usePopup());
-                            _docpop.setWidget(new DocLabel(member.doc));
+                            _docpop.setWidget(new DocLabel(member.doc, true));
                         }
                         if (_shownDocs != null) {
                             _shownDocs.hide();
@@ -215,7 +215,7 @@ public class TypeSummaryPanel extends Composite
 
     protected Widget createSourceView (final DefInfo member)
     {
-        return new SourcePanel(_defmap) {
+        return Widgets.newFlowPanel(new DocLabel(member.doc), new SourcePanel(_defmap) {
             /* ctor */ {
                 _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
                     public void onSuccess (DefContent content) {
@@ -229,7 +229,7 @@ public class TypeSummaryPanel extends Composite
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
             }
             protected Widget _deficon;
-        };
+        });
     }
 
     protected interface Styles extends CssResource

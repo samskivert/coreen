@@ -37,7 +37,7 @@ public class DocLabel extends FlowPanel
 
         // TODO: smarter "sentence" detection?
         String[] bits = fullDoc.split("\\.(\\s|<br/>|<br>)+");
-        if (true || bits.length == 1) {
+        if (bits.length == 1) {
             add(Widgets.newHTML(fullDoc));
         } else {
             final String shortDoc = bits[0] + ".";
