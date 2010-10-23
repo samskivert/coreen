@@ -20,14 +20,24 @@ public class DocLabel extends FlowPanel
 {
     public DocLabel (String docHTML)
     {
+        this(docHTML, false);
+    }
+
+    public DocLabel (String docHTML, boolean alwaysFull)
+    {
         addStyleName(_rsrc.styles().doc());
 
         // if we have no docs, display a message to that effect
         final String fullDoc = (docHTML == null) ? _msgs.pNoDocs() : docHTML;
 
+        if (alwaysFull) {
+            add(Widgets.newHTML(fullDoc));
+            return;
+        }
+
         // TODO: smarter "sentence" detection?
         String[] bits = fullDoc.split("\\.(\\s|<br/>|<br>)+");
-        if (bits.length == 1) {
+        if (true || bits.length == 1) {
             add(Widgets.newHTML(fullDoc));
         } else {
             final String shortDoc = bits[0] + ".";

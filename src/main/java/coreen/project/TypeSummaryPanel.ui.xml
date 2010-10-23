@@ -16,10 +16,6 @@
     .nonPublic {
       font-size: small;
     }
-    .highlightedMember {
-      border: 1px solid;
-      padding: 2px;
-    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>

@@ -31,6 +31,10 @@
   color: #B8860B;
 }
 
+.doc {
+  max-width: 800px;
+}
+
 .doc p {
   margin-bottom: 0px;
 }

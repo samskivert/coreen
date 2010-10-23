@@ -37,6 +37,7 @@ import coreen.model.Type;
 import coreen.model.TypeSummary;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
 import coreen.util.IdMap;
@@ -126,7 +127,7 @@ public class TypeSummaryPanel extends Composite
             if (sum.type == Type.TYPE) {
                 contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
             } else if (sum.doc != null) {
-                contents.add(new DocLabel(sum.doc));
+                contents.add(new DocLabel(sum.doc, true));
             }
         }
         contents.add(new SigLabel(sum, sum.sig, _defmap));
@@ -180,18 +181,24 @@ public class TypeSummaryPanel extends Composite
 
     protected void addMember (FlowPanel panel, final DefInfo member)
     {
-        final FlowPanel pair = Widgets.newFlowPanel();
-        final DocLabel docs = new DocLabel(member.doc);
-        docs.setVisible(false);
-        pair.add(docs);
-        pair.add(new TogglePanel(_expanded.get(member.id)) {
+        panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
-                SigLabel sig = new SigLabel(member, member.sig, _defmap);
+                final SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 // sig.addStyleName(_rsrc.styles().actionable());
                 sig.addMouseOverHandler(new MouseOverHandler() {
                     public void onMouseOver (MouseOverEvent event) {
-                        highlightMember(pair, docs);
+                        if (_docpop == null) {
+                            _docpop = new PopupPanel(true);
+                            _docpop.setStyleName(_rsrc.styles().usePopup());
+                            _docpop.setWidget(new DocLabel(member.doc));
+                        }
+                        if (_shownDocs != null) {
+                            _shownDocs.hide();
+                        }
+                        _shownDocs = _docpop;
+                        UIUtil.showAbove(_docpop, sig);
                     }
+                    protected PopupPanel _docpop;
                 });
                 // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
@@ -204,21 +211,6 @@ public class TypeSummaryPanel extends Composite
                 }
             }
         });
-        panel.add(pair);
-    }
-
-    protected void highlightMember (FlowPanel box, DocLabel docs)
-    {
-        if (_shownBox != null) {
-            _shownBox.removeStyleName(_styles.highlightedMember());
-        }
-        if (_shownDocs != null) {
-            _shownDocs.setVisible(false);
-        }
-        _shownDocs = docs;
-        _shownDocs.setVisible(true);
-        _shownBox = box;
-        _shownBox.addStyleName(_styles.highlightedMember());
     }
 
     protected Widget createSourceView (final DefInfo member)
@@ -244,7 +236,6 @@ public class TypeSummaryPanel extends Composite
     {
         String topgap ();
         String nonPublic ();
-        String highlightedMember ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;
@@ -255,8 +246,7 @@ public class TypeSummaryPanel extends Composite
     protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
 
-    protected FlowPanel _shownBox;
-    protected DocLabel _shownDocs;
+    protected PopupPanel _shownDocs;
 
     protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

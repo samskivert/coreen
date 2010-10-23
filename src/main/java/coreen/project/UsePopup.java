@@ -28,6 +28,7 @@ import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
 
@@ -152,7 +153,7 @@ public class UsePopup extends PopupPanel
             // if we already have our popup, then just show it
             if (_popup != null) {
                 _current = _popup;
-                _popup.showNear(_target);
+                UIUtil.showAbove(_popup, _target);
                 return;
             }
 
@@ -191,19 +192,6 @@ public class UsePopup extends PopupPanel
         protected long _lastPopdown;
 
         protected static final long BOUNCE = 250L;
-    }
-
-    public void showNear (Widget target)
-    {
-        setVisible(false);
-        show();
-        int left = target.getAbsoluteLeft();
-        int top = Math.max(target.getAbsoluteTop() - getOffsetHeight(), 0);
-        if (left + getOffsetWidth() > Window.getClientWidth()) {
-            left = Math.max(0, Window.getClientWidth() - getOffsetWidth());
-        }
-        setPopupPosition(left, top);
-        setVisible(true);
     }
 
     public void go ()
