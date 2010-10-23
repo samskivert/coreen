@@ -18,14 +18,17 @@ import com.threerings.gwt.util.Value;
  */
 public class DocLabel extends FlowPanel
 {
-    public DocLabel (final String docHTML)
+    public DocLabel (String docHTML)
     {
         addStyleName(_rsrc.styles().doc());
 
+        // if we have no docs, display a message to that effect
+        final String fullDoc = (docHTML == null) ? _msgs.pNoDocs() : docHTML;
+
         // TODO: smarter "sentence" detection?
-        String[] bits = docHTML.split("\\.(\\s|<br/>|<br>)+");
+        String[] bits = fullDoc.split("\\.(\\s|<br/>|<br>)+");
         if (bits.length == 1) {
-            add(Widgets.newHTML(docHTML));
+            add(Widgets.newHTML(fullDoc));
         } else {
             final String shortDoc = bits[0] + ".";
             add(new TogglePanel(Value.create(false)) {
@@ -33,11 +36,12 @@ public class DocLabel extends FlowPanel
                     return Widgets.newHTML(shortDoc);
                 }
                 protected Widget createExpanded () {
-                    return Widgets.newHTML(docHTML);
+                    return Widgets.newHTML(fullDoc);
                 }
             });
         }
     }
 
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    protected static final ProjectMessages _msgs = GWT.create(ProjectMessages.class);
 }

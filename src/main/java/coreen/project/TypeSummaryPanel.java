@@ -6,6 +6,8 @@ package coreen.project;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -178,15 +180,19 @@ public class TypeSummaryPanel extends Composite
 
     protected void addMember (FlowPanel panel, final DefInfo member)
     {
-        panel.add(new TogglePanel(_expanded.get(member.id)) {
+        final FlowPanel pair = Widgets.newFlowPanel();
+        final DocLabel docs = new DocLabel(member.doc);
+        docs.setVisible(false);
+        pair.add(docs);
+        pair.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
                 SigLabel sig = new SigLabel(member, member.sig, _defmap);
-                sig.addStyleName("inline");
-                if (member.docs != null) {
-                    final PopupPanel docup = new PopupPanel();
-                    docup.setWidget(new DocLabel(member.docs));
-                    // TODO: wire up mouse enter and leave on siglabel to pop and hide the docup
-                }
+                // sig.addStyleName(_rsrc.styles().actionable());
+                sig.addMouseOverHandler(new MouseOverHandler() {
+                    public void onMouseOver (MouseOverEvent event) {
+                        highlightMember(pair, docs);
+                    }
+                });
                 // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
             }
@@ -198,6 +204,21 @@ public class TypeSummaryPanel extends Composite
                 }
             }
         });
+        panel.add(pair);
+    }
+
+    protected void highlightMember (FlowPanel box, DocLabel docs)
+    {
+        if (_shownBox != null) {
+            _shownBox.removeStyleName(_styles.highlightedMember());
+        }
+        if (_shownDocs != null) {
+            _shownDocs.setVisible(false);
+        }
+        _shownDocs = docs;
+        _shownDocs.setVisible(true);
+        _shownBox = box;
+        _shownBox.addStyleName(_styles.highlightedMember());
     }
 
     protected Widget createSourceView (final DefInfo member)
@@ -223,6 +244,7 @@ public class TypeSummaryPanel extends Composite
     {
         String topgap ();
         String nonPublic ();
+        String highlightedMember ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;
@@ -232,6 +254,9 @@ public class TypeSummaryPanel extends Composite
     protected IdMap<Boolean> _expanded;
     protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
+
+    protected FlowPanel _shownBox;
+    protected DocLabel _shownDocs;
 
     protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
