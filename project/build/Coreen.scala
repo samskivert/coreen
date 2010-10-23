@@ -12,7 +12,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   // HTTP and GWT depends
   val gwtUser = "com.google.gwt" % "gwt-user" % "2.0.4"
-  val gwtUtils = "com.threerings" % "gwt-utils" % "1.1-SNAPSHOT"
+  val gwtUtils = "com.threerings" % "gwt-utils" % "1.2-SNAPSHOT"
   val jetty = "org.mortbay.jetty" % "jetty" % "6.1.25"
 
   // we don't want these on any of our classpaths, so we make them "system" deps
