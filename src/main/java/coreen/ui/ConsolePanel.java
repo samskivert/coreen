@@ -44,6 +44,18 @@ public class ConsolePanel extends FlowPanel
         });
     }
 
+    public void refresh ()
+    {
+        _consvc.fetchConsole(_id, _offset, new AsyncCallback<ConsoleService.ConsoleResult>() {
+            public void onSuccess (ConsoleService.ConsoleResult result) {
+                update(result.lines, result.isOpen);
+            }
+            public void onFailure (Throwable cause) {
+                add(Widgets.newLabel(Errors.xlate(cause), "errorLabel"));
+            }
+        });
+    }
+
     protected void update (String[] lines, boolean isOpen)
     {
         this.isOpen.update(isOpen);
@@ -59,18 +71,6 @@ public class ConsolePanel extends FlowPanel
                 }
             }.schedule(1000);
         }
-    }
-
-    protected void refresh ()
-    {
-        _consvc.fetchConsole(_id, _offset, new AsyncCallback<ConsoleService.ConsoleResult>() {
-            public void onSuccess (ConsoleService.ConsoleResult result) {
-                update(result.lines, result.isOpen);
-            }
-            public void onFailure (Throwable cause) {
-                add(Widgets.newLabel(Errors.xlate(cause), "errorLabel"));
-            }
-        });
     }
 
     protected String _id;

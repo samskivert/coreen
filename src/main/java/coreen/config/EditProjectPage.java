@@ -136,7 +136,9 @@ public class EditProjectPage extends AbstractPage
         deltbl.add().setText("Delete project:").right().setWidget(delete);
         contents.add(Widgets.newSimplePanel(_styles.section(), deltbl));
 
+        final ConsolePanel pcon = new ConsolePanel("project:" + p.id, true);
         Button rebuild = new Button("Rebuild");
+        Bindings.bindEnabled(Values.not(pcon.isOpen), rebuild);
         new ClickCallback<Void>(rebuild) {
             protected boolean callService () {
                 _projsvc.rebuildProject(p.id, this);
@@ -144,15 +146,14 @@ public class EditProjectPage extends AbstractPage
             }
             protected boolean gotResult (Void result) {
                 Popups.infoNear(_msgs.rebuildInitiated(), getPopupNear());
+                pcon.refresh();
                 return true;
             }
         };
         FluentTable retbl = new FluentTable();
-        uptbl.add().setText("Rebuild project:").right().setWidget(rebuild);
-        uptbl.add().setText(_msgs.rebuildTip(), _styles.tip()).setColSpan(2);
-        ConsolePanel pcon = new ConsolePanel("project:" + p.id, true);
-        uptbl.add().setWidget(pcon).setColSpan(2);
-        Bindings.bindEnabled(pcon.isOpen, rebuild);
+        retbl.add().setText("Rebuild project:").right().setWidget(rebuild);
+        retbl.add().setText(_msgs.rebuildTip(), _styles.tip()).setColSpan(2);
+        retbl.add().setWidget(pcon).setColSpan(2);
         contents.add(Widgets.newSimplePanel(_styles.section(), retbl));
 
         return contents;
