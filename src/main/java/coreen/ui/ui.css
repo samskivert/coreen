@@ -1,0 +1,7 @@
+/** Shared project styles. */
+
+.code {
+  font-family: Courier;
+  font-size: small;
+  white-space: pre;
+}

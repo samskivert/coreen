@@ -40,6 +40,7 @@ import coreen.client.Page;
 import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.ConsolePanel;
 import coreen.util.ClickCallback;
 import coreen.util.PanelCallback;
 
@@ -134,6 +135,25 @@ public class EditProjectPage extends AbstractPage
         FluentTable deltbl = new FluentTable();
         deltbl.add().setText("Delete project:").right().setWidget(delete);
         contents.add(Widgets.newSimplePanel(_styles.section(), deltbl));
+
+        Button rebuild = new Button("Rebuild");
+        new ClickCallback<Void>(rebuild) {
+            protected boolean callService () {
+                _projsvc.rebuildProject(p.id, this);
+                return true;
+            }
+            protected boolean gotResult (Void result) {
+                Popups.infoNear(_msgs.rebuildInitiated(), getPopupNear());
+                return true;
+            }
+        };
+        FluentTable retbl = new FluentTable();
+        uptbl.add().setText("Rebuild project:").right().setWidget(rebuild);
+        uptbl.add().setText(_msgs.rebuildTip(), _styles.tip()).setColSpan(2);
+        ConsolePanel pcon = new ConsolePanel("project:" + p.id, true);
+        uptbl.add().setWidget(pcon).setColSpan(2);
+        Bindings.bindEnabled(pcon.isOpen, rebuild);
+        contents.add(Widgets.newSimplePanel(_styles.section(), retbl));
 
         return contents;
     }

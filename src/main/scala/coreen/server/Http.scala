@@ -15,12 +15,11 @@ import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.DefaultServlet
 import org.mortbay.jetty.servlet.ServletHolder
 
-import coreen.rpc.LibraryService
-import coreen.rpc.ProjectService
+import coreen.rpc.{ConsoleService, LibraryService, ProjectService}
 
 /** Provides HTTP services. */
 trait Http {
-  this :Log with Dirs with LibraryServlet with ProjectServlet =>
+  this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
 
   /** Customizes a Jetty server and handles HTTP requests. */
   class HttpServer extends Server {
@@ -54,6 +53,7 @@ trait Http {
       // wire up our servlets
       ctx.addServlet(new ServletHolder(new LibraryServlet), "/coreen/"+LibraryService.ENTRY_POINT)
       ctx.addServlet(new ServletHolder(new ProjectServlet), "/coreen/"+ProjectService.ENTRY_POINT)
+      ctx.addServlet(new ServletHolder(new ConsoleServlet), "/coreen/"+ConsoleService.ENTRY_POINT)
       ctx.addServlet(new ServletHolder(_shutdownServlet), "/coreen/shutdown")
       ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
       addHandler(ctx)
@@ -118,7 +118,7 @@ trait Http {
 
 /** A concrete implementation of {@link Http}. */
 trait HttpComponent extends Component with Http {
-  this :Log with Dirs with LibraryServlet with ProjectServlet =>
+  this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer
