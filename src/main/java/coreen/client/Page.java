@@ -4,6 +4,7 @@
 package coreen.client;
 
 import coreen.client.ColophonPage;
+import coreen.config.EditProjectPage;
 import coreen.library.ImportPage;
 import coreen.library.LibraryPage;
 import coreen.project.ProjectPage;
@@ -26,6 +27,11 @@ public enum Page
     /** Displays a single project. */
     PROJECT {
         public AbstractPage create () { return new ProjectPage(); }
+    },
+
+    /** Displays a metadata editing interface for a single project. */
+    EDIT {
+        public AbstractPage create () { return new EditProjectPage(); }
     },
 
     /** Displays information about Coreen. */
