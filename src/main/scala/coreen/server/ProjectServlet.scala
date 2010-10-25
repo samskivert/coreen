@@ -31,7 +31,21 @@ trait ProjectServlet {
     def getProject (id :Long) :JProject = Convert.toJava(requireProject(id))
 
     // from interface ProjectService
-    def updateProject (id :Long) {
+    def updateProject (proj :JProject) {
+      val srcDirs = if (proj.srcDirs == "") None else Some(proj.srcDirs)
+      transaction {
+        update(_db.projects) { p =>
+          where(p.id === proj.id)
+          set(p.name := proj.name,
+              p.rootPath := proj.rootPath,
+              p.version := proj.version,
+              p.srcDirs := srcDirs)
+        }
+      }
+    }
+
+    // from interface ProjectService
+    def rebuildProject (id :Long) {
       val p = requireProject(id)
       _exec.execute(new Runnable {
         override def run = {

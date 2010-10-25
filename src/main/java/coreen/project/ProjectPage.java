@@ -102,7 +102,7 @@ public class ProjectPage extends AbstractPage
 
         new ClickCallback<Void>(_update) {
             protected boolean callService () {
-                _projsvc.updateProject(_proj.get().id, this);
+                _projsvc.rebuildProject(_proj.get().id, this);
                 return true;
             }
             protected boolean gotResult (Void result) {

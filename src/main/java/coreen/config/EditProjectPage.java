@@ -104,23 +104,29 @@ public class EditProjectPage extends AbstractPage
             }
         }
 
-        Button update = new Button("Update", new ClickHandler() {
-            public void onClick (ClickEvent event) {
-                GWT.log("Save " + np);
+        final Button update = new Button("Update");
+        new ClickCallback<Void>(update) {
+            protected boolean callService () {
+                _projsvc.updateProject(np, this);
+                return true;
             }
-        });
+            protected boolean gotResult (Void result) {
+                Popups.infoNear(_msgs.projectUpdated(), getPopupNear());
+                return true;
+            }
+        };
         Bindings.bindEnabled(Values.or(dlist), update);
         uptbl.add().right().setWidget(update);
         contents.add(Widgets.newSimplePanel(_styles.section(), uptbl));
 
-        final Button delete = new Button("Delete");
+        Button delete = new Button("Delete");
         new ClickCallback<Void>(delete) {
             protected boolean callService () {
                 _projsvc.deleteProject(p.id, this);
                 return true;
             }
             protected boolean gotResult (Void result) {
-                Popups.infoNear(_msgs.projectDeleted(), delete);
+                Popups.infoNear(_msgs.projectDeleted(), getPopupNear());
                 Link.go(Page.LIBRARY);
                 return false;
             }

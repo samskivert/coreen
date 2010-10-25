@@ -28,9 +28,13 @@ public interface ProjectService extends RemoteService
      * @throws ServiceException with e.no_such_project if project unknown. */
     Project getProject (long id) throws ServiceException;
 
+    /** Updates the metadata for the supplied project.
+     * @throws ServiceException with e.no_such_project if project unknown. */
+    void updateProject (Project p) throws ServiceException;
+
     /** Requests that the specified project be updated.
      * @throws ServiceException with e.no_such_project if project unknown. */
-    void updateProject (long id) throws ServiceException;
+    void rebuildProject (long id) throws ServiceException;
 
     /** Requests that the specifide project be deleted.
      * @throws ServiceException with e.no_such_project if project unknown. */
