@@ -104,7 +104,7 @@ public class EditProjectPage extends AbstractPage
             }
         }
 
-        final Button update = new Button("Update");
+        Button update = new Button("Update");
         new ClickCallback<Void>(update) {
             protected boolean callService () {
                 _projsvc.updateProject(np, this);
