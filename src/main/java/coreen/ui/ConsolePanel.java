@@ -7,6 +7,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
@@ -20,7 +21,7 @@ import coreen.util.PanelCallback;
 /**
  * Dispalys the contents of a console.
  */
-public class ConsolePanel extends FlowPanel
+public class ConsolePanel extends ScrollPanel
 {
     /** Whether or not this console is "open" (may receive new data). */
     public final Value<Boolean> isOpen;
@@ -36,10 +37,10 @@ public class ConsolePanel extends FlowPanel
         addStyleName(_rsrc.styles().console());
         _id = id;
         isOpen = Value.create(defaultOpenValue);
-        add(Widgets.newLabel(_cmsgs.loading()));
+        setWidget(Widgets.newLabel(_cmsgs.loading()));
         _consvc.fetchConsole(id, 0, new PanelCallback<ConsoleService.ConsoleResult>(this) {
             public void onSuccess (ConsoleService.ConsoleResult result) {
-                clear();
+                setWidget(_data);
                 update(result.lines, result.isOpen);
             }
         });
@@ -48,7 +49,7 @@ public class ConsolePanel extends FlowPanel
     public void reset ()
     {
         _offset = 0;
-        clear();
+        _data.clear();
         refresh();
     }
 
@@ -59,7 +60,7 @@ public class ConsolePanel extends FlowPanel
                 update(result.lines, result.isOpen);
             }
             public void onFailure (Throwable cause) {
-                add(Widgets.newLabel(Errors.xlate(cause), "errorLabel"));
+                _data.add(Widgets.newLabel(Errors.xlate(cause), "errorLabel"));
             }
         });
     }
@@ -69,8 +70,9 @@ public class ConsolePanel extends FlowPanel
         this.isOpen.update(isOpen);
         _offset += lines.length;
         for (String line : lines) {
-            add(Widgets.newLabel(line));
+            _data.add(Widgets.newLabel(line));
         }
+        scrollToBottom();
 
         if (isOpen) {
             new Timer() {
@@ -83,6 +85,7 @@ public class ConsolePanel extends FlowPanel
 
     protected String _id;
     protected int _offset;
+    protected FlowPanel _data = new FlowPanel();
 
     protected static final ConsoleServiceAsync _consvc = GWT.create(ConsoleService.class);
     protected static final ClientMessages _cmsgs = GWT.create(ClientMessages.class);

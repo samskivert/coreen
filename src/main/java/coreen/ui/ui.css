@@ -4,4 +4,7 @@
   font-family: Courier;
   font-size: small;
   white-space: pre;
+  height: 300px;
+  background: #EEEEEE;
+  padding: 4px;
 }
