@@ -23,8 +23,7 @@ trait LibraryServlet {
     def getProjects :Array[JProject] = {
       transaction {
         from(_db.projects) { p =>
-          select(p)
-          //        orderBy(p.name)
+          select(p) orderBy(p.name)
         } map(Convert.toJava) toArray
       }
     }
