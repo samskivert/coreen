@@ -97,21 +97,21 @@ public class ProjectPage extends AbstractPage
         Value<Boolean> projp = _proj.map(new Function<Project,Boolean>() {
             public Boolean apply (Project proj) { return (proj != null); }
         });
-        Bindings.bindEnabled(projp, _search, _go, _update, _edit);
+        Bindings.bindEnabled(projp, _search, _go, _config);
         Bindings.bindVisible(projp, _header);
 
-        new ClickCallback<Void>(_update) {
+        new ClickCallback<Void>(_rebuild) {
             protected boolean callService () {
                 _projsvc.rebuildProject(_proj.get().id, this);
                 return true;
             }
             protected boolean gotResult (Void result) {
-                Popups.infoNear(_msgs.pUpdateStarted(), _update);
+                Link.go(Page.EDIT, _proj.get().id);
                 return true;
             }
         };
 
-        _edit.addClickHandler(new ClickHandler() {
+        _config.addClickHandler(new ClickHandler() {
             public void onClick (ClickEvent event) {
                 Link.go(Page.EDIT, _proj.get().id);
             }
@@ -192,7 +192,7 @@ public class ProjectPage extends AbstractPage
     protected @UiField Hyperlink _name;
     protected @UiField Label _version, _imported, _lastUpdated;
     protected @UiField TextBox _search;
-    protected @UiField Button _update, _edit, _go;
+    protected @UiField Button _rebuild, _config, _go;
     protected @UiField FlowPanel _navbar;
     protected @UiField SimplePanel _contents;
 

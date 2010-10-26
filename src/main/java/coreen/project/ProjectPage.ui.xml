@@ -48,8 +48,8 @@
             <g:TextBox ui:field="_search" visibleLength="30"/>
             <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
           <td align="right">
-            <g:Button ui:field="_update"><ui:msg>Update</ui:msg></g:Button>
-            <g:Button ui:field="_edit"><ui:msg>Edit</ui:msg></g:Button></td></tr>
+            <g:Button ui:field="_rebuild"><ui:msg>Rebuild</ui:msg></g:Button>
+            <g:Button ui:field="_config"><ui:msg>Config</ui:msg></g:Button></td></tr>
       </table>
       <g:FlowPanel styleName="{_styles.navbar}" ui:field="_navbar"/>
     </g:HTMLPanel>
