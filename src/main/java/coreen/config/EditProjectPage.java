@@ -65,38 +65,47 @@ public class EditProjectPage extends AbstractPage
     {
         final long projectId = args.get(0, 0L);
 
+        // wire up a listener that will update the project link when we have a project; we don't
+        // trigger it immediately though because we currently have no project
+        _proj.addListener(new Value.Listener<Project>() {
+            public void valueChanged (Project p) {
+                _name.setText(p.name);
+                _name.setTargetHistoryToken(Args.createToken(Page.PROJECT, projectId));
+            }
+        });
+
         // load up the metadata for this project
         _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
         _projsvc.getProject(projectId, new PanelCallback<Project>(_contents) {
             public void onSuccess (Project p) {
-                _name.setText(p.name);
-                _name.setTargetHistoryToken(Args.createToken(Page.PROJECT, projectId));
-                _contents.setWidget(createContents(p));
+                _proj.update(p);
+                _contents.setWidget(createContents());
             }
         });
     }
 
-    protected Widget createContents (final Project p)
+    protected Widget createContents ()
     {
         FlowPanel contents = Widgets.newFlowPanel();
 
+        // start our updatable project with the same state as our existing project
+        final Value<Project> nproj = Value.create(copy(_proj.get()));
+
         FluentTable uptbl = new FluentTable();
         uptbl.add().setText("Edit project properties:").setColSpan(2);
-        final Project np = new Project();
-        np.id = p.id;
         List<Value<Boolean>> dlist = new ArrayList<Value<Boolean>>();
         for (final Property prop : Property.values()) {
-            final Value<String> current = Value.create(prop.get(p));
-            final TextBox box = Widgets.newTextBox(prop.get(p), prop.maxLen, prop.vizLen);
+            final Value<String> current = Value.create(prop.apply(_proj.get()));
+            final TextBox box = Widgets.newTextBox("", prop.maxLen, prop.vizLen);
             Bindings.bindText(current, box);
             dlist.add(current.map(new Function<String, Boolean>() {
                 public Boolean apply (String text) {
-                    return !prop.get(p).equals(text);
+                    return !prop.apply(_proj.get()).equals(text);
                 }
             }));
-            current.addListenerAndTrigger(new Value.Listener<String>() {
+            current.addListener(new Value.Listener<String>() {
                 public void valueChanged (String text) {
-                    prop.update(np, text.trim());
+                    prop.update(nproj.get(), text.trim());
                 }
             });
             uptbl.add().setText(prop.label + ":").right().setWidget(box);
@@ -108,10 +117,12 @@ public class EditProjectPage extends AbstractPage
         Button update = new Button("Update");
         new ClickCallback<Void>(update) {
             protected boolean callService () {
-                _projsvc.updateProject(np, this);
+                _projsvc.updateProject(nproj.get(), this);
                 return true;
             }
             protected boolean gotResult (Void result) {
+                _proj.update(nproj.get());
+                nproj.update(copy(_proj.get()));
                 Popups.infoNear(_msgs.projectUpdated(), getPopupNear());
                 return true;
             }
@@ -123,7 +134,7 @@ public class EditProjectPage extends AbstractPage
         Button delete = new Button("Delete");
         new ClickCallback<Void>(delete) {
             protected boolean callService () {
-                _projsvc.deleteProject(p.id, this);
+                _projsvc.deleteProject(_proj.get().id, this);
                 return true;
             }
             protected boolean gotResult (Void result) {
@@ -136,12 +147,12 @@ public class EditProjectPage extends AbstractPage
         deltbl.add().setText("Delete project:").right().setWidget(delete);
         contents.add(Widgets.newSimplePanel(_styles.section(), deltbl));
 
-        final ConsolePanel pcon = new ConsolePanel("project:" + p.id, true);
+        final ConsolePanel pcon = new ConsolePanel("project:" + _proj.get().id, true);
         Button rebuild = new Button("Rebuild");
         Bindings.bindEnabled(Values.not(pcon.isOpen), rebuild);
         new ClickCallback<Void>(rebuild) {
             protected boolean callService () {
-                _projsvc.rebuildProject(p.id, this);
+                _projsvc.rebuildProject(_proj.get().id, this);
                 return true;
             }
             protected boolean gotResult (Void result) {
@@ -159,21 +170,30 @@ public class EditProjectPage extends AbstractPage
         return contents;
     }
 
-    protected static enum Property {
+    protected Project copy (Project p) {
+        Project np = new Project();
+        np.id = p.id;
+        for (Property prop : Property.values()) {
+            prop.update(np, prop.apply(p));
+        }
+        return np;
+    }
+
+    protected static enum Property implements Function<Project,String> {
         NAME("Name", 128, 20, null) {
-            public String get (Project p) { return p.name; }
+            public String apply (Project p) { return p.name; }
             public void update (Project p, String text) { p.name = text; }
         },
         ROOT("Root", 256, 40, null) {
-            public String get (Project p) { return p.rootPath; }
+            public String apply (Project p) { return p.rootPath; }
             public void update (Project p, String text) { p.rootPath = text; }
         },
         VERSION("Version", 32, 10, null) {
-            public String get (Project p) { return p.version; }
+            public String apply (Project p) { return p.version; }
             public void update (Project p, String text) { p.version = text; }
         },
         SOURCE_DIRS("Source dirs", 256, 40, _msgs.sourceDirsTip()) {
-            public String get (Project p) { return p.srcDirs; }
+            public String apply (Project p) { return p.srcDirs; }
             public void update (Project p, String text) { p.srcDirs = text; }
         };
 
@@ -182,7 +202,6 @@ public class EditProjectPage extends AbstractPage
         public final int vizLen;
         public final String tip;
 
-        public abstract String get (Project p);
         public abstract void update (Project p, String text);
 
         Property (String label, int maxLen, int vizLen, String tip) {
@@ -202,6 +221,8 @@ public class EditProjectPage extends AbstractPage
 
     protected @UiField Hyperlink _name;
     protected @UiField SimplePanel _contents;
+
+    protected Value<Project> _proj = Value.<Project>create(null);
 
     protected interface Binder extends UiBinder<Widget, EditProjectPage> {}
     protected static final Binder _binder = GWT.create(Binder.class);
