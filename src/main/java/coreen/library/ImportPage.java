@@ -110,7 +110,7 @@ public class ImportPage extends AbstractPage
         return new FluentTable().add().setText("Source:").right().setText(pp.source).
             add().setText("Status:").right().setWidget(
                 (pp.isComplete() && !pp.isFailed()) ?
-                Widgets.newRow(status, Link.create("View project", Page.PROJECT, pp.projectId)) :
+                Widgets.newRow(status, Link.create("View project", Page.EDIT, pp.projectId)) :
                 status).
             add().setText("Started:").right().setText(DateUtil.formatTime(new Date(pp.started))).
             add().setText("Last updated:").right().setText(
