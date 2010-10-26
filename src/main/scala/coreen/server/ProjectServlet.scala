@@ -33,15 +33,28 @@ trait ProjectServlet {
     // from interface ProjectService
     def updateProject (proj :JProject) {
       val srcDirs = if (proj.srcDirs == "") None else Some(proj.srcDirs)
+      val op = requireProject(proj.id)
       transaction {
-        update(_db.projects) { p =>
-          where(p.id === proj.id)
+        val mods = update(_db.projects) { p =>
+          where(p.name === op.name)
           set(p.name := proj.name,
               p.rootPath := proj.rootPath,
               p.version := proj.version,
               p.srcDirs := srcDirs)
         }
+        println("Updated " + mods + " projects?")
       }
+//       transaction {
+//         val p = requireProject(proj.id)
+//         try {
+//           _db.projects.update(p.copy(name = proj.name,
+//                                      rootPath = proj.rootPath,
+//                                      version = proj.version,
+//                                      srcDirs = srcDirs))
+//         } catch {
+//           case e => e.printStackTrace(System.err)
+//         }
+//       }
     }
 
     // from interface ProjectService
@@ -50,7 +63,7 @@ trait ProjectServlet {
       _exec.execute(new Runnable {
         override def run = {
           try {
-            _updater.update(p, println)
+            _updater.update(p)
           } catch {
             case t => _log.warning("Update failed", "proj", p, t)
           }
