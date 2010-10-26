@@ -7,13 +7,14 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.Type
 import coreen.persist.{DBComponent, Decode}
-import coreen.server.{DirsComponent, ExecComponent, LogComponent}
+import coreen.server.{DirsComponent, ExecComponent, LogComponent, StdoutConsoleComponent}
 
 /**
  * A command-line tool for manipulating projects.
  */
 object Tool extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
+  with StdoutConsoleComponent
   with Updater with Importer
 {
   def main (args :Array[String]) :Unit = try {
@@ -40,7 +41,7 @@ object Tool extends AnyRef
     transaction {
       _db.projects.lookup(pid) match {
         case None => error("No project with id " + pid)
-        case Some(p) => _updater.update(p, s => println(s))
+        case Some(p) => _updater.update(p)
       }
     }
   }

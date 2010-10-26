@@ -18,11 +18,11 @@ import coreen.nml.SourceModel
 import coreen.nml.SourceModel._
 import coreen.model.Type
 import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Super}
-import coreen.server.{Log, Exec, Dirs}
+import coreen.server.{Log, Exec, Dirs, Console}
 
 /** Provides project updating services. */
 trait Updater {
-  this :Log with Exec with DB with Dirs =>
+  this :Log with Exec with DB with Dirs with Console =>
 
   /** Handles updating projects. */
   object _updater {
@@ -36,23 +36,28 @@ trait Updater {
      *  <li>loading the name-resolved metadata into the database</li>
      * </ul>
      * This is very disk and compute intensive and should be done on a background thread.
-     *
-     * @param log a callback function which will be passed log messages to communicate status.
      */
-    def update (p :Project, ulog :String=>Unit = noop => ()) {
-      ulog("Finding compilation units...")
+    def update (p :Project) {
+      val ulog = _console.start("project:" + p.id)
+      ulog.append("Finding compilation units...")
 
-      // first figure out what sort of source files we see in the project
-      val types = collectFileTypes(new File(p.rootPath))
+      try {
+        // first figure out what sort of source files we see in the project
+        val types = collectFileTypes(new File(p.rootPath))
 
-      // fire up readers to handle all types of files we find in the project
-      val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
-      ulog("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
-      readers.values map(_.invoke(p, ulog))
+        // fire up readers to handle all types of files we find in the project
+        val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
+        ulog.append("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
+        readers.values map(_.invoke(p, ulog))
+      } catch {
+        case t => ulog.append("Update failed.", t)
+      }
+
+      ulog.close
     }
 
     abstract class Reader {
-      def invoke (p :Project, ulog :String=>Unit) {
+      def invoke (p :Project, ulog :Writer) {
         val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
         val argList = args ++ (p.rootPath :: dirList)
         _log.info("Invoking reader: " + argList.mkString(" "))
@@ -70,7 +75,7 @@ trait Updater {
         val cus = time("parseCompUnits") {
           parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
         }
-        ulog("Parsed " + cus.size + " compunits.")
+        ulog.append("Parsed " + cus.size + " compunits.")
 
         // now that we've totally drained stdout, we can wait for stderr output and log it
         val errs = errLines.get
@@ -78,8 +83,8 @@ trait Updater {
         // report any error status code (TODO: we probably don't really need to do this)
         val ecode = proc.waitFor
         if (ecode != 0) {
-          ulog("Reader exited with status: " + ecode)
-          errs.foreach(ulog)
+          ulog.append("Reader exited with status: " + ecode)
+          ulog.append(errs)
           return // leave the project as is; TODO: maybe not if this is the first import...
         }
 
@@ -98,7 +103,7 @@ trait Updater {
         transaction {
           if (!toDelete.isEmpty) {
             _db.compunits.deleteWhere(cu => cu.id in toDelete)
-            ulog("Removed " + toDelete.size + " obsolete compunits.")
+            ulog.append("Removed " + toDelete.size + " obsolete compunits.")
           }
           if (!toAdd.isEmpty) {
             toAdd.map(CompUnit(p.id, _, now)) foreach { cu =>
@@ -106,14 +111,14 @@ trait Updater {
               // add the id of the newly inserted unit to our (path -> id) mapping
               cuIds += (cu.path -> cu.id)
             }
-            ulog("Added " + toAdd.size + " new compunits.")
+            ulog.append("Added " + toAdd.size + " new compunits.")
           }
           if (!toUpdate.isEmpty) {
             _db.compunits.update(cu =>
               where(cu.id in toUpdate) set(cu.lastUpdated := now))
             // add the ids of the updated units to our (path -> id) mapping
             oldCUs filter(cu => toUpdate(cu.id)) foreach { cu => cuIds += (cu.path -> cu.id) }
-            ulog("Updated " + toUpdate.size + " compunits.")
+            ulog.append("Updated " + toUpdate.size + " compunits.")
           }
         }
 
@@ -140,7 +145,7 @@ trait Updater {
 
         // first process all of the definitions in all of the compunits...
         for (cu <- cus) {
-          ulog("Processing defs in " + cu.src + "...")
+          ulog.append("Processing defs in " + cu.src + "...")
           // we want to filter out any defs for which we have no module id mapping; this filters
           // out code from modules that have already been claimed by some other project
           processDefs(cuIds(cu.src), defMap, cu.defs filter(d => defMap.contains(d.id)))
@@ -148,21 +153,21 @@ trait Updater {
 
         // then process all of the uses (which may reference the newly added defs)...
         for (cu <- cus) {
-          ulog("Processing uses in " + cu.src + "...")
+          ulog.append("Processing uses in " + cu.src + "...")
           processUses(cuIds(cu.src), defMap, cu.defs)
         }
 
         // finally record supertype relationships (which may also reference newly added defs)...
         for (cu <- cus) {
-          ulog("Processing supers in " + cu.src + "...")
+          ulog.append("Processing supers in " + cu.src + "...")
           processSupers(cuIds(cu.src), defMap, cu.defs)
         }
 
-        ulog("Processing complete!")
+        ulog.append("Processing complete!")
         _timings.toList sortBy(_._2) foreach(println)
       }
 
-      def parseCompUnits (p :Project, ulog :String=>Unit, lines :Iterator[String]) = {
+      def parseCompUnits (p :Project, ulog :Writer, lines :Iterator[String]) = {
         // obtain a sane prefix we can use to relativize the comp unit source URIs
         val uriRoot = new File(p.rootPath).getCanonicalFile.toURI.getPath
         assert(uriRoot.endsWith("/"))
@@ -172,7 +177,7 @@ trait Updater {
         val cubuf = ArrayBuffer[CompUnitElem]()
         for (line <- lines) {
           accmode = accmode || line.trim.startsWith("<compunit")
-          if (!accmode) ulog(line)
+          if (!accmode) ulog.append(line)
           else {
             accum.append(line).append("\n") // TODO: need line.separator?
             accmode = !line.trim.startsWith("</compunit>")
@@ -184,8 +189,8 @@ trait Updater {
                   cu.src = curi.getPath.substring(uriRoot.length)
                 cubuf += cu
               } catch {
-                case e => ulog("Error parsing reader output [" + e + "]: " +
-                               truncate(accum.toString, 100))
+                case e => ulog.append(
+                  "Error parsing reader output: " + truncate(accum.toString, 100), e)
               }
               accum.setLength(0)
             }

@@ -6,7 +6,17 @@ package coreen.server
 /** Provides console services to which server entities can log and client entities can see. */
 trait Console {
   trait Writer {
-    /** Appends the supplied lines to the console referenced by this writer. */
+    /** Appends the supplied line to this console. */
+    def append (line :String) {
+      append(List(line))
+    }
+
+    /** Appends the supplied message and exception stack trace to this console. */
+    def append (line :String, error :Throwable) {
+      append(line :: error.toString :: (error.getStackTrace map(_.toString) toList))
+    }
+
+    /** Appends the supplied lines to this console. */
     def append (lines :Seq[String]) :Unit
 
     /** Completes this writing session. */
@@ -79,4 +89,21 @@ trait ConsoleComponent extends Component with Console {
   }
 
   private val _buffers = collection.mutable.Map[String,Buffer]()
+}
+
+trait StdoutConsoleComponent  extends Component with Console {
+  val _console = new Service {
+    def isOpen (id :String) = false
+
+    def start (id :String) :Writer = new Writer {
+      def append (lines :Seq[String]) {
+        lines.foreach(println)
+      }
+      def close () {
+        // noop!
+      }
+    }
+
+    def fetch (id :String, fromLine :Int) :Seq[String] = Array[String]()
+  }
 }

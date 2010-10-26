@@ -86,11 +86,10 @@ trait Importer {
       // create the project metadata
       val p = createProject(source, name, file, "0.0", inferSourceDirs(file))
 
-      // update the project for the first time
-      updatePending(source, "Processing project contents...", 0L)
-      _updater.update(p, updatePending(source, _, 0L))
+      // "update" the project for the first time
+      _updater.update(p)
 
-      // finally, report that the import is complete
+      // report that the import is complete
       updatePending(source, "Import complete.", p.id)
     }
 
