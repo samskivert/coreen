@@ -13,7 +13,7 @@ public interface UIResources extends ClientBundle
 {
     /** Defines our shared CSS styles. */
     public interface Styles extends CssResource {
-        String code ();
+        String console ();
     }
 
     @Source("ui.css")

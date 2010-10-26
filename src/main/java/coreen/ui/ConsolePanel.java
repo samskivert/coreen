@@ -33,6 +33,7 @@ public class ConsolePanel extends FlowPanel
      */
     public ConsolePanel (String id, boolean defaultOpenValue)
     {
+        addStyleName(_rsrc.styles().console());
         _id = id;
         isOpen = Value.create(defaultOpenValue);
         add(Widgets.newLabel(_cmsgs.loading()));
@@ -61,7 +62,7 @@ public class ConsolePanel extends FlowPanel
         this.isOpen.update(isOpen);
         _offset += lines.length;
         for (String line : lines) {
-            add(Widgets.newLabel(line, _rsrc.styles().code()));
+            add(Widgets.newLabel(line));
         }
 
         if (isOpen) {
@@ -78,5 +79,9 @@ public class ConsolePanel extends FlowPanel
 
     protected static final ConsoleServiceAsync _consvc = GWT.create(ConsoleService.class);
     protected static final ClientMessages _cmsgs = GWT.create(ClientMessages.class);
+
     protected static final UIResources _rsrc = GWT.create(UIResources.class);
+    static {
+        _rsrc.styles().ensureInjected();
+    }
 }
