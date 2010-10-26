@@ -100,17 +100,6 @@ public class ProjectPage extends AbstractPage
         Bindings.bindEnabled(projp, _search, _go, _config);
         Bindings.bindVisible(projp, _header);
 
-        new ClickCallback<Void>(_rebuild) {
-            protected boolean callService () {
-                _projsvc.rebuildProject(_proj.get().id, this);
-                return true;
-            }
-            protected boolean gotResult (Void result) {
-                Link.go(Page.EDIT, _proj.get().id);
-                return true;
-            }
-        };
-
         _config.addClickHandler(new ClickHandler() {
             public void onClick (ClickEvent event) {
                 Link.go(Page.EDIT, _proj.get().id);
@@ -192,7 +181,7 @@ public class ProjectPage extends AbstractPage
     protected @UiField Hyperlink _name;
     protected @UiField Label _version, _imported, _lastUpdated;
     protected @UiField TextBox _search;
-    protected @UiField Button _rebuild, _config, _go;
+    protected @UiField Button _config, _go;
     protected @UiField FlowPanel _navbar;
     protected @UiField SimplePanel _contents;
 
