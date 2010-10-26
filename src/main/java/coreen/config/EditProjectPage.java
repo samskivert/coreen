@@ -157,15 +157,14 @@ public class EditProjectPage extends AbstractPage
             }
             protected boolean gotResult (Void result) {
                 Popups.infoNear(_msgs.rebuildInitiated(), getPopupNear());
-                pcon.refresh();
+                pcon.reset();
                 return true;
             }
         };
         FluentTable retbl = new FluentTable();
         retbl.add().setText("Rebuild project:").right().setWidget(rebuild);
         retbl.add().setText(_msgs.rebuildTip(), _styles.tip()).setColSpan(2);
-        retbl.add().setWidget(pcon).setColSpan(2);
-        contents.add(Widgets.newSimplePanel(_styles.section(), retbl));
+        contents.add(Widgets.newSimplePanel(_styles.section(), Widgets.newFlowPanel(retbl, pcon)));
 
         return contents;
     }

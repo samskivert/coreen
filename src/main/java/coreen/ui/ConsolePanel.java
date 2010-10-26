@@ -45,6 +45,13 @@ public class ConsolePanel extends FlowPanel
         });
     }
 
+    public void reset ()
+    {
+        _offset = 0;
+        clear();
+        refresh();
+    }
+
     public void refresh ()
     {
         _consvc.fetchConsole(_id, _offset, new AsyncCallback<ConsoleService.ConsoleResult>() {
