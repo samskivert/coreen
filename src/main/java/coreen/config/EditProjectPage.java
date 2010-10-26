@@ -202,6 +202,7 @@ public class EditProjectPage extends AbstractPage
         public final int vizLen;
         public final String tip;
 
+        public abstract String apply (Project p);
         public abstract void update (Project p, String text);
 
         Property (String label, int maxLen, int vizLen, String tip) {
