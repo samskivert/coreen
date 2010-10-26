@@ -46,7 +46,7 @@ trait ConsoleComponent extends Component with Console {
   val _console = new Service {
     def isOpen (id :String) = synchronized {
       _buffers.get(id) match {
-        case Some(b) => !b.opened
+        case Some(b) => b.isOpen
         case None => false
       }
     }
@@ -54,7 +54,7 @@ trait ConsoleComponent extends Component with Console {
     def start (id :String) :Writer = synchronized {
       // make sure we don't already have an open buffer
       _buffers.get(id) map { b =>
-        if (b.opened)
+        if (b.isOpen)
           throw new IllegalArgumentException("Open buffer already exists for id " + id)
       }
 
@@ -72,7 +72,7 @@ trait ConsoleComponent extends Component with Console {
   /** Contains the data for a single console buffer. */
   private class Buffer (id :String) extends Writer {
     /** Whether this buffer is currently being written. */
-    var opened = true
+    var isOpen = true
 
     /** Thus buffer's data. */
     var lines = Array[String]()
@@ -84,7 +84,7 @@ trait ConsoleComponent extends Component with Console {
 
     // from trait Writer
     def close () {
-      opened = false
+      isOpen = false
     }
   }
 
