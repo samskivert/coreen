@@ -28,6 +28,7 @@ import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
+import coreen.project.SourcePanel;
 import coreen.project.TogglePanel;
 import coreen.project.TypeLabel;
 import coreen.project.TypeSummaryPanel;
@@ -114,7 +115,13 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
                 return Widgets.newLabel(result.sig, _rsrc.styles().code());
             }
             protected Widget createExpanded () {
-                return new TypeSummaryPanel(result.id, true);
+                switch (result.type) {
+                case MODULE:
+                case TYPE:
+                    return new TypeSummaryPanel(result.id, true);
+                default:
+                    return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
+                }
             }
         });
     }
