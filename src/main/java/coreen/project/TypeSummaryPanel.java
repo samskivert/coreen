@@ -6,8 +6,6 @@ package coreen.project;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.MouseOverEvent;
-import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -17,7 +15,6 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -37,6 +34,7 @@ import coreen.model.Type;
 import coreen.model.TypeSummary;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.PopupGroup;
 import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
@@ -185,20 +183,10 @@ public class TypeSummaryPanel extends Composite
             protected Widget createCollapsed () {
                 final SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 // sig.addStyleName(_rsrc.styles().actionable());
-                sig.addMouseOverHandler(new MouseOverHandler() {
-                    public void onMouseOver (MouseOverEvent event) {
-                        if (_docpop == null) {
-                            _docpop = new PopupPanel(true);
-                            _docpop.setStyleName(_rsrc.styles().usePopup());
-                            _docpop.setWidget(new DocLabel(member.doc, true));
-                        }
-                        if (_shownDocs != null) {
-                            _shownDocs.hide();
-                        }
-                        _shownDocs = _docpop;
-                        UIUtil.showAbove(_docpop, sig);
+                _popups.bindPopup(sig, new PopupGroup.Thunk() {
+                    public Widget create () {
+                        return new DocLabel(member.doc, true);
                     }
-                    protected PopupPanel _docpop;
                 });
                 // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
@@ -215,20 +203,11 @@ public class TypeSummaryPanel extends Composite
 
     protected Widget createSourceView (final DefInfo member)
     {
-        return Widgets.newFlowPanel(new DocLabel(member.doc), new SourcePanel(_defmap) {
-            /* ctor */ {
-                _projsvc.getContent(member.id, new PanelCallback<DefContent>(_contents) {
-                    public void onSuccess (DefContent content) {
-                        _deficon = DefUtil.iconForDef(content);
-                        init(content.text, content.defs, content.uses, 0L, _linker);
-                    }
-                });
-            }
-            @Override protected void didInit (FlowPanel contents) {
-                contents.insert(_deficon, 0);
+        return Widgets.newFlowPanel(
+            new DocLabel(member.doc), new SourcePanel(member.id, _defmap, _linker, true) {
+            protected void didInit (FlowPanel contents) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
             }
-            protected Widget _deficon;
         });
     }
 
@@ -246,7 +225,7 @@ public class TypeSummaryPanel extends Composite
     protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
 
-    protected PopupPanel _shownDocs;
+    protected PopupGroup _popups = new PopupGroup(300);
 
     protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
