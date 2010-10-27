@@ -4,6 +4,7 @@
 package coreen.server
 
 import java.io.File
+import java.net.{URI, URL}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import scala.io.Source
@@ -21,17 +22,24 @@ import coreen.rpc.{ConsoleService, LibraryService, ProjectService}
 trait Http {
   this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
 
+  /** The hostname to which we bind and listen for HTTP connections. */
+  def getHttpHostname :String
+
+  /** The port to which we bind and listen for HTTP connections. */
+  def getHttpPort :Int
+
+  /** Returns a URI that can be used to communicate with the Coreen server. */
+  def getServerURL (path :String) =
+    new URL("http", getHttpHostname, getHttpPort, "/coreen/" + path)
+
   /** Customizes a Jetty server and handles HTTP requests. */
   class HttpServer extends Server {
     def init {
-      // if we're running in development mode, use a special port
-      val port = if (_appdir.isDefined) _config.getHttpPort else 8081
-
       // use a custom connector that works around some jetty non-awesomeness
       setConnectors(Array(
         new SelectChannelConnector {
-          setHost(_config.getBindHostname)
-          setPort(port)
+          setHost(getHttpHostname)
+          setPort(getHttpPort)
         }
       ))
 
@@ -60,8 +68,7 @@ trait Http {
 
       // if there's another Coreen running, tell it to step aside
       try {
-        val locurl = "http://" + _config.getBindHostname + ":" + port
-        val rsp = Source.fromURL(locurl + "/coreen/shutdown").getLines.mkString("\n")
+        val rsp = Source.fromURL(getServerURL("shutdown")).getLines.mkString("\n")
         if (!rsp.equals("byebye")) {
           _log.warning("Got weird repsonse when shutting down existing server: " + rsp)
         }
@@ -96,12 +103,6 @@ trait Http {
       }
     }
 
-    // TODO: inject these?
-    protected val _config :ServerConfig = new ServerConfig {
-      def getBindHostname = "localhost"
-      def getHttpPort = 8080
-    }
-
     protected val _shutdownServlet = new HttpServlet() {
       override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
         val out = rsp.getWriter
@@ -119,6 +120,10 @@ trait Http {
 /** A concrete implementation of {@link Http}. */
 trait HttpComponent extends Component with Http {
   this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
+
+  def getHttpHostname = "localhost"
+  // if we're running in development mode, use a special port
+  def getHttpPort = if (_appdir.isDefined) 8080 else 8081
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer
