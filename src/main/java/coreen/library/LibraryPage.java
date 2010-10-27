@@ -58,6 +58,7 @@ public class LibraryPage extends AbstractPage
         String action = args.get(0, "");
         if (action.equals(SEARCH)) {
             final String query = args.get(1, "").trim();
+            _search.setText(query);
             _contents.setWidget(new SearchResultsPanel<LibraryService.SearchResult>() {
                 /* ctor */ {
                     setQuery(query);
