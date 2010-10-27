@@ -67,7 +67,16 @@ public class UsePopup extends PopupPanel
         }
     };
 
-    public static final Linker TYPE = new Linker(ProjectPage.Detail.TYP);
+    public static final Linker TYPE = new Linker(ProjectPage.Detail.TYP) {
+        protected void addDetailArgs (DefDetail deet, List<Object> args) {
+            for (DefId did : deet.path) {
+                if (did.type != Type.MODULE) {
+                    args.add(did.id);
+                }
+            }
+            args.add(deet.id);
+        }
+    };
 
     public static final Linker BY_TYPES = new Linker(ProjectPage.Detail.TPS);
 
