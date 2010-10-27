@@ -5,6 +5,7 @@ package coreen.project;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -13,6 +14,7 @@ import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
 import coreen.model.Def;
+import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.util.DefMap;
@@ -42,6 +44,15 @@ public class TypeLabel extends FlowPanel
         add(supers);
         Label subs = Widgets.newInlineLabel(" ↓ ", _rsrc.styles().actionable());
         add(subs);
+
+        // TODO: tidy this up
+        if (def instanceof DefDetail) {
+            Hyperlink src = UsePopup.SOURCE.makeLink((DefDetail)def);
+            src.setText("src");
+            src.addStyleName("inline");
+            src.addStyleName(_rsrc.styles().code());
+            add(src);
+        }
 
         SuperTypesPanel spanel = new SuperTypesPanel(def, linker, defmap);
         Value<Boolean> showSupers = Value.create(false);
