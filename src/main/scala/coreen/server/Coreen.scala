@@ -16,7 +16,8 @@ import coreen.project.{Importer, Updater}
  * The main entry point for the Coreen server.
  */
 object Coreen extends AnyRef
-  with LogComponent with DirsComponent with ExecComponent with DBComponent with ConsoleComponent
+  with LogComponent with DirsComponent with ExecComponent with DBComponent
+  with TrayComponent with ConsoleComponent
   with HttpComponent with ProjectServlet with LibraryServlet with ConsoleServlet
   with Updater with Importer
 {
