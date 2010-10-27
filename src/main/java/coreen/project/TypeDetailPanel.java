@@ -165,11 +165,7 @@ public class TypeDetailPanel extends Composite
                 super.setVisible(visible);
                 if (visible && !_loaded) {
                     _loaded = true;
-                    _projsvc.getContent(detail.id, new PanelCallback<DefContent>(_contents) {
-                        public void onSuccess (DefContent content) {
-                            init(content.text, content.defs, content.uses, 0L, _linker);
-                        }
-                    });
+                    loadDef(detail.id, _linker, false);
                 }
             }
             @Override protected void didInit (FlowPanel contents) {
