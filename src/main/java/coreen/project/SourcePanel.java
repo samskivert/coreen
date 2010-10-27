@@ -22,6 +22,7 @@ import com.threerings.gwt.ui.Widgets;
 import coreen.client.Args;
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
+import coreen.model.DefContent;
 import coreen.model.Project;
 import coreen.model.Use;
 import coreen.ui.WindowFX;
@@ -31,7 +32,7 @@ import coreen.util.PanelCallback;
 /**
  * Displays a single compilation unit.
  */
-public abstract class SourcePanel extends AbstractProjectPanel
+public class SourcePanel extends AbstractProjectPanel
 {
     /** A source panel that displays an entire compilation unit. */
     public static class Full extends SourcePanel {
@@ -46,6 +47,28 @@ public abstract class SourcePanel extends AbstractProjectPanel
         _contents.setWidget(Widgets.newLabel("Loading..."));
         _defmap = defmap;
         _local = new DefMap(_defmap);
+    }
+
+    public SourcePanel (long defId, DefMap defmap, UsePopup.Linker linker, boolean addDefIcon)
+    {
+        this(defmap);
+        loadDef(defId, linker, addDefIcon);
+    }
+
+    /**
+     * Loads the source for the specified def into this panel.
+     */
+    public void loadDef (long defId, final UsePopup.Linker linker, final boolean addDefIcon)
+    {
+        _projsvc.getContent(defId, new PanelCallback<DefContent>(_contents) {
+            public void onSuccess (DefContent content) {
+                Widget deficon = addDefIcon ? DefUtil.iconForDef(content) : null;
+                init(content.text, content.defs, content.uses, 0L, linker);
+                if (deficon != null) {
+                    ((FlowPanel)_contents.getWidget()).insert(deficon, 0);
+                }
+            }
+        });
     }
 
     @Override // from AbstractProjectPanel
@@ -144,14 +167,14 @@ public abstract class SourcePanel extends AbstractProjectPanel
                          trimPrefix(expandTabs(text.substring(offset)), prefix)));
         }
 
-        // final Widget scrollTo = _defmap.get(scrollToDefId);
-        // if (scrollTo != null) {
-        //     DeferredCommand.addCommand(new Command() {
-        //         public void execute () {
-        //             WindowFX.scrollTo(scrollTo);
-        //         }
-        //     });
-        // }
+        final Widget scrollTo = _defmap.get(scrollToDefId);
+        if (scrollTo != null) {
+            DeferredCommand.addCommand(new Command() {
+                public void execute () {
+                    WindowFX.scrollTo(scrollTo);
+                }
+            });
+        }
 
         _contents.setWidget(code);
         _local.addTo(_defmap);
