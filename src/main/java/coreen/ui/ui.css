@@ -8,3 +8,11 @@
   background: #EEEEEE;
   padding: 4px;
 }
+
+.popup {
+  padding: 5px;
+  z-index: 5;
+  border: 1px solid black;
+  background: white;
+  max-width: 800px;
+}
