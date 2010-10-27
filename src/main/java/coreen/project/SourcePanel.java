@@ -167,7 +167,7 @@ public class SourcePanel extends AbstractProjectPanel
                          trimPrefix(expandTabs(text.substring(offset)), prefix)));
         }
 
-        final Widget scrollTo = _defmap.get(scrollToDefId);
+        final Widget scrollTo = _local.get(scrollToDefId);
         if (scrollTo != null) {
             DeferredCommand.addCommand(new Command() {
                 public void execute () {
