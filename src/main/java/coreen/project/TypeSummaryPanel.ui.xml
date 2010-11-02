@@ -7,14 +7,22 @@
   <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
     .contents {
       width: 100%;
-      padding-top: 2px;
     }
     .topgap {
       border-top: 1px solid;
       margin-top: 2px;
     }
+    .header {
+      background: #F3F3F3;
+    }
+    .members {
+      margin-left: 20px;
+    }
     .nonPublic {
       font-size: small;
+    }
+    .sigPanel {
+      padding: 2px 0px;
     }
   </ui:style>
 

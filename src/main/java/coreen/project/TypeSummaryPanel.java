@@ -121,16 +121,22 @@ public class TypeSummaryPanel extends Composite
     protected void init (final TypeSummary sum)
     {
         FlowPanel contents = Widgets.newFlowPanel();
+
+        FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (!_headerless) {
             if (sum.type == Type.TYPE) {
-                contents.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
+                header.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
             } else if (sum.doc != null) {
-                contents.add(new DocLabel(sum.doc));
+                header.add(new DocLabel(sum.doc));
             }
         }
-        contents.add(new SigLabel(sum, sum.sig, _defmap));
+        SigLabel sig = new SigLabel(sum, sum.sig, _defmap);
+        sig.addStyleName(_styles.sigPanel());
+        header.add(sig);
+        contents.add(header);
 
-        int added = addMembers(contents, true, sum.members);
+        FlowPanel members = Widgets.newFlowPanel(_styles.members());
+        int added = addMembers(members, true, sum.members);
         if (added < sum.members.length) {
             FlowPanel nonpubs = new FlowPanel() {
                 public void setVisible (boolean visible) {
@@ -141,11 +147,12 @@ public class TypeSummaryPanel extends Composite
                 }
             };
             Bindings.bindVisible(_npshowing, nonpubs);
-            contents.add(new FluentTable(0, 0, _styles.nonPublic()).
+            members.add(new FluentTable(0, 0, _styles.nonPublic()).
                          add().setWidget(TogglePanel.makeToggleButton(_npshowing)).
                          right().setText("Non-public members").table());
-            contents.add(nonpubs);
+            members.add(nonpubs);
         }
+        contents.add(members);
 
         // add a listener to all non-public members that shows the non-public members section
         // whenever any of them are marked as showing
@@ -179,17 +186,20 @@ public class TypeSummaryPanel extends Composite
 
     protected void addMember (FlowPanel panel, final DefInfo member)
     {
+        if (member.doc != null) {
+            panel.add(new DocLabel(member.doc));
+        }
         panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
                 final SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 // sig.addStyleName(_rsrc.styles().actionable());
-                _popups.bindPopup(sig, new PopupGroup.Thunk() {
-                    public Widget create () {
-                        return new DocLabel(member.doc, true);
-                    }
-                });
+                // _popups.bindPopup(sig, new PopupGroup.Thunk() {
+                //     public Widget create () {
+                //         return new DocLabel(member.doc, true);
+                //     }
+                // });
                 // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
-                return Widgets.newFlowPanel(DefUtil.iconForDef(member), sig);
+                return Widgets.newFlowPanel(_styles.sigPanel(), DefUtil.iconForDef(member), sig);
             }
             protected Widget createExpanded () {
                 if (member.type == Type.TYPE) {
@@ -203,18 +213,22 @@ public class TypeSummaryPanel extends Composite
 
     protected Widget createSourceView (final DefInfo member)
     {
-        return Widgets.newFlowPanel(
-            new DocLabel(member.doc), new SourcePanel(member.id, _defmap, _linker, true) {
+        // return Widgets.newFlowPanel(
+        //     new DocLabel(member.doc), );
+        return new SourcePanel(member.id, _defmap, _linker, true) {
             protected void didInit (FlowPanel contents) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
             }
-        });
+        };
     }
 
     protected interface Styles extends CssResource
     {
         String topgap ();
+        String header ();
+        String members ();
         String nonPublic ();
+        String sigPanel ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;

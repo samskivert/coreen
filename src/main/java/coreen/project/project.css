@@ -6,8 +6,8 @@
 }
 
 .code {
-  font-family: Courier;
-  font-size: small;
+  font-family: monospace;
+  font-size: 12pt;
   white-space: pre;
 }
 
@@ -32,7 +32,8 @@
 }
 
 .doc {
-  max-width: 800px;
+  color: #333333;
+  border-top: 1px dashed;
 }
 
 .doc p {
@@ -43,7 +44,7 @@
   padding: 5px;
   z-index: 5;
   border: 1px solid black;
-  background: white;
+  background: #EEEEEE;
   max-width: 800px;
 }
 
@@ -63,8 +64,8 @@
   margin-left: 5px;
 }
 
-.typeLabel .Module {
-  font-size: small;
+.typeLabel {
+  font-size: large;
 }
 
 .typeLabel .Type {
@@ -102,6 +103,7 @@
 }
 
 .toggle {
+  float: left;
   position: relative;
   top: 2px;
 }
