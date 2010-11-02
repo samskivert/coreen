@@ -194,6 +194,10 @@ public class EditProjectPage extends AbstractPage
         SOURCE_DIRS("Source dirs", 256, 40, _msgs.sourceDirsTip()) {
             public String apply (Project p) { return p.srcDirs; }
             public void update (Project p, String text) { p.srcDirs = text; }
+        },
+        READER_OPTS("Reader options", 256, 40, _msgs.readerOptsTip()) {
+            public String apply (Project p) { return p.readerOpts; }
+            public void update (Project p, String text) { p.readerOpts = text; }
         };
 
         public final String label;

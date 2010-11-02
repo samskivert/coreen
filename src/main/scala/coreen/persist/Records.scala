@@ -18,6 +18,8 @@ case class Project (
   version :String,
   /** The source directory filters for this project (if any). */
   srcDirs :Option[String],
+  /** Options to supply to the reader on the command line (if any). */
+  readerOpts :Option[String],
   /** When this project was imported into the library. */
   imported :Long,
   /** When this project was last updated. */
@@ -29,7 +31,7 @@ case class Project (
   val id :Long = 0L
 
   /** Zero args ctor for use when unserializing. */
-  def this () = this("", "", "", Some(""), 0L, 0L)
+  def this () = this("", "", "", Some(""), Some(""), 0L, 0L)
 
   override def toString = "[id=" + id + ", name=" + name + ", vers=" + version + "]"
 }

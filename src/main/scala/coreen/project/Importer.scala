@@ -84,7 +84,7 @@ trait Importer {
       val (name, vers) = inferNameAndVersion(file.getName)
 
       // create the project metadata
-      val p = createProject(source, name, file, "0.0", inferSourceDirs(file))
+      val p = createProject(source, name, file, "0.0", inferSourceDirs(file), None)
 
       // "update" the project for the first time
       _updater.update(p)
@@ -97,11 +97,12 @@ trait Importer {
       updatePending(source, "TODO: local archive import...", 0L)
     }
 
-    private def createProject (
-      source :String, name :String, rootPath :File, version :String, srcDirs :Option[String]) = {
+    private def createProject (source :String, name :String, rootPath :File, version :String,
+                               srcDirs :Option[String], readerOpts :Option[String]) = {
       val now = System.currentTimeMillis
       transaction {
-        _db.projects.insert(Project(name, rootPath.getAbsolutePath, version, srcDirs, now, now))
+        _db.projects.insert(Project(name, rootPath.getAbsolutePath, version,
+                                    srcDirs, readerOpts, now, now))
       }
     }
 

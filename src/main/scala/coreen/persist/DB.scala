@@ -186,13 +186,13 @@ trait DBComponent extends Component with DB {
       writeVersion(_db.version)
 
     } else { // otherwise do migration(s)
-      migrate(2, "Adding column DEF.FLAVOR...",
-              List("alter table DEF add column FLAVOR INTEGER(10) not null default 0"))
-      migrate(3, "Adding column DEF.FLAGS...",
-              List("alter table DEF add column FLAGS INTEGER(10) not null default 0"))
-      migrate(4, "Changing DEF.PARENTID to DEF.OUTERID...",
-              List("alter table DEF alter column PARENTID rename to OUTERID"))
-      migrate(5, "Adding SUPER table...",
+      migrate(2, "Adding column Def.flavor...",
+              List("alter table Def add column flavor INTEGER(10) not null default 0"))
+      migrate(3, "Adding column Def.flags...",
+              List("alter table Def add column flags INTEGER(10) not null default 0"))
+      migrate(4, "Changing Def.parentId to Def.outerId...",
+              List("alter table Def alter column parentId rename to outerId"))
+      migrate(5, "Adding Super table...",
               List("create table Super (defId bigint not null, superId bigint not null)",
                    "create index superIdx on Super (superId)",
                    "alter table Super add constraint SuperFK1 foreign key (defId)" +
@@ -200,8 +200,10 @@ trait DBComponent extends Component with DB {
                    "alter table Super add constraint SuperFK2 foreign key (superId)" +
                    "  references Def(id) on delete cascade",
                    "alter table Super add constraint SuperCPK unique(defId,superId)"))
-      migrate(6, "Adding column DEF.SUPERID...",
-              List("alter table DEF add column SUPERID BIGINT not null default 0"))
+      migrate(6, "Adding column Def.superId...",
+              List("alter table Def add column superId BIGINT not null default 0"))
+      migrate(7, "Adding column Project.readerOpts...",
+              List("alter table Project add column readerOpts varchar(123)"))
     }
   }
 }

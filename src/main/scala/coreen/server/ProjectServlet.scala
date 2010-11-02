@@ -32,14 +32,14 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def updateProject (proj :JProject) {
-      val srcDirs = if (proj.srcDirs == "") None else Some(proj.srcDirs)
       transaction {
         update(_db.projects) { p =>
           where(p.id === proj.id).set(
             p.name := proj.name,
             p.rootPath := proj.rootPath,
             p.version := proj.version,
-            p.srcDirs := srcDirs)
+            p.srcDirs := strToOpt(proj.srcDirs),
+            p.readerOpts := strToOpt(proj.readerOpts))
         }
       }
     }
@@ -244,6 +244,9 @@ trait ProjectServlet {
         Convert.toJava)
       detail
     }
+
+    private def strToOpt (value :String) =
+      if (value == null || value == "") None else Some(value)
 
     private def loadSource (p :Project, unit :JCompUnit) =
       Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).mkString("")

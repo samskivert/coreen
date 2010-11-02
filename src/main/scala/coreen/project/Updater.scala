@@ -58,8 +58,9 @@ trait Updater {
 
     abstract class Reader {
       def invoke (p :Project, ulog :Writer) {
+        val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
         val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
-        val argList = args ++ (p.rootPath :: dirList)
+        val argList = args(p.rootPath, extraOpts, dirList)
         _log.info("Invoking reader: " + argList.mkString(" "))
         val proc = Runtime.getRuntime.exec(argList.toArray)
 
@@ -199,7 +200,7 @@ trait Updater {
         cubuf.toList
       }
 
-      def args :List[String]
+      def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) :List[String]
     }
 
     def processDefs (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
@@ -364,9 +365,11 @@ trait Updater {
       classname :String, classpath :List[File], javaArgs :List[String]
     ) extends Reader {
       val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
-      def args = (javabin.getCanonicalPath :: "-classpath" ::
-                  classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) ::
-                  "-mx2048M" :: classname :: javaArgs)
+      def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) = {
+        val jvm :List[String] = javabin.getCanonicalPath :: "-classpath" ::
+          classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) :: extraOpts
+        jvm ++ (classname :: javaArgs) ++ (rootPath :: srcDirs)
+      }
     }
 
     // TEMP: profiling helper
