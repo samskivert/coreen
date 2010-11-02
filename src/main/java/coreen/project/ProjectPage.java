@@ -37,6 +37,7 @@ import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.SearchResultsPanel;
+import coreen.ui.UIUtil;
 import coreen.util.ClickCallback;
 import coreen.util.PanelCallback;
 
@@ -148,6 +149,9 @@ public class ProjectPage extends AbstractPage
             });
             return;
         }
+
+        // set the window title to reflect this project
+        UIUtil.setWindowTitle(_proj.get().name);
 
         if (_panel == null || _panel.getId() != detail) {
             _contents.setWidget(_panel = detail.create());

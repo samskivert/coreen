@@ -12,6 +12,7 @@ import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.SearchResultsPanel;
+import coreen.ui.UIUtil;
 
 /**
  * Handles searching within a project.
@@ -34,6 +35,7 @@ public class SearchPanel extends AbstractProjectPanel
     {
         String query = args.get(2, "").trim();
         _panel.setQuery(query);
+        UIUtil.setWindowTitle(proj.name, query);
         _projsvc.search(proj.id, query, _panel.createCallback());
     }
 

@@ -27,4 +27,21 @@ public class UIUtil
         popup.setPopupPosition(left, top);
         popup.setVisible(true);
     }
+
+    /**
+     * Sets the browser title.
+     *
+     * @param parts a list of parts that will be combined with dashes to form the title.
+     */
+    public static void setWindowTitle (String... parts)
+    {
+        StringBuilder buf = new StringBuilder("Coreen"); // TODO: maybe nix Coreen?
+        for (String part : parts) {
+            if (buf.length() > 0) {
+                buf.append(" - ");
+            }
+            buf.append(part);
+        }
+        Window.setTitle(buf.toString());
+    }
 }

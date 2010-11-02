@@ -6,7 +6,9 @@ package coreen.project;
 import com.google.gwt.user.client.ui.SimplePanel;
 
 import coreen.client.Args;
+import coreen.ui.UIUtil;
 import coreen.model.Project;
+import coreen.model.TypeSummary;
 
 /**
  * Displays a single type.
@@ -25,11 +27,16 @@ public class TypePanel extends AbstractProjectPanel
     }
 
     @Override // from AbstractProjectPanel
-    public void setArgs (Project proj, Args args)
+    public void setArgs (final Project proj, Args args)
     {
         long defId = args.get(2, 0L);
         if (_panel == null || _panel.defId != defId) {
-            ((SimplePanel)getWidget()).setWidget(_panel = new TypeSummaryPanel(defId, false));
+            ((SimplePanel)getWidget()).setWidget(_panel = new TypeSummaryPanel(defId, false) {
+                protected void init (final TypeSummary sum) {
+                    super.init(sum);
+                    UIUtil.setWindowTitle(proj.name, sum.name);
+                }
+            });
         }
         for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
             _panel.showMember(args.get(idx, 0L));

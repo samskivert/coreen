@@ -24,6 +24,7 @@ import coreen.client.Page;
 import coreen.rpc.LibraryService;
 import coreen.rpc.LibraryServiceAsync;
 import coreen.ui.SearchResultsPanel;
+import coreen.ui.UIUtil;
 
 /**
  * Displays all of the projects known to the system.
@@ -59,6 +60,7 @@ public class LibraryPage extends AbstractPage
         if (action.equals(SEARCH)) {
             final String query = args.get(1, "").trim();
             _search.setText(query);
+            UIUtil.setWindowTitle(query);
             _contents.setWidget(new SearchResultsPanel<LibraryService.SearchResult>() {
                 /* ctor */ {
                     setQuery(query);
