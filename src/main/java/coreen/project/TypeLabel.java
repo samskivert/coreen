@@ -53,11 +53,18 @@ public class TypeLabel extends FlowPanel
         }
         header.add(createDefLabel(deet));
 
+        for (int ii = 0, ll = (supers == null) ? 0 : supers.length; ii < ll; ii++) {
+            header.add(Widgets.newLabel((ii == 0) ? " ← " : ", "));
+            Widget suplab = createSuperLabel(supers[ii]);
+            new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
+            header.add(suplab);
+        }
+
         // TODO: tidy this up
         Hyperlink src = UsePopup.SOURCE.makeLink(deet);
         src.setText("src");
         src.addStyleName(_rsrc.styles().code());
-        header.add(Widgets.newLabel("["));
+        header.add(Widgets.newLabel(" ["));
         header.add(src);
         header.add(Widgets.newLabel("]"));
 
@@ -65,13 +72,7 @@ public class TypeLabel extends FlowPanel
         header.add(supHier);
         Label subs = Widgets.newLabel(" ↓ ", _rsrc.styles().actionable());
         header.add(subs);
-
-        for (int ii = 0, ll = (supers == null) ? 0 : supers.length; ii < ll; ii++) {
-            header.add(Widgets.newLabel((ii == 0) ? " ← " : ", "));
-            Widget suplab = createSuperLabel(supers[ii]);
-            new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
-            header.add(suplab);
-        }
+        // END TODO
 
         // stuff below the header
         SuperTypesPanel spanel = new SuperTypesPanel(deet, linker, defmap);

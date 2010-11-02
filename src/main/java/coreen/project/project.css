@@ -37,7 +37,7 @@
 }
 
 .doc p {
-  margin-bottom: 0px;
+  margin: 10px 0px 0px 0px;
 }
 
 .doc dl {
@@ -88,7 +88,6 @@
 }
 
 .typeLabel .Type {
-  padding-right: 5px;
   font-weight: bold;
 }
 

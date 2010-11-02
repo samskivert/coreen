@@ -17,7 +17,6 @@ import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -137,10 +136,21 @@ public class TypeSummaryPanel extends Composite
             if (sum.type == Type.TYPE) {
                 header.add(new TypeLabel(sum, _linker, _defmap) {
                     protected Widget createSuperLabel (Def sup) {
-                        ToggleButton toggle = new ToggleButton(sup.name);
-                        toggle.addStyleName(_rsrc.styles().actionable());
-                        Bindings.bindDown(superViz.get(sup.id), toggle);
-                        return toggle;
+                        Value<Boolean> viz = superViz.get(sup.id);
+                        final Widget label = Widgets.newActionLabel(
+                            sup.name, Bindings.makeToggler(viz));
+                        viz.addListenerAndTrigger(new Value.Listener<Boolean>() {
+                            public void valueChanged (Boolean value) {
+                                if (value) {
+                                    label.removeStyleName(_styles.superUp());
+                                    label.addStyleName(_styles.superDown());
+                                } else {
+                                    label.removeStyleName(_styles.superDown());
+                                    label.addStyleName(_styles.superUp());
+                                }
+                            }
+                        });
+                        return label;
                     }
                 });
             } else if (sum.doc != null) {
@@ -248,6 +258,8 @@ public class TypeSummaryPanel extends Composite
         String nonPublic ();
         String sigPanel ();
         String sigPanelBare ();
+        String superUp ();
+        String superDown ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;

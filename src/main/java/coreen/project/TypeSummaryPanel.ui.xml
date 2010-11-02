@@ -29,6 +29,12 @@
       padding-top: 2px;
       border-top: 1px dashed;
     }
+    .superUp {
+      color: #BBBBBB;
+    }
+    .superDown {
+      color: #000000;
+    }
   </ui:style>
 
   <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
