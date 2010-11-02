@@ -86,11 +86,11 @@ trait Importer {
       // create the project metadata
       val p = createProject(source, name, file, "0.0", inferSourceDirs(file), None)
 
+      // report that the import is complete
+      updatePending(source, "Project created. Processing contents...", p.id)
+
       // "update" the project for the first time
       _updater.update(p)
-
-      // report that the import is complete
-      updatePending(source, "Import complete.", p.id)
     }
 
     private def localArchiveImport (source :String, file :File) {
