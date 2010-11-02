@@ -103,7 +103,7 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
-      _db.defs.where(d => d.outerId === defId).toArray sorted(ByFlavorName) map(Convert.toJava)
+      _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
