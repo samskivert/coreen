@@ -35,12 +35,28 @@ public class DocLabel extends FlowPanel
             return;
         }
 
-        // TODO: smarter "sentence" detection?
-        String[] bits = fullDoc.split("\\.(\\s|<br/>|<br>)+");
-        if (bits.length == 1) {
+        // detect the end of the first "sentence"
+        int didx = fullDoc.indexOf(".");
+        while (didx > 0) {
+            // if the period is at the end of the full doc, just show the full doc
+            if (didx == fullDoc.length()-1) {
+                didx = -1;
+            } else {
+                // if the character after the period is whitespace or an open tag, we've found the
+                // end of the first sentence
+                char afterDot = fullDoc.charAt(didx+1);
+                if (isSpace(afterDot) || afterDot == '<') {
+                    break;
+                }
+                // otherwise look for the next period
+                didx = fullDoc.indexOf(".", didx+1);
+            }
+        }
+
+        if (didx == -1) {
             add(Widgets.newHTML(fullDoc));
         } else {
-            final String shortDoc = bits[0] + ".";
+            final String shortDoc = fullDoc.substring(0, didx+1);
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     return Widgets.newHTML(shortDoc);
@@ -49,6 +65,19 @@ public class DocLabel extends FlowPanel
                     return Widgets.newHTML(fullDoc);
                 }
             });
+        }
+    }
+
+    // copied from Character to avoid deprecation warning; Character.isWhitespace is not
+    // implemented for JavaScript, so we have no more appealing option
+    protected static boolean isSpace (char c) {
+        switch (c) {
+        case ' ': return true;
+        case '\n': return true;
+        case '\t': return true;
+        case '\f': return true;
+        case '\r': return true;
+        default: return false;
         }
     }
 

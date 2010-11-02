@@ -40,6 +40,21 @@
   margin-bottom: 0px;
 }
 
+.doc dl {
+  margin: 0px;
+}
+
+.doc dt {
+  display: inline;
+  margin: 0px 5px 0px 0px;
+  font-style: italic;
+}
+
+.doc dd {
+  display: inline;
+  margin: 0px;
+}
+
 .usePopup {
   padding: 5px;
   z-index: 5;
