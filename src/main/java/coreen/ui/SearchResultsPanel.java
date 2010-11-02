@@ -96,7 +96,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        TypeLabel label = new TypeLabel(result.path, result, UsePopup.SOURCE, _defmap, result.doc) {
+        TypeLabel label = new TypeLabel(result.path, result, UsePopup.TYPE, _defmap, result.doc) {
             protected Widget createDefLabel (Def def) {
                 List<Object> args = new ArrayList<Object>();
                 args.add(result.unit.projectId);

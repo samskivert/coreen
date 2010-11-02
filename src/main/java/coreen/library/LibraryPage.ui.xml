@@ -11,7 +11,7 @@
     .header {
       border-bottom: 1px solid;
       padding-bottom: 5px;
-      width: 800px;
+      width: 100%;
     }
     .title {
       font-family: Trebuchet MS, serif;

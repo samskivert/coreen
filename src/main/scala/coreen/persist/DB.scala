@@ -105,7 +105,13 @@ trait DB {
         case Some(d) => mkPath(defMap.get(d.outerId), Convert.toDefId(d) :: path)
       }
 
-      matches map { d =>
+      // sanity check the results and warn about matches for which we have no comp unit
+      val (have, missing) = matches partition(d => unitMap.isDefinedAt(d.unitId))
+      if (!missing.isEmpty) {
+        println("Missing compunits for " + missing)
+      }
+
+      have map { d =>
         val pid = unitMap(d.unitId)
         val r = Convert.initDefInfo(d, createDD())
         r.unit = new JCompUnit(d.unitId, pid, null)

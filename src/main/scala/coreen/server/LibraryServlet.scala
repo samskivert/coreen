@@ -3,6 +3,7 @@
 
 package coreen.server
 
+import javax.servlet.http.HttpServletResponse
 import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
@@ -10,7 +11,7 @@ import org.squeryl.PrimitiveTypeMode._
 import coreen.model.{Convert, DefId, CompUnit, PendingProject, Project => JProject, Type}
 import coreen.persist.{DB, Decode, Project, Def}
 import coreen.project.Importer
-import coreen.rpc.LibraryService
+import coreen.rpc.{LibraryService, ServiceException}
 
 /** Provides the library servlet. */
 trait LibraryServlet {
@@ -45,6 +46,11 @@ trait LibraryServlet {
       val projMap = from(_db.projects)(p => where(p.id in projIds) select(p.id, p.name)) toMap;
       res foreach { r => r.project = projMap(r.unit.projectId) }
       res
+    }
+
+    override protected def doUnexpectedFailure (e :Throwable) {
+      e.printStackTrace
+      getThreadLocalResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage)
     }
   }
 }

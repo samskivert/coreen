@@ -6,7 +6,7 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.CompUnitsPanel.Styles" field="_styles">
     .bydir {
-      width: 800px;
+      width: 100%;
     }
     .bydir td {
       border-bottom: 1px solid;

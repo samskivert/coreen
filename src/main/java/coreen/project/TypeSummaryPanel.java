@@ -147,9 +147,8 @@ public class TypeSummaryPanel extends Composite
                 }
             };
             Bindings.bindVisible(_npshowing, nonpubs);
-            members.add(new FluentTable(0, 0, _styles.nonPublic()).
-                         add().setWidget(TogglePanel.makeToggleButton(_npshowing)).
-                         right().setText("Non-public members").table());
+            members.add(TogglePanel.makeTogglePanel(_styles.nonPublic(), _npshowing,
+                                                    Widgets.newLabel("Non-public members")));
             members.add(nonpubs);
         }
         contents.add(members);
@@ -199,7 +198,14 @@ public class TypeSummaryPanel extends Composite
                 //     }
                 // });
                 // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
-                return Widgets.newFlowPanel(_styles.sigPanel(), DefUtil.iconForDef(member), sig);
+                Widget panel = Widgets.newFlowPanel(
+                    _styles.sigPanel(), DefUtil.iconForDef(member), sig);
+                if (member.doc == null) {
+                    // since we have no doc label to put a dashed line above our signature, we need
+                    // to add one manually
+                    panel.addStyleName(_styles.sigPanelBare());
+                }
+                return panel;
             }
             protected Widget createExpanded () {
                 if (member.type == Type.TYPE) {
@@ -229,6 +235,7 @@ public class TypeSummaryPanel extends Composite
         String members ();
         String nonPublic ();
         String sigPanel ();
+        String sigPanelBare ();
     }
     protected @UiField Styles _styles;
     protected @UiField SimplePanel _contents;

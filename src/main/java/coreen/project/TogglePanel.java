@@ -34,6 +34,18 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
         return toggle;
     }
 
+    public static FlowPanel makeTogglePanel (
+        String styleName, Value<Boolean> model, Widget... widgets)
+    {
+        FlowPanel panel = Widgets.newFlowPanel(styleName);
+        panel.add(makeToggleButton(model));
+        for (Widget w : widgets) {
+            panel.add(w);
+        }
+        panel.add(Widgets.newLabel("", _rsrc.styles().defClear()));
+        return panel;
+    }
+
     public TogglePanel (Value<Boolean> model)
     {
         // setCellSpacing(0);
