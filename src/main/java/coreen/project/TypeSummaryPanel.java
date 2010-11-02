@@ -139,6 +139,7 @@ public class TypeSummaryPanel extends Composite
                         Value<Boolean> viz = superViz.get(sup.id);
                         final Widget label = Widgets.newActionLabel(
                             sup.name, Bindings.makeToggler(viz));
+                        label.addStyleName(_rsrc.styles().actionable()); // turns off underline
                         viz.addListenerAndTrigger(new Value.Listener<Boolean>() {
                             public void valueChanged (Boolean value) {
                                 if (value) {
