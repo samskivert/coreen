@@ -191,18 +191,10 @@ public class TypeSummaryPanel extends Composite
         panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
                 final SigLabel sig = new SigLabel(member, member.sig, _defmap);
-                // sig.addStyleName(_rsrc.styles().actionable());
-                // _popups.bindPopup(sig, new PopupGroup.Thunk() {
-                //     public Widget create () {
-                //         return new DocLabel(member.doc, true);
-                //     }
-                // });
-                // new UsePopup.Popper(member.id, sig, _linker, _defmap, false).setHighlight(false);
                 Widget panel = Widgets.newFlowPanel(
                     _styles.sigPanel(), DefUtil.iconForDef(member), sig);
+                // if we lack doc label to put a dashed line above our sig, we add one manually
                 if (member.doc == null) {
-                    // since we have no doc label to put a dashed line above our signature, we need
-                    // to add one manually
                     panel.addStyleName(_styles.sigPanelBare());
                 }
                 return panel;
@@ -211,21 +203,14 @@ public class TypeSummaryPanel extends Composite
                 if (member.type == Type.TYPE) {
                     return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
                 } else {
-                    return createSourceView(member);
+                    return new SourcePanel(member.id, _defmap, _linker, true) {
+                        protected void didInit (FlowPanel contents) {
+                            WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
+                        }
+                    };
                 }
             }
         });
-    }
-
-    protected Widget createSourceView (final DefInfo member)
-    {
-        // return Widgets.newFlowPanel(
-        //     new DocLabel(member.doc), );
-        return new SourcePanel(member.id, _defmap, _linker, true) {
-            protected void didInit (FlowPanel contents) {
-                WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
-            }
-        };
     }
 
     protected interface Styles extends CssResource
