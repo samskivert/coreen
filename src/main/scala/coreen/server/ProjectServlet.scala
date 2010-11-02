@@ -4,6 +4,7 @@
 package coreen.server
 
 import java.io.File
+import javax.servlet.http.HttpServletResponse
 
 import scala.io.Source
 import scala.collection.mutable.ArrayBuffer
@@ -200,6 +201,11 @@ trait ProjectServlet {
               d.name === query and
               d.typ.~ < Decode.typeToCode(Type.TERM))
         select(d)) toSeq, () => new DefDetail)
+    }
+
+    override protected def doUnexpectedFailure (e :Throwable) {
+      e.printStackTrace
+      getThreadLocalResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage)
     }
 
     private def isRoot (df :Def) = df.name == "Object" // TODO!
