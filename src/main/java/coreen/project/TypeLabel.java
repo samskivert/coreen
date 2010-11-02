@@ -17,6 +17,7 @@ import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Type;
+import coreen.model.TypeSummary;
 import coreen.util.DefMap;
 
 /**
@@ -24,48 +25,50 @@ import coreen.util.DefMap;
  */
 public class TypeLabel extends FlowPanel
 {
-    public TypeLabel (DefId[] parents, Def def, UsePopup.Linker linker, DefMap defmap, String docs)
+    public TypeLabel (DefDetail deet, UsePopup.Linker linker, DefMap defmap)
     {
         addStyleName(_rsrc.styles().typeLabel());
-        add(DefUtil.iconForDef(def));
-        for (DefId encl : parents) {
-            Widget plabel = Widgets.newInlineLabel(encl.name);
+
+        // header
+        FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
+        add(header);
+        header.add(DefUtil.iconForDef(deet));
+        for (DefId encl : deet.path) {
+            Widget plabel = Widgets.newLabel(encl.name);
             if (encl.type != Type.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
-            add(plabel);
-            add(Widgets.newInlineLabel(".")); // TODO: customizable path separator?
+            header.add(plabel);
+            header.add(Widgets.newLabel(".")); // TODO: customizable path separator?
         }
-        Widget dlabel = createDefLabel(def);
-        dlabel.addStyleName("inline");
-        add(dlabel);
-
-        Label supers = Widgets.newInlineLabel(" ↑ ", _rsrc.styles().actionable());
-        add(supers);
-        Label subs = Widgets.newInlineLabel(" ↓ ", _rsrc.styles().actionable());
-        add(subs);
+        header.add(createDefLabel(deet));
 
         // TODO: tidy this up
-        if (def instanceof DefDetail) {
-            Hyperlink src = UsePopup.SOURCE.makeLink((DefDetail)def);
-            src.setText("src");
-            src.addStyleName("inline");
-            src.addStyleName(_rsrc.styles().code());
-            add(src);
-        }
+        Hyperlink src = UsePopup.SOURCE.makeLink(deet);
+        src.setText("src");
+        src.addStyleName(_rsrc.styles().code());
+        header.add(Widgets.newLabel("["));
+        header.add(src);
+        header.add(Widgets.newLabel("]"));
 
-        SuperTypesPanel spanel = new SuperTypesPanel(def, linker, defmap);
+        Label supers = Widgets.newLabel(" ↑ ", _rsrc.styles().actionable());
+        header.add(supers);
+        Label subs = Widgets.newLabel(" ↓ ", _rsrc.styles().actionable());
+        header.add(subs);
+
+        // stuff below the header
+        SuperTypesPanel spanel = new SuperTypesPanel(deet, linker, defmap);
         Value<Boolean> showSupers = Value.create(false);
         supers.addClickHandler(Bindings.makeToggler(showSupers));
         Bindings.bindVisible(showSupers, spanel);
         add(spanel);
 
-        if (docs != null) {
-            add(new DocLabel(docs));
+        if (deet.doc != null) {
+            add(new DocLabel(deet.doc));
         }
     }
 
-    protected Widget createDefLabel (Def def)
+    protected Widget createDefLabel (DefDetail def)
     {
         return Widgets.newLabel(def.name, _rsrc.styles().Type());
     }

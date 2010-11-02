@@ -110,7 +110,7 @@ public class TypeDetailPanel extends Composite
 
         FlowPanel contents = Widgets.newFlowPanel();
         if (detail.type == Type.TYPE) {
-            contents.add(new TypeLabel(detail.path, detail, _linker, _defmap, detail.doc));
+            contents.add(new TypeLabel(detail, _linker, _defmap));
         } else if (detail.doc != null) {
             contents.add(Widgets.newHTML(detail.doc));
         }

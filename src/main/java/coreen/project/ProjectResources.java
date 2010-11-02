@@ -27,6 +27,7 @@ public interface ProjectResources extends ClientBundle
         String highlight ();
         String indent ();
         String typeLabel ();
+        String typeLabelHeader ();
         String /*typeLabel*/ Type ();
         String typeIcon ();
         String typeIconBase ();

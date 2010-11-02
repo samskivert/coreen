@@ -125,7 +125,7 @@ public class TypeSummaryPanel extends Composite
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (!_headerless) {
             if (sum.type == Type.TYPE) {
-                header.add(new TypeLabel(sum.path, sum, _linker, _defmap, sum.doc));
+                header.add(new TypeLabel(sum, _linker, _defmap));
             } else if (sum.doc != null) {
                 header.add(new DocLabel(sum.doc));
             }
@@ -195,7 +195,9 @@ public class TypeSummaryPanel extends Composite
                     _styles.sigPanel(), DefUtil.iconForDef(member), sig);
                 // if we lack doc label to put a dashed line above our sig, we add one manually
                 if (member.doc == null) {
-                    panel.addStyleName(_styles.sigPanelBare());
+                    // add this to the toggle panel so that it is used by both the siglabel and the
+                    // source panel regardless of which is showing
+                    addStyleName(_styles.sigPanelBare());
                 }
                 return panel;
             }

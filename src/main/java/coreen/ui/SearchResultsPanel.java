@@ -28,6 +28,7 @@ import coreen.model.DefId;
 import coreen.model.Type;
 import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
+import coreen.project.SigLabel;
 import coreen.project.SourcePanel;
 import coreen.project.TogglePanel;
 import coreen.project.TypeLabel;
@@ -96,8 +97,8 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        TypeLabel label = new TypeLabel(result.path, result, UsePopup.TYPE, _defmap, result.doc) {
-            protected Widget createDefLabel (Def def) {
+        final TypeLabel label = new TypeLabel(result, UsePopup.TYPE, _defmap) {
+            protected Widget createDefLabel (DefDetail def) {
                 List<Object> args = new ArrayList<Object>();
                 args.add(result.unit.projectId);
                 args.add(ProjectPage.Detail.TYP);
@@ -110,20 +111,30 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
                 return Link.create(def.name, Page.PROJECT, args.toArray());
             }
         };
-        return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
-            protected Widget createCollapsed () {
-                return Widgets.newLabel(result.sig, _rsrc.styles().code());
-            }
-            protected Widget createExpanded () {
-                switch (result.type) {
-                case MODULE:
-                case TYPE:
-                    return new TypeSummaryPanel(result.id, true);
-                default:
+
+        // TODO: clean this all up and use a TypeSummaryPanel for module/types that allows deferred
+        // fetching of members
+        switch (result.type) {
+        case MODULE:
+        case TYPE:
+            return new TogglePanel(Value.create(false)) {
+                protected Widget createCollapsed () {
+                    return Widgets.newFlowPanel(label, new SigLabel(result, result.sig, _defmap));
+                }
+                protected Widget createExpanded () {
+                    return new TypeSummaryPanel(result.id, false);
+                }
+            };
+        default:
+            return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
+                protected Widget createCollapsed () {
+                    return new SigLabel(result, result.sig, _defmap);
+                }
+                protected Widget createExpanded () {
                     return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
                 }
-            }
-        });
+            });
+        }
     }
 
     protected interface Styles extends CssResource
