@@ -20,7 +20,7 @@
     }
     .nonPublic {
       font-size: small;
-      background: #DDCCCC;
+      background: #D3D3F3;
     }
     .sigPanel {
       padding-bottom: 2px;
