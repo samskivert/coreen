@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -122,10 +125,24 @@ public class TypeSummaryPanel extends Composite
     {
         FlowPanel contents = Widgets.newFlowPanel();
 
+        // these will control the visibility of members defined by this supertype
+        final Map<Long, Value<Boolean>> superViz = new HashMap<Long, Value<Boolean>>();
+        for (Def sup : sum.supers) {
+            boolean showMembers = !sup.name.equals("Object"); // TODO
+            superViz.put(sup.id, Value.create(showMembers));
+        }
+
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (!_headerless) {
             if (sum.type == Type.TYPE) {
-                header.add(new TypeLabel(sum, _linker, _defmap));
+                header.add(new TypeLabel(sum, _linker, _defmap) {
+                    protected Widget createSuperLabel (Def sup) {
+                        ToggleButton toggle = new ToggleButton(sup.name);
+                        toggle.addStyleName(_rsrc.styles().actionable());
+                        Bindings.bindDown(superViz.get(sup.id), toggle);
+                        return toggle;
+                    }
+                });
             } else if (sum.doc != null) {
                 header.add(new DocLabel(sum.doc));
             }
@@ -136,12 +153,12 @@ public class TypeSummaryPanel extends Composite
         contents.add(header);
 
         FlowPanel members = Widgets.newFlowPanel(_styles.members());
-        int added = addMembers(members, true, sum.members);
+        int added = addMembers(members, true, sum.members, superViz);
         if (added < sum.members.length) {
             FlowPanel nonpubs = new FlowPanel() {
                 public void setVisible (boolean visible) {
                     if (visible && getWidgetCount() == 0) {
-                        addMembers(this, false, sum.members);
+                        addMembers(this, false, sum.members, superViz);
                     }
                     super.setVisible(visible);
                 }
@@ -171,20 +188,27 @@ public class TypeSummaryPanel extends Composite
         _contents.setWidget(contents);
     }
 
-    protected int addMembers (FlowPanel panel, boolean access, DefInfo[] members)
+    protected int addMembers (FlowPanel panel, boolean access, DefInfo[] members,
+                              Map<Long, Value<Boolean>> outerViz)
     {
         int added = 0;
         for (DefInfo member : members) {
             if (member.isPublic() == access) {
-                addMember(panel, member);
+                Widget mpanel = createMemberWidget(member);
+                panel.add(mpanel);
+                Value<Boolean> isViz = outerViz.get(member.outerId);
+                if (isViz != null) {
+                    Bindings.bindVisible(isViz, mpanel);
+                }
                 added++;
             }
         }
         return added;
     }
 
-    protected void addMember (FlowPanel panel, final DefInfo member)
+    protected Widget createMemberWidget (final DefInfo member)
     {
+        FlowPanel panel = new FlowPanel();
         if (member.doc != null) {
             panel.add(new DocLabel(member.doc));
         }
@@ -213,6 +237,7 @@ public class TypeSummaryPanel extends Composite
                 }
             }
         });
+        return panel;
     }
 
     protected interface Styles extends CssResource

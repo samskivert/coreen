@@ -8,6 +8,9 @@ package coreen.model;
  */
 public class TypeSummary extends DefDetail
 {
+    /** This type's primary supertypes, ordered from nearest to furthest. */
+    public Def[] supers;
+
     /** Members of this type. */
     public DefInfo[] members;
 }

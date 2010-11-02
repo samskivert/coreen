@@ -130,20 +130,24 @@ trait ProjectServlet {
     def getSummary (defId :Long) :TypeSummary = transaction {
       val ts = initDefDetail(defId, new TypeSummary)
       val mems = _db.defs.where(d => d.outerId === defId).toArray
-      // load up all of the members defined in supertypes (TODO: filter members of Object/root?)
-      def loadSupers (superId :Long, filterIds :Set[Long]) :Array[Def] = {
-        _db.defs.lookup(superId) match {
-          case Some(sd) if (!isRoot(sd)) => {
-            println("Adding supers for " + sd.name)
-            val smems = _db.defs.where(d => d.outerId === superId and
-                                       not (d.id in filterIds)) toArray;
+
+      // load up all of the members defined in supertypes
+      var supers = ArrayBuffer[Def]() // we'll accumulate our super defs into this buffer
+      def loadSupers (superId :Long, filterIds :Set[Long]) :Array[Def] =
+        _db.defs lookup(superId) match {
+          case Some(sd) => {
+            supers += sd
+            val smems = _db.defs.where(
+              d => d.outerId === superId and not (d.id in filterIds)) toArray;
             smems ++ loadSupers(sd.superId, filterIds ++ smems.map(_.superId))
           }
           case _ => Array[Def]()
         }
-      }
-      val supers = loadSupers(ts.superId, mems map(_.superId) toSet)
-      ts.members = (mems ++ supers) sorted(ByFlavorName) map(Convert.toDefInfo)
+      // TODO: I don't think inherited but unimplemented interface members are handled here
+      val superdefs = loadSupers(ts.superId, mems map(_.superId) toSet)
+
+      ts.supers = (supers map(Convert.toJava) toArray)
+      ts.members = (mems ++ superdefs) sorted(ByFlavorName) map(Convert.toDefInfo)
       ts
     }
 

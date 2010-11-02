@@ -27,6 +27,16 @@ public class TypeLabel extends FlowPanel
 {
     public TypeLabel (DefDetail deet, UsePopup.Linker linker, DefMap defmap)
     {
+        this(deet, null, linker, defmap);
+    }
+
+    public TypeLabel (TypeSummary sum, UsePopup.Linker linker, DefMap defmap)
+    {
+        this(sum, sum.supers, linker, defmap);
+    }
+
+    public TypeLabel (DefDetail deet, Def[] supers, UsePopup.Linker linker, DefMap defmap)
+    {
         addStyleName(_rsrc.styles().typeLabel());
 
         // header
@@ -51,21 +61,33 @@ public class TypeLabel extends FlowPanel
         header.add(src);
         header.add(Widgets.newLabel("]"));
 
-        Label supers = Widgets.newLabel(" ↑ ", _rsrc.styles().actionable());
-        header.add(supers);
+        Label supHier = Widgets.newLabel(" ↑ ", _rsrc.styles().actionable());
+        header.add(supHier);
         Label subs = Widgets.newLabel(" ↓ ", _rsrc.styles().actionable());
         header.add(subs);
+
+        for (int ii = 0, ll = (supers == null) ? 0 : supers.length; ii < ll; ii++) {
+            header.add(Widgets.newLabel((ii == 0) ? " ← " : ", "));
+            Widget suplab = createSuperLabel(supers[ii]);
+            new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
+            header.add(suplab);
+        }
 
         // stuff below the header
         SuperTypesPanel spanel = new SuperTypesPanel(deet, linker, defmap);
         Value<Boolean> showSupers = Value.create(false);
-        supers.addClickHandler(Bindings.makeToggler(showSupers));
+        supHier.addClickHandler(Bindings.makeToggler(showSupers));
         Bindings.bindVisible(showSupers, spanel);
         add(spanel);
 
         if (deet.doc != null) {
             add(new DocLabel(deet.doc));
         }
+    }
+
+    protected Widget createSuperLabel (Def sup)
+    {
+        return Widgets.newLabel(sup.name);
     }
 
     protected Widget createDefLabel (DefDetail def)
