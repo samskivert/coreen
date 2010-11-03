@@ -61,7 +61,7 @@ trait Updater {
         val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
         val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
         val argList = args(p.rootPath, extraOpts, dirList)
-        _log.info("Invoking reader: " + argList.mkString(" "))
+        ulog.info("Invoking reader: " + argList.mkString(" "))
         val proc = Runtime.getRuntime.exec(argList.toArray)
 
         // read stderr on a separate thread so that we can ensure that stdout and stderr are both
@@ -417,13 +417,17 @@ trait Updater {
       case _ => None
     }
 
-    def collectFileTypes (root :File) :Set[String] = {
-      val rootPath = root.getAbsolutePath
-      def suffix (name :String) = name.substring(name.lastIndexOf(".")+1)
+    def collectFileTypes (root :File) = {
+      val rootPath = root.getCanonicalPath
+      def suffix (name :String) = {
+        val didx = name.lastIndexOf(".")
+        if (didx == -1) ""
+        else name.substring(didx+1)
+      }
       def collect (file :File) :Set[String] = {
         // skip files that symlink out of the project root (half-assed way of avoiding loops)
-        if (!file.getAbsolutePath.startsWith(rootPath)) Set()
-        else if (file.isDirectory) file.listFiles.toSet flatMap(collectFileTypes)
+        if (!file.getCanonicalPath.startsWith(rootPath)) Set()
+        else if (file.isDirectory) file.listFiles.toSet flatMap(collect)
         else Set(suffix(file.getName))
       }
       collect(root)
