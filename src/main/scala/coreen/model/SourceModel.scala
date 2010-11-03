@@ -5,7 +5,7 @@ package coreen.model
 
 import scala.xml.{Node, NodeSeq, Elem}
 
-import coreen.model.{Flavor, Type, Def => JDef}
+import coreen.model.{Def => JDef}
 
 /**
  * Models a source file as a nested collection of definitions and uses.
@@ -73,12 +73,12 @@ object SourceModel
     elem map(e => e.label match {
       case "def" => mkDef(e, parse0(e.child))
       case "use" => UseElem((e \ "@name").text, (e \ "@target").text, intAttr(e, "start"))
-      case x => null // should only ever be #PCDATA, TODO: assert something to that effect
+      case x => null // will be #PCDATA or <sig> or <doc> which are handled elsewhere
     })
   }
 
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
-    DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "@sig").text, (elem \ "@doc").text,
+    DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "sig").text, (elem \ "doc").text,
             parseType(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
             intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
