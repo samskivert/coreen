@@ -77,7 +77,7 @@ public class DefUtil
         case MODULE: // TODO: module icon
             return makeIcon(_icons.class_obj(), null, null);
         case TYPE: // TODO: support specialization on class/ifc/enum/etc.
-            switch (def.flavor) {
+            switch (def.kind) {
             default:
             case CLASS:
                 return makeIcon(_icons.class_obj(), null, null);
@@ -95,7 +95,7 @@ public class DefUtil
                 return makeIcon(_icons.class_obj(), null, null); // TODO
             }
         case FUNC: // TODO: support public/protected/private, etc.
-            switch (def.flavor) {
+            switch (def.kind) {
             default:
             case METHOD:
                 return makeIcon(_icons.methpub_obj(), null, null);
@@ -107,7 +107,7 @@ public class DefUtil
                 return makeIcon(_icons.methpub_obj(), _icons.constr_ovr(), null);
             }
         case TERM: // TODO: support public/protected/private, etc.
-            switch (def.flavor) {
+            switch (def.kind) {
             default:
             case FIELD:
                 return makeIcon(_icons.field_public_obj(), null, null);

@@ -4,11 +4,11 @@
 package coreen.model;
 
 /**
- * Defines different flavors of definition.
+ * Defines different kinds of definition.
  */
-public enum Flavor
+public enum Kind
 {
-    // type flavors
+    // type kinds
 
     /** A plain old class (Java, etc.). */
     CLASS,
@@ -25,7 +25,7 @@ public enum Flavor
     /** An abstract singleton object (Scala). */
     ABSTRACT_OBJECT,
 
-    // func flavors
+    // func kinds
 
     /** A normal class method (Java, etc.). */
     METHOD,
@@ -36,7 +36,7 @@ public enum Flavor
     /** An object constructor (Java, etc.). */
     CONSTRUCTOR,
 
-    // term flavors
+    // term kinds
 
     /** An object field (Java, etc.). */
     FIELD,
@@ -47,6 +47,6 @@ public enum Flavor
     /** A local variable (Java, etc.). */
     LOCAL,
 
-    /** A flavorless def. */
+    /** A kindless def. */
     NONE;
 }

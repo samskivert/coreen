@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 7;
+    val version = 8;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -210,6 +210,8 @@ trait DBComponent extends Component with DB {
               List("alter table Def add column superId BIGINT not null default 0"))
       migrate(7, "Adding column Project.readerOpts...",
               List("alter table Project add column readerOpts varchar(123)"))
+      migrate(8, "Changing Def.flavor to Def.kind...",
+              List("alter table Def alter column flavor rename to kind"))
     }
   }
 }

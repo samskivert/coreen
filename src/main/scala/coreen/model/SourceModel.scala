@@ -42,7 +42,7 @@ object SourceModel
 
   /** Models a definition (e.g. class, field, function, method, variable). */
   case class DefElem (name :String, id :String, sig :String, doc :String, typ :Type,
-                      flavor :Flavor, flags :Int, supers :Seq[String],
+                      kind :Kind, flags :Int, supers :Seq[String],
                       start :Int, bodyStart :Int, bodyEnd :Int,
                       defs :Seq[DefElem], uses :Seq[UseElem]) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
@@ -79,7 +79,7 @@ object SourceModel
 
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
     DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "sig").text, (elem \ "doc").text,
-            parseType(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
+            parseType(elem), parseKind(elem), parseFlags(elem), parseSupers(elem),
             intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
             children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
@@ -93,12 +93,12 @@ object SourceModel
     }
   }
 
-  protected def parseFlavor (elem :Node) = {
-    val text = (elem \ "@flavor").text
+  protected def parseKind (elem :Node) = {
+    val text = (elem \ "@kind").text
     try {
-      Enum.valueOf(classOf[Flavor], text.toUpperCase)
+      Enum.valueOf(classOf[Kind], text.toUpperCase)
     } catch {
-        case e => e.printStackTrace; println(elem + " -> " + e); Flavor.NONE
+        case e => e.printStackTrace; println(elem + " -> " + e); Kind.NONE
     }
   }
 

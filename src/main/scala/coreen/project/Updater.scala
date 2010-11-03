@@ -241,7 +241,7 @@ trait Updater {
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = defMap.get(df.id) match {
           case Some(defId) => {
             val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.typeToCode(df.typ),
-                           Decode.flavorToCode(df.flavor), df.flags,
+                           Decode.kindToCode(df.kind), df.flags,
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))

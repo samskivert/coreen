@@ -77,8 +77,8 @@ case class Def (
   name :String,
   /** The type of this definition (function, term, etc.). See {@link Type}. */
   typ :Int,
-  /** The flavor of this definition (class, interface, enum, etc.). See {@link Flavor}. */
-  flavor :Int,
+  /** The kind of this definition (class, interface, enum, etc.). See {@link Kind}. */
+  kind :Int,
   /** Bits for flags. */
   flags :Int,
   /** This definition's (type) signature. */
