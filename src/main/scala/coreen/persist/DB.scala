@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 6;
+    val version = 7;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
