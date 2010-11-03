@@ -417,10 +417,16 @@ trait Updater {
       case _ => None
     }
 
-    def collectFileTypes (file :File) :Set[String] = {
+    def collectFileTypes (root :File) :Set[String] = {
+      val rootPath = root.getAbsolutePath
       def suffix (name :String) = name.substring(name.lastIndexOf(".")+1)
-      if (file.isDirectory) file.listFiles.toSet flatMap(collectFileTypes)
-      else Set(suffix(file.getName))
+      def collect (file :File) :Set[String] = {
+        // skip files that symlink out of the project root (half-assed way of avoiding loops)
+        if (!file.getAbsolutePath.startsWith(rootPath)) Set()
+        else if (file.isDirectory) file.listFiles.toSet flatMap(collectFileTypes)
+        else Set(suffix(file.getName))
+      }
+      collect(root)
     }
 
     def truncate (text :String, length :Int) =
