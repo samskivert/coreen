@@ -14,9 +14,8 @@ import scala.xml.{XML, Elem}
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.nml.SourceModel
-import coreen.nml.SourceModel._
-import coreen.model.Type
+import coreen.model.SourceModel._
+import coreen.model.{SourceModel, Type}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Super}
 import coreen.server.{Log, Exec, Dirs, Console}
 
@@ -61,7 +60,7 @@ trait Updater {
         val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
         val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
         val argList = args(p.rootPath, extraOpts, dirList)
-        ulog.info("Invoking reader: " + argList.mkString(" "))
+        ulog.append("Invoking reader: " + argList.mkString(" "))
         val proc = Runtime.getRuntime.exec(argList.toArray)
 
         // read stderr on a separate thread so that we can ensure that stdout and stderr are both

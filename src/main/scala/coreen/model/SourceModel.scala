@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package coreen.nml
+package coreen.model
 
 import scala.xml.{Node, NodeSeq, Elem}
 
