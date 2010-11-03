@@ -45,13 +45,13 @@
 }
 
 .doc dt {
-  display: inline;
+  clear: left;
+  float: left;
   margin: 0px 5px 0px 0px;
   font-style: italic;
 }
 
 .doc dd {
-  display: inline;
   margin: 0px;
 }
 
