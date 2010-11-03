@@ -32,8 +32,8 @@
     .superUp {
       color: #BBBBBB;
     }
-    .superDown {
-      color: #000000;
+    .outerHovered {
+      background: #FFCCCC;
     }
   </ui:style>
 

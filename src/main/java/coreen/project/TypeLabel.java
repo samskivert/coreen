@@ -86,14 +86,14 @@ public class TypeLabel extends FlowPanel
         }
     }
 
-    protected Widget createSuperLabel (Def sup)
-    {
-        return Widgets.newLabel(sup.name);
-    }
-
     protected Widget createDefLabel (DefDetail def)
     {
         return Widgets.newLabel(def.name, _rsrc.styles().Type());
+    }
+
+    protected Widget createSuperLabel (Def sup)
+    {
+        return Widgets.newLabel(sup.name);
     }
 
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
