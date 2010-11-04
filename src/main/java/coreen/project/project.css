@@ -93,28 +93,31 @@
 }
 
 .typeIcon {
-  float: left;
+  display: inline;
   position: relative;
 }
 
 .typeIconBase {
-  position: relative;
+  position: absolute;
   top: 2px;
+  left: 0px;
 }
 
 .typeIconUR {
   position: absolute;
+  top: 0px;
   left: 9px;
 }
 
 .typeIconLL {
   position: absolute;
   top: 8px;
+  left: 0px;
 }
 
 .defLabel {
-  float: left;
-  padding-right: 5px;
+  display: inline;
+  white-space: nowrap;
 }
 
 .defClear {

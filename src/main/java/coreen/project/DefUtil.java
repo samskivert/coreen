@@ -33,6 +33,7 @@ public class DefUtil
         // new UsePopup.Popper(def.id, label, linker, defmap, false);
         UseHighlighter.bind(def.id, label, defmap);
         panel.add(adornDef(def, label));
+        panel.add(new InlineLabel(" "));
         return label;
     }
 
@@ -125,6 +126,7 @@ public class DefUtil
                                       ImageResource upright, ImageResource lowleft)
     {
         FlowPanel icon = Widgets.newFlowPanel(_rsrc.styles().typeIcon());
+        icon.add(Widgets.newShim(16, 16));
         icon.add(Widgets.newImage(base, _rsrc.styles().typeIconBase()));
         if (upright != null) {
             icon.add(Widgets.newImage(upright, _rsrc.styles().typeIconUR()));
