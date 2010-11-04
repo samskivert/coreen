@@ -23,6 +23,7 @@ public interface ProjectResources extends ClientBundle
         String doc ();
         String usePopup ();
         String actionable ();
+        String selected ();
         String openDef ();
         String highlight ();
         String indent ();

@@ -26,6 +26,7 @@ import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
 import coreen.util.PanelCallback;
+import coreen.util.Shower;
 
 /**
  * Displays all modules for a project, and their direct type members.
@@ -80,30 +81,26 @@ public class ModulesPanel extends SummaryPanel
             _modules.add(Widgets.newLabel(pname + ":", _styles.modprefix()));
         }
         for (final Def mod : modules) {
-            String label = mod.name.substring(prefix.length());
-            _modules.add(Widgets.newActionLabel(label, _styles.modlink(), new ClickHandler() {
+            String ltext = mod.name.substring(prefix.length());
+            Widget label = Widgets.newActionLabel(ltext, _styles.modlink(), new ClickHandler() {
                 public void onClick (ClickEvent event) {
-                    showModule(mod);
+                    Value<Boolean> showing = _showing.get(mod.id);
+                    showing.update(!showing.get());
                 }
-            }));
-            if (_showing.get(mod.id).get()) {
-                showModule(mod);
-            }
+            });
+            Bindings.bindStateStyle(_showing.get(mod.id), _rsrc.styles().selected(), null, label);
+            _modules.add(label);
+            new Shower(_showing.get(mod.id), _moddefs) {
+                protected Widget createWidget () {
+                    return createModulePanel(mod);
+                }
+            };
         }
-    }
-
-    protected void showModule (Def mod)
-    {
-        Widget modpan = _modpans.get(mod);
-        if (modpan == null) {
-            _modpans.put(mod, modpan = createModulePanel(mod));
-        }
-        _module.setWidget(modpan);
     }
 
     protected Widget createModulePanel (final Def mod)
     {
-        final FlowPanel defs = Widgets.newFlowPanel(_styles.moddefs());
+        final FlowPanel defs = Widgets.newFlowPanel();
         defs.add(Widgets.newLabel("Loading..."));
         _projsvc.getMembers(mod.id, new PanelCallback<Def[]>(defs) {
             public void onSuccess (Def[] members) {
@@ -121,7 +118,7 @@ public class ModulesPanel extends SummaryPanel
     {
         for (final Def def : members) {
             Label label = DefUtil.addDef(panel, def, _linker, _defmap);
-            Bindings.bindStateStyle(_showing.get(def.id), _styles.seltype(), null, label);
+            Bindings.bindStateStyle(_showing.get(def.id), _rsrc.styles().selected(), null, label);
             label.addStyleName(_rsrc.styles().actionable());
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
@@ -134,16 +131,11 @@ public class ModulesPanel extends SummaryPanel
                     }
                 }
             });
-            _showing.get(def.id).addListenerAndTrigger(new Value.Listener<Boolean>() {
-                public void valueChanged (Boolean showing) {
-                    if (showing && _deets == null) {
-                        _deets = new TypeSummaryPanel(def.id, _defmap, _showing, _linker);
-                        Bindings.bindVisible(_showing.get(def.id), _deets);
-                        _types.insert(_deets, 0);
-                    }
+            new Shower(_showing.get(def.id), _types) {
+                protected Widget createWidget () {
+                    return new TypeSummaryPanel(def.id, _defmap, _showing, _linker);
                 }
-                protected TypeSummaryPanel _deets;
-            });
+            };
         }
     }
 
@@ -152,13 +144,11 @@ public class ModulesPanel extends SummaryPanel
         String modprefix ();
         String modlink ();
         String modtitle ();
-        String moddefs ();
         String type ();
-        String seltype ();
     }
     protected @UiField Styles _styles;
     protected @UiField FlowPanel _modules;
-    protected @UiField SimplePanel _module;
+    protected @UiField FlowPanel _moddefs;
     protected @UiField FlowPanel _types;
 
     protected Map<Def, Widget> _modpans = new HashMap<Def, Widget>();

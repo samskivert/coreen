@@ -68,6 +68,10 @@
   text-decoration: none;
 }
 
+.selected {
+  font-weight: bold;
+}
+
 .openDef {
   font-weight: bold;
 }

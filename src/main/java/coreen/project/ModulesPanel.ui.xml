@@ -18,25 +18,22 @@
     .modlink {
       margin-left: 5px;
     }
-    .modtitle {
-      font-weight: bold;
-    }
     .moddefs {
       border-top: 1px solid;
       padding-top: 5px;
       margin-bottom: 3px;
     }
+    .modtitle {
+      font-weight: bold;
+    }
     .type {
       margin-right: 5px;
-    }
-    .seltype {
-      font-weight: bold;
     }
   </ui:style>
 
   <g:HTMLPanel>
     <g:FlowPanel styleName="{_styles.modules}" ui:field="_modules"/>
-    <g:SimplePanel ui:field="_module"/>
+    <g:FlowPanel styleName="{_styles.moddefs}" ui:field="_moddefs"/>
     <g:FlowPanel ui:field="_types"/>
   </g:HTMLPanel>
 </ui:UiBinder>
