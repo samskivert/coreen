@@ -1,5 +1,5 @@
 <!-- project build configuration -->
-<project name="Coreen Installers" default="client" basedir=".">
+<project name="Coreen Installers" basedir=".">
   <!-- the root URL from which the client is downloaded (minus getdown subdir) -->
   <property name="root_url" value="http://github.com/downloads/samskivert/coreen/"/>
   <!-- for now we build only English language installers -->
