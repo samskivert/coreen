@@ -53,7 +53,11 @@ object Coreen extends AnyRef
       }
     })
 
-    startComponents // start our components
+    try {
+      startComponents // start our components
+    } catch {
+      case e => _log.warning("Failure starting up", e); System.exit(255)
+    }
 
     // if we're running in app mode, open a web browser
     if (_appdir.isDefined) {

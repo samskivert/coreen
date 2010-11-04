@@ -105,10 +105,13 @@ trait Http {
 
     protected val _shutdownServlet = new HttpServlet() {
       override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
-        val out = rsp.getWriter
-        out.write("byebye")
-        out.close
-        Coreen.shutdown
+        try {
+          val out = rsp.getWriter
+          out.write("byebye")
+          out.close
+        } finally {
+          Coreen.shutdown
+        }
       }
     }
 
