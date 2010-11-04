@@ -4,6 +4,7 @@
 package coreen.project
 
 import java.io.{File, StringReader}
+import java.sql.BatchUpdateException
 import java.net.URI
 import java.util.concurrent.Callable
 
@@ -160,7 +161,7 @@ trait Updater {
         // finally record supertype relationships (which may also reference newly added defs)...
         for (cu <- cus) {
           ulog.append("Processing supers in " + cu.src + "...")
-          processSupers(cuIds(cu.src), defMap, cu.defs)
+          processSupers(ulog, cuIds(cu.src), defMap, cu.defs)
         }
 
         ulog.append("Processing complete!")
@@ -309,8 +310,8 @@ trait Updater {
       }
     }
 
-    def processSupers (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
-      transaction {
+    def processSupers (ulog :Writer, unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+      val toAdd = transaction {
         // load up all existing super relationships for all defs in this compunit
         val oldSups = from(_db.supers, _db.defs)((s, d) =>
           where(d.unitId === unitId and s.defId === d.id) select(s))
@@ -351,11 +352,25 @@ trait Updater {
         defs foreach(processDef)
 
         // do the adding, deleting and updating
-        if (!toAdd.isEmpty) _db.supers.insert(toAdd)
         toDel foreach { s => _db.supers.delete(s.id) }
         toUpdate foreach {
           case (defId, superId) => _db.defs update(d =>
             where(d.id === defId) set(d.superId := superId))
+        }
+        toAdd // returned to outer scope for processing
+      }
+
+      // try inserting our supers in a single batch, but if we run into problems, fall back to
+      // inserting them individually
+      if (!toAdd.isEmpty) try {
+        transaction { _db.supers.insert(toAdd) }
+      } catch {
+        case e :BatchUpdateException => transaction {
+          for (s <- toAdd) try {
+            _db.supers.insert(s)
+          } catch {
+            case e => ulog.append("Failed to insert " + s + ": " + e)
+          }
         }
       }
     }
