@@ -146,7 +146,7 @@ Section "Install" InstStuff
 
   ; Create our bootstrap getdown.txt file
   FileOpen $9 "$INSTDIR\getdown.txt" "w"
-  FileWrite $9 "appbase = ${APPBASE}\r$\n"
+  FileWrite $9 "appbase = ${APPBASE}$\r$\n"
   FileClose $9
 
   ; Create our main launcher "shortcut"
