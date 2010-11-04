@@ -8,7 +8,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.{Convert, DefId, CompUnit, PendingProject, Project => JProject, Type}
+import coreen.model.{Convert, DefId, CompUnit, PendingProject, Project => JProject, Kind}
 import coreen.persist.{DB, Decode, Project, Def}
 import coreen.project.Importer
 import coreen.rpc.{LibraryService, ServiceException}
@@ -38,8 +38,7 @@ trait LibraryServlet {
     // from interface LibraryService
     def search (query :String) :Array[LibraryService.SearchResult] = transaction {
       val res = _db.resolveMatches(
-        _db.defs.where(d => d.name === query and
-                       d.typ.~ < Decode.typeToCode(Type.TERM)).toSeq,
+        _db.defs.where(d => d.name === query and d.kind.~ < Decode.kindToCode(Kind.TERM)).toSeq,
         () => new LibraryService.SearchResult)
       // resolve the names of the projects from whence these results come
       val projIds = res map(_.unit.projectId) toSet

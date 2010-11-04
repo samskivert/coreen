@@ -41,8 +41,8 @@ object SourceModel
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
-  case class DefElem (name :String, id :String, sig :String, doc :String, typ :Type,
-                      kind :Kind, flags :Int, supers :Seq[String],
+  case class DefElem (name :String, id :String, sig :String, doc :String, kind :Kind,
+                      flavor :Flavor, flags :Int, supers :Seq[String],
                       start :Int, bodyStart :Int, bodyEnd :Int,
                       defs :Seq[DefElem], uses :Seq[UseElem]) extends Span {
     def getDef (path :List[String]) :Option[DefElem] = path match {
@@ -79,26 +79,26 @@ object SourceModel
 
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
     DefElem((elem \ "@name").text, (elem \ "@id").text, (elem \ "sig").text, (elem \ "doc").text,
-            parseType(elem), parseKind(elem), parseFlags(elem), parseSupers(elem),
+            parseKind(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
             intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
             children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
-
-  protected def parseType (elem :Node) = {
-    val text = (elem \ "@type").text
-    try {
-      Enum.valueOf(classOf[Type], text.toUpperCase)
-    } catch {
-        case e => println(elem + " -> " + e); Type.UNKNOWN
-    }
-  }
 
   protected def parseKind (elem :Node) = {
     val text = (elem \ "@kind").text
     try {
       Enum.valueOf(classOf[Kind], text.toUpperCase)
     } catch {
-        case e => e.printStackTrace; println(elem + " -> " + e); Kind.NONE
+        case e => println(elem + " -> " + e); Kind.UNKNOWN
+    }
+  }
+
+  protected def parseFlavor (elem :Node) = {
+    val text = (elem \ "@flavor").text
+    try {
+      Enum.valueOf(classOf[Flavor], text.toUpperCase)
+    } catch {
+        case e => e.printStackTrace; println(elem + " -> " + e); Flavor.NONE
     }
   }
 

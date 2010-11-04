@@ -28,7 +28,7 @@ import com.threerings.gwt.util.WindowUtil;
 import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefContent;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -109,7 +109,7 @@ public class TypeDetailPanel extends Composite
         _detail = detail;
 
         FlowPanel contents = Widgets.newFlowPanel();
-        if (detail.type == Type.TYPE) {
+        if (detail.kind == Kind.TYPE) {
             contents.add(new TypeLabel(detail, _linker, _defmap));
         } else if (detail.doc != null) {
             contents.add(Widgets.newHTML(detail.doc));
@@ -117,7 +117,7 @@ public class TypeDetailPanel extends Composite
 
         // if this is a type, display nested fields, funcs, etc.
         FlowPanel deets = null;
-        if (detail.type == Type.TYPE) {
+        if (detail.kind == Kind.TYPE) {
             FlowPanel members = Widgets.newFlowPanel(_styles.members());
             deets = Widgets.newFlowPanel();
             addDefs(members, _msgs.tdpTypes(), detail.members, deets);
@@ -131,7 +131,7 @@ public class TypeDetailPanel extends Composite
 
         // show source first if we last expanded a source *and* this is not type
         final Value<Boolean> showSource = Value.create(
-            _sourceFirst && (detail.type != Type.TYPE));
+            _sourceFirst && (detail.kind != Kind.TYPE));
         ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
                                                new Image(_icons.codeOpen()), new ClickHandler() {
             public void onClick (ClickEvent event) {
@@ -183,7 +183,7 @@ public class TypeDetailPanel extends Composite
         _contents.setWidget(contents);
     }
 
-    protected void addDefs (FlowPanel panel, String kind, Def[] defs, FlowPanel members)
+    protected void addDefs (FlowPanel panel, String flavor, Def[] defs, FlowPanel members)
     {
         for (final Def def : defs) {
             // create a type detail panel for this def, which will most likely be hidden

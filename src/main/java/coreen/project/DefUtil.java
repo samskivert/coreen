@@ -15,7 +15,7 @@ import com.threerings.gwt.ui.Widgets;
 
 import coreen.icons.IconResources;
 import coreen.model.Def;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.util.DefMap;
 
 /**
@@ -46,11 +46,11 @@ public class DefUtil
     }
 
     /**
-     * Returns the appropriate style for a def of the specified type.
+     * Returns the appropriate style for a def of the specified kind.
      */
-    public static String getStyle (Type type)
+    public static String getStyle (Kind kind)
     {
-        switch (type) {
+        switch (kind) {
         case MODULE: return _rsrc.styles().defModule();
         case TYPE: return _rsrc.styles().defType();
         case FUNC: return _rsrc.styles().defFunc();
@@ -72,12 +72,12 @@ public class DefUtil
      */
     public static Widget iconForDef (Def def)
     {
-        switch (def.type) {
+        switch (def.kind) {
         default:
         case MODULE: // TODO: module icon
             return makeIcon(_icons.class_obj(), null, null);
         case TYPE: // TODO: support specialization on class/ifc/enum/etc.
-            switch (def.kind) {
+            switch (def.flavor) {
             default:
             case CLASS:
                 return makeIcon(_icons.class_obj(), null, null);
@@ -95,7 +95,7 @@ public class DefUtil
                 return makeIcon(_icons.class_obj(), null, null); // TODO
             }
         case FUNC: // TODO: support public/protected/private, etc.
-            switch (def.kind) {
+            switch (def.flavor) {
             default:
             case METHOD:
                 return makeIcon(_icons.methpub_obj(), null, null);
@@ -107,7 +107,7 @@ public class DefUtil
                 return makeIcon(_icons.methpub_obj(), _icons.constr_ovr(), null);
             }
         case TERM: // TODO: support public/protected/private, etc.
-            switch (def.kind) {
+            switch (def.flavor) {
             default:
             case FIELD:
                 return makeIcon(_icons.field_public_obj(), null, null);

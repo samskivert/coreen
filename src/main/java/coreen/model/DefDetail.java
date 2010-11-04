@@ -20,7 +20,7 @@ public class DefDetail extends DefInfo
     public long outerTypeId ()
     {
         for (DefId tid : path) {
-            if (tid.type == Type.TYPE) {
+            if (tid.kind == Kind.TYPE) {
                 return tid.id;
             }
         }

@@ -4,49 +4,22 @@
 package coreen.model;
 
 /**
- * Defines different kinds of definition.
+ * Defines the different kinds of definitions.
  */
 public enum Kind
 {
-    // type kinds
+    /** A package or other module definition. */
+    MODULE,
 
-    /** A plain old class (Java, etc.). */
-    CLASS,
-    /** An interface (Java, etc.). */
-    INTERFACE,
-    /** An abstract class (Java, etc.). */
-    ABSTRACT_CLASS,
-    /** An enumeration (Java, etc.). */
-    ENUM,
-    /** An annotation type (Java, etc.). */
-    ANNOTATION,
-    /** A singleton object (Scala). */
-    OBJECT,
-    /** An abstract singleton object (Scala). */
-    ABSTRACT_OBJECT,
+    /** A class, record, object or other type definition. */
+    TYPE, // TODO: should we include closures and blocks as kinds? if so rename?
 
-    // func kinds
+    /** A procedure, method or other function definition. */
+    FUNC,
 
-    /** A normal class method (Java, etc.). */
-    METHOD,
-    /** An abstract (or interface) method (Java, etc.). */
-    ABSTRACT_METHOD,
-    /** A static method (Java, etc.). */
-    STATIC_METHOD,
-    /** An object constructor (Java, etc.). */
-    CONSTRUCTOR,
+    /** A parameter, field, local variable or other term definition. */
+    TERM,
 
-    // term kinds
-
-    /** An object field (Java, etc.). */
-    FIELD,
-    /** A class field (Java, etc.). */
-    STATIC_FIELD,
-    /** A function parameter (Java, etc.). */
-    PARAM,
-    /** A local variable (Java, etc.). */
-    LOCAL,
-
-    /** A kindless def. */
-    NONE;
+    /** Used when parsing fails or something is otherwise amiss. */
+    UNKNOWN
 }

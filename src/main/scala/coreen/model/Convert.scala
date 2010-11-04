@@ -38,14 +38,14 @@ object Convert
   def initDefId[DT <: DefId] (sdef :SDef, jdef :DT) = {
     jdef.id = sdef.id
     jdef.name = sdef.name
-    jdef.`type` = Decode.codeToType(sdef.typ)
+    jdef.kind = Decode.codeToKind(sdef.kind)
     jdef
   }
 
   /** Initializes a Java Def from a Scala Def. */
   def initDef[DT <: JDef] (sdef :SDef, jdef :DT) = {
     initDefId(sdef, jdef)
-    jdef.kind = Decode.codeToKind(sdef.kind)
+    jdef.flavor = Decode.codeToFlavor(sdef.flavor)
     jdef.flags = sdef.flags;
     jdef.outerId = sdef.outerId
     jdef.superId = sdef.superId

@@ -6,22 +6,22 @@ package coreen.model;
 import java.io.Serializable;
 
 /**
- * Contains the id, name and type of a def.
+ * Contains the id, name and kind of a def.
  */
 public class DefId implements Serializable
 {
-    /** The type of the referent. */
+    /** This def's unique identifier. */
     public long id;
 
-    /** The name of the referent. */
+    /** This def's name. */
     public String name;
 
-    /** The type of this def. */
-    public Type type;
+    /** The kind of this def. */
+    public Kind kind;
 
     @Override // from Object
     public String toString ()
     {
-        return name + "(" + type + ":" + id + ")";
+        return name + "(" + kind + ":" + id + ")";
     }
 }

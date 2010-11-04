@@ -16,7 +16,7 @@ import com.threerings.gwt.util.Value;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.model.TypeSummary;
 import coreen.util.DefMap;
 
@@ -45,7 +45,7 @@ public class TypeLabel extends FlowPanel
         header.add(DefUtil.iconForDef(deet));
         for (DefId encl : deet.path) {
             Widget plabel = Widgets.newLabel(encl.name);
-            if (encl.type != Type.MODULE) {
+            if (encl.kind != Kind.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
             header.add(plabel);

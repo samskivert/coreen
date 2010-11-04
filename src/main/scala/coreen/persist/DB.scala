@@ -14,7 +14,7 @@ import org.squeryl.Query
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.{Schema, Session, SessionFactory}
 
-import coreen.model.{Type, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
+import coreen.model.{Kind, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
 import coreen.server.{Dirs, Log, Component}
 
 /** Provides database services. */
@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 8;
+    val version = 9;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -71,7 +71,7 @@ trait DB {
     def loadModules (projectId :Long) :Query[Def] =
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === Decode.typeToCode(Type.MODULE)))
+              (d.kind === Decode.kindToCode(Kind.MODULE)))
         select(d))
 
     /** Returns a mapping from fqName to id for all known values in the supplied fqName set. */
@@ -212,6 +212,9 @@ trait DBComponent extends Component with DB {
               List("alter table Project add column readerOpts varchar(123)"))
       migrate(8, "Changing Def.flavor to Def.kind...",
               List("alter table Def alter column flavor rename to kind"))
+      migrate(9, "Changing Def.kind to Def.flavor...",
+              List("alter table Def alter column kind rename to flavor",
+                   "alter table Def alter column type rename to kind"))
     }
   }
 }

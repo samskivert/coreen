@@ -25,7 +25,7 @@ import coreen.client.Page;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
 import coreen.project.SigLabel;
@@ -63,20 +63,20 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected void init (R[] results)
     {
-        // partition the results by type (TODO: rewrite with Guava Multimap)
-        Map<Type, List<R>> bytype = new HashMap<Type, List<R>>();
+        // partition the results by kind (TODO: rewrite with Guava Multimap)
+        Map<Kind, List<R>> bykind = new HashMap<Kind, List<R>>();
         for (R result : results) {
-            List<R> rlist = bytype.get(result.type);
+            List<R> rlist = bykind.get(result.kind);
             if (rlist == null) {
-                bytype.put(result.type, rlist = new ArrayList<R>());
+                bykind.put(result.kind, rlist = new ArrayList<R>());
             }
             rlist.add(result);
         }
 
         FluentTable table = new FluentTable(5, 0);
-        for (Type type : Type.values()) {
-            if (bytype.containsKey(type)) {
-                for (R result : bytype.get(type)) {
+        for (Kind kind : Kind.values()) {
+            if (bykind.containsKey(kind)) {
+                for (R result : bykind.get(kind)) {
                     addResult(table, result);
                 }
             }
@@ -103,7 +103,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
                 args.add(result.unit.projectId);
                 args.add(ProjectPage.Detail.TYP);
                 for (DefId tid : result.path) {
-                    if (tid.type != Type.MODULE) {
+                    if (tid.kind != Kind.MODULE) {
                         args.add(tid.id);
                     }
                 }
@@ -114,7 +114,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
         // TODO: clean this all up and use a TypeSummaryPanel for module/types that allows deferred
         // fetching of members
-        switch (result.type) {
+        switch (result.kind) {
         case MODULE:
         case TYPE:
             return new TogglePanel(Value.create(false)) {

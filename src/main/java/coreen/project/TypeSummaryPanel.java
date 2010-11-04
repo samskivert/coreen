@@ -34,7 +34,7 @@ import coreen.model.Def;
 import coreen.model.DefContent;
 import coreen.model.DefDetail;
 import coreen.model.DefInfo;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.model.TypeSummary;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -138,7 +138,7 @@ public class TypeSummaryPanel extends Composite
 
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (!_headerless) {
-            if (sum.type == Type.TYPE) {
+            if (sum.kind == Kind.TYPE) {
                 header.add(new TypeLabel(sum, _linker, _defmap) {
                     protected Widget createDefLabel (DefDetail def) {
                         Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
@@ -246,7 +246,7 @@ public class TypeSummaryPanel extends Composite
                 return panel;
             }
             protected Widget createExpanded () {
-                if (member.type == Type.TYPE) {
+                if (member.kind == Kind.TYPE) {
                     return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
                 } else {
                     return new SourcePanel(member.id, _defmap, _linker, true) {

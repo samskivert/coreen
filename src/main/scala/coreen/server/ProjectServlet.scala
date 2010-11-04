@@ -14,7 +14,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
-import coreen.model.{Type, Kind}
+import coreen.model.{Kind, Flavor}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def}
 import coreen.project.Updater
 import coreen.rpc.{ProjectService, ServiceException}
@@ -82,23 +82,23 @@ trait ProjectServlet {
       val mods = _db.loadModules(projectId) map(d => (d.id -> d)) toMap
       val members = _db.defs where(d => d.outerId in mods.keySet) toArray
       val modMems = members groupBy(_.outerId) map {
-        case (id, dfs) => (mods(id) +: dfs.sorted(ByKindName)) map(Convert.toJava)
+        case (id, dfs) => (mods(id) +: dfs.sorted(ByFlavorName)) map(Convert.toJava)
       }
       modMems.toArray sortBy(_.head.name)
     }
 
     /** Returns all modules in the specified project. */
     def getModules (projectId :Long) :Array[JDef] = transaction {
-      _db.loadModules(projectId).toArray sorted(ByKindName) map(Convert.toJava)
+      _db.loadModules(projectId).toArray sorted(ByFlavorName) map(Convert.toJava)
     }
 
     // from interface ProjectService
     def getTypes (projectId :Long) :Array[JDef] = transaction {
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.typ === Decode.typeToCode(Type.TYPE)))
+              (d.kind === Decode.kindToCode(Kind.TYPE)))
         select(d)
-      ).toArray sorted(ByKindName) map(Convert.toJava)
+      ).toArray sorted(ByFlavorName) map(Convert.toJava)
     }
 
     // from interface ProjectService
@@ -121,7 +121,7 @@ trait ProjectServlet {
     // from interface ProjectService
     def getType (defId :Long) :TypeDetail = transaction {
       val td = initDefDetail(defId, new TypeDetail)
-      td.members = _db.defs.where(d => d.outerId === defId).toArray sorted(ByKindName) map(
+      td.members = _db.defs.where(d => d.outerId === defId).toArray sorted(ByFlavorName) map(
         Convert.toJava)
       td
     }
@@ -147,7 +147,7 @@ trait ProjectServlet {
       val superdefs = loadSupers(ts.superId, mems map(_.superId) toSet)
 
       ts.supers = (supers map(Convert.toJava) toArray)
-      ts.members = (mems ++ superdefs) sorted(ByKindName) map(Convert.toDefInfo)
+      ts.members = (mems ++ superdefs) sorted(ByFlavorName) map(Convert.toDefInfo)
       ts
     }
 
@@ -203,7 +203,7 @@ trait ProjectServlet {
         where(cu.projectId === projectId and
               d.unitId === cu.id and
               d.name === query and
-              d.typ.~ < Decode.typeToCode(Type.TERM))
+              d.kind.~ < Decode.kindToCode(Kind.TERM))
         select(d)) toSeq, () => new DefDetail)
     }
 
@@ -261,25 +261,25 @@ trait ProjectServlet {
     private def loadSource (p :Project, unit :JCompUnit) =
       Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).mkString("")
 
-    // defines the sort ordering of def kinds
-    private val KindPriority = List(Kind.ENUM,
-                                    Kind.INTERFACE,
-                                    Kind.ABSTRACT_CLASS,
-                                    Kind.CLASS,
-                                    Kind.ANNOTATION,
-                                    Kind.OBJECT,
-                                    Kind.ABSTRACT_OBJECT,
-                                    Kind.STATIC_FIELD,
-                                    Kind.STATIC_METHOD,
-                                    Kind.FIELD,
-                                    Kind.CONSTRUCTOR,
-                                    Kind.ABSTRACT_METHOD,
-                                    Kind.METHOD
-                                  ).map(Decode.kindToCode).zipWithIndex.toMap
+    // defines the sort ordering of def flavors
+    private val FlavorPriority = List(Flavor.ENUM,
+                                    Flavor.INTERFACE,
+                                    Flavor.ABSTRACT_CLASS,
+                                    Flavor.CLASS,
+                                    Flavor.ANNOTATION,
+                                    Flavor.OBJECT,
+                                    Flavor.ABSTRACT_OBJECT,
+                                    Flavor.STATIC_FIELD,
+                                    Flavor.STATIC_METHOD,
+                                    Flavor.FIELD,
+                                    Flavor.CONSTRUCTOR,
+                                    Flavor.ABSTRACT_METHOD,
+                                    Flavor.METHOD
+                                  ).map(Decode.flavorToCode).zipWithIndex.toMap
 
-    private val ByKindName = new Ordering[Def] {
+    private val ByFlavorName = new Ordering[Def] {
       def compare (a :Def, b :Def) = {
-        val rv = KindPriority.getOrElse(a.kind, 99) - KindPriority.getOrElse(b.kind, 99)
+        val rv = FlavorPriority.getOrElse(a.flavor, 99) - FlavorPriority.getOrElse(b.flavor, 99)
         if (rv == 0) a.name.compareTo(b.name) else rv
       }
     }

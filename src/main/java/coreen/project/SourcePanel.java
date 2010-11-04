@@ -129,7 +129,7 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Def def : defs) {
             elems.add(new Elementer(def.start, def.start+def.name.length()) {
                 public Widget createElement (String text) {
-                    Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.type));
+                    Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.kind));
                     _local.map(def.id, w);
                     return w;
                 }

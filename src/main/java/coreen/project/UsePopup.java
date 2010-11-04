@@ -25,7 +25,7 @@ import coreen.client.Page;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
-import coreen.model.Type;
+import coreen.model.Kind;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.UIUtil;
@@ -70,7 +70,7 @@ public class UsePopup extends PopupPanel
     public static final Linker TYPE = new Linker(ProjectPage.Detail.TYP) {
         protected void addDetailArgs (DefDetail deet, List<Object> args) {
             for (DefId did : deet.path) {
-                if (did.type != Type.MODULE) {
+                if (did.kind != Kind.MODULE) {
                     args.add(did.id);
                 }
             }

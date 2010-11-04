@@ -15,7 +15,7 @@ import scala.xml.{XML, Elem}
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.SourceModel._
-import coreen.model.{SourceModel, Type}
+import coreen.model.{SourceModel, Kind}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Super}
 import coreen.server.{Log, Exec, Dirs, Console}
 
@@ -140,7 +140,7 @@ trait Updater {
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
-        val byId = cus.flatMap(_.allDefs) filter(_.typ == Type.MODULE) groupBy(_.id)
+        val byId = cus.flatMap(_.allDefs) filter(_.kind == Kind.MODULE) groupBy(_.id)
         processDefs(cuDef.id, defMap, byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
 
         // first process all of the definitions in all of the compunits...
@@ -240,8 +240,8 @@ trait Updater {
         def makeDefs (outerId :Long)(
           out :Map[Long,Def], df :DefElem) :Map[Long,Def] = defMap.get(df.id) match {
           case Some(defId) => {
-            val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.typeToCode(df.typ),
-                           Decode.kindToCode(df.kind), df.flags,
+            val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.kindToCode(df.kind),
+                           Decode.flavorToCode(df.flavor), df.flags,
                            stropt(df.sig), stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))

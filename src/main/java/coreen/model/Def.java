@@ -11,8 +11,8 @@ public class Def extends DefId
     /** A flag distinguishing defs with public access versus those with non-public. */
     public static final int PUBLIC = 0x1 << 0;
 
-    /** The kind of this def. */
-    public Kind kind;
+    /** The flavor of this def. */
+    public Flavor flavor;
 
     /** Flags associated with this def. */
     public int flags;

@@ -75,10 +75,10 @@ case class Def (
   unitId :Long,
   /** This definition's (unqualified) name (i.e. Foo not com.bar.Outer.Foo). */
   name :String,
-  /** The type of this definition (function, term, etc.). See {@link Type}. */
-  typ :Int,
-  /** The kind of this definition (class, interface, enum, etc.). See {@link Kind}. */
+  /** The kind of this definition (function, term, etc.). See {@link Kind}. */
   kind :Int,
+  /** The flavor of this definition (class, interface, enum, etc.). See {@link Flavor}. */
+  flavor :Int,
   /** Bits for flags. */
   flags :Int,
   /** This definition's (type) signature. */
@@ -98,7 +98,7 @@ case class Def (
   def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
-                           ", name=" + name + ", type=" + typ + "]")
+                           ", name=" + name + ", kind=" + kind + "]")
 }
 
 /** Contains metadata for a use. */
