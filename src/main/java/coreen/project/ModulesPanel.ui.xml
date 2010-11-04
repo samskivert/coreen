@@ -5,16 +5,38 @@
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
   <ui:style type="coreen.project.ModulesPanel.Styles" field="_styles">
-    .contents {
-    }
-    .module {
+    .modules {
       font-size: small;
+      margin: 5px 0px;
+    }
+    .modules div {
+      display: inline;
+    }
+    .modprefix {
       font-weight: bold;
     }
+    .modlink {
+      margin-left: 5px;
+    }
+    .modtitle {
+      font-weight: bold;
+    }
+    .moddefs {
+      border-top: 1px solid;
+      padding-top: 5px;
+      margin-bottom: 3px;
+    }
     .type {
-      padding-right: 5px;
+      margin-right: 5px;
+    }
+    .seltype {
+      font-weight: bold;
     }
   </ui:style>
 
-  <g:FlowPanel styleName="{_styles.contents}" ui:field="_contents"/>
+  <g:HTMLPanel>
+    <g:FlowPanel styleName="{_styles.modules}" ui:field="_modules"/>
+    <g:SimplePanel ui:field="_module"/>
+    <g:FlowPanel ui:field="_types"/>
+  </g:HTMLPanel>
 </ui:UiBinder>
