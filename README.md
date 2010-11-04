@@ -26,6 +26,33 @@ installer appropriate to your platform here:
 * [Mac OS X](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.dmg)
 * [Windows](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.exe)
 
+## Wire it into your development environment
+
+Coreen is most useful when you can use it to look up names while you're editing
+source code. Ideally you should be able to press a few keys while the cursor is
+sitting on a symbol that you want to know more about. The following are
+instructions for making that a reality in a few different editors.
+
+### Emacs
+
+Add the following elisp to your .emacs file:
+
+    (defun coreen-lookup-symbol (class)
+      "Looks the symbol under the point up in Coreen."
+      (interactive (list (read-from-minibuffer "Class: " (thing-at-point 'symbol))))
+      (browse-url (concat "http://localhost:8080/coreen/#LIBRARY~search~" class))
+      )
+    ;; this maps lookup in Java mode to Ctrl-c Ctrl-j, adjust as desired
+    (defun coreen-java-mode-hook ()
+      (define-key java-mode-map "\C-c\C-j" 'coreen-lookup-symbol)
+      )
+    (add-hook 'java-mode-hook 'coreen-java-mode-hook)
+
+### Other editors
+
+Contributions are welcome for instructions on how to easily call out to Coreen
+from other editors. Please send them to my email address below.
+
 ## Contact
 
 Coreen is a research project being conducted by [Michael
