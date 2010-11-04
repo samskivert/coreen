@@ -26,10 +26,14 @@
         <ui:msg>Source:</ui:msg><br/>
         <g:TextBox ui:field="_source" visibleLength="60"/>
         <g:Button ui:field="_go"><ui:msg>Import</ui:msg></g:Button><br/>
-        <div style="font-size: small; padding-top: 5px"><ui:msg>
+        <div style="max-width: 550px; font-size: small"><ui:msg>I'd love to give you a file
+          selection dialog here, but it is impossible for the web browser to
+          ever obtain the full path on the local file system. Not even in
+          HTML5.</ui:msg></div>
+        <div style="padding-top: 5px"><ui:msg>
           Examples:<br/>
           - /some/local/directory<br/>
-          - <strike>/some/local/archive_file.tgz (or .zip, .tar.gz, .jar)</strike><br/>
+          - /some/local/archive_file.tgz (or .zip, <strike>.tar.gz</strike>, .jar)<br/>
           - <strike>http://some/remote/archive_file.tgz (or .zip, .tar.gz, .jar)</strike><br/>
           - <strike>version control URL (svn, git, mercurial)</strike><br/>
         </ui:msg></div>

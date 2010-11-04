@@ -14,11 +14,11 @@ import scala.collection.mutable.ArrayBuffer
 import coreen.model.PendingProject
 import coreen.persist.{DB, Project}
 import coreen.rpc.ServiceException
-import coreen.server.{Log, Exec}
+import coreen.server.{Log, Dirs, Exec}
 
 /** Provides project importing services. */
 trait Importer {
-  this :Log with Exec with DB with Updater =>
+  this :Log with Dirs with Exec with DB with Updater =>
 
   /** Handles the importation of projects into Coreen. */
   object _importer {
@@ -83,18 +83,45 @@ trait Importer {
       updatePending(source, "Inferring project name and metadata...", 0L)
       val (name, vers) = inferNameAndVersion(file.getName)
 
+      // finish up now that we have a name, version and local filesystem location
+      finishLocalImport(source, file, name, vers);
+    }
+
+    private def localArchiveImport (source :String, file :File) {
+      updatePending(source, "Inferring project name and metadata...", 0L)
+      try {
+        val suff = file.getName takeRight(4)
+        if (suff != ".jar" && suff != ".zip")
+          throw new Exception("Only handle .zip and .jar archives currently.")
+
+        val (name, vers) = inferNameAndVersion(file.getName dropRight(4))
+        val pdir = _projectDir(name)
+        if (pdir.exists) throw new Exception("Already have project in " + pdir)
+        if (!pdir.mkdirs) throw new Exception("Unable to create project directory: " + pdir)
+
+        updatePending(source, "Unpacking source to local directory...", 0L)
+        val unpacker = Runtime.getRuntime.exec(Array("jar", "xf", file.getAbsolutePath), null, pdir)
+        val urv = unpacker.waitFor
+        if (urv != 0) {
+          updatePending(source, "Unpacking failed? Trying anyway...", 0L);
+        }
+
+        finishLocalImport(source, pdir, name, vers);
+
+      } catch {
+        case e => updatePending(source, e.getMessage, -1L)
+      }
+    }
+
+    private def finishLocalImport (source :String, root :File, name :String, vers :String) {
       // create the project metadata
-      val p = createProject(source, name, file, "0.0", inferSourceDirs(file), None)
+      val p = createProject(source, name, root, "0.0", inferSourceDirs(root), None)
 
       // report that the import is complete
       updatePending(source, "Project created. Processing contents...", p.id)
 
       // "update" the project for the first time
       _updater.update(p)
-    }
-
-    private def localArchiveImport (source :String, file :File) {
-      updatePending(source, "TODO: local archive import...", 0L)
     }
 
     private def createProject (source :String, name :String, rootPath :File, version :String,
@@ -136,7 +163,7 @@ trait Importer {
       new ConcurrentHashMap[String,PendingProject]()
 
     private[project] val NameVersionRE = """(.*)[_-](r?[0-9]+.*)""".r
-    private[project] val ArchSuffsRE = Pattern.compile("(.tgz|.tar.gz|.zip|.jar)$")
+    private[project] val ArchSuffsRE = Pattern.compile(".*(.tgz|.tar.gz|.zip|.jar)$")
     // private[project] val GitRepoRE = """https?://.*\.git""".r
     // private[project] val SvnRepoRE = """svn://.*""".r
   }
