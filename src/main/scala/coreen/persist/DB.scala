@@ -212,9 +212,9 @@ trait DBComponent extends Component with DB {
               List("alter table Project add column readerOpts varchar(123)"))
       migrate(8, "Changing Def.flavor to Def.kind...",
               List("alter table Def alter column flavor rename to kind"))
-      migrate(9, "Changing Def.kind to Def.flavor...",
+      migrate(9, "Changing Def.kind to Def.flavor and Def.typ to Def.kind...",
               List("alter table Def alter column kind rename to flavor",
-                   "alter table Def alter column type rename to kind"))
+                   "alter table Def alter column typ rename to kind"))
     }
   }
 }
