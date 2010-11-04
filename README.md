@@ -31,7 +31,7 @@ installer appropriate to your platform here:
 Coreen is most useful when you can use it to look up names while you're editing
 source code. Ideally you should be able to press a few keys while the cursor is
 sitting on a symbol that you want to know more about. The following are
-instructions for making that a reality in a few different editors.
+instructions for making that a reality.
 
 ### Emacs
 
