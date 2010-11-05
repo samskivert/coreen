@@ -4,6 +4,7 @@
 package coreen.project
 
 import java.io.File
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
@@ -15,6 +16,7 @@ import coreen.model.PendingProject
 import coreen.persist.{DB, Project}
 import coreen.rpc.ServiceException
 import coreen.server.{Log, Dirs, Exec}
+import coreen.util.RemoteUnpacker
 
 /** Provides project importing services. */
 trait Importer {
@@ -39,6 +41,7 @@ trait Importer {
           try {
             processImport(source)
           } catch {
+            case ie :ImportException => updatePending(source, ie.getMessage, -1L)
             case t => t.printStackTrace; updatePending(source, "Error: " + t.getMessage, -1L)
           }
         }
@@ -68,9 +71,9 @@ trait Importer {
 
       // see if we can figure out where the data is
       (source, new File(source)) match {
-        case (_, f) if (f.isDirectory) => localProjectImport(source, f)
-        case (_, f) if (f.exists && ArchSuffsRE.matcher(f.getName()).matches) =>
-          localArchiveImport(source, f)
+        case (_, f) if (f.isDirectory)      => localProjectImport(source, f)
+        case (_, f) if (isLocalArchive(f))  => localArchiveImport(source, f)
+        case _ if (isRemoteArchive(source)) => remoteArchiveImport(source)
         // case GitRepoRE => gitRepoImport(source)
         // case SvnRepoRE => hgRepoImport(source)/
         // case URLRE => see what's on the other end of the URL...
@@ -87,30 +90,59 @@ trait Importer {
       finishLocalImport(source, file, name, vers);
     }
 
+    private def isLocalArchive (file :File) =
+      file.exists && ArchSuffsRE.matcher(file.getName()).matches
+
     private def localArchiveImport (source :String, file :File) {
       updatePending(source, "Inferring project name and metadata...", 0L)
-      try {
-        val suff = file.getName takeRight(4)
-        if (suff != ".jar" && suff != ".zip")
-          throw new Exception("Only handle .zip and .jar archives currently.")
 
-        val (name, vers) = inferNameAndVersion(file.getName dropRight(4))
-        val pdir = _projectDir(name)
-        if (pdir.exists) throw new Exception("Already have project in " + pdir)
-        if (!pdir.mkdirs) throw new Exception("Unable to create project directory: " + pdir)
+      val suff = file.getName takeRight(4)
+      if (suff != ".jar" && suff != ".zip")
+        throw new ImportException("Only handle .zip and .jar archives currently.")
+      val (name, vers) = inferNameAndVersion(file.getName dropRight(4))
 
-        updatePending(source, "Unpacking source to local directory...", 0L)
-        val unpacker = Runtime.getRuntime.exec(Array("jar", "xf", file.getAbsolutePath), null, pdir)
-        val urv = unpacker.waitFor
-        if (urv != 0) {
-          updatePending(source, "Unpacking failed? Trying anyway...", 0L);
-        }
+      // prepare the project directory
+      val pdir = _projectDir(name)
+      if (pdir.exists && pdir.list.length > 0)
+        throw new ImportException("Already have project in " + pdir)
+      if (!pdir.mkdirs) throw new ImportException("Unable to create project directory: " + pdir)
 
-        finishLocalImport(source, pdir, name, vers);
-
-      } catch {
-        case e => updatePending(source, e.getMessage, -1L)
+      // unpack the source
+      updatePending(source, "Unpacking source to local directory...", 0L)
+      val unpacker = Runtime.getRuntime.exec(Array("jar", "xf", file.getAbsolutePath), null, pdir)
+      val urv = unpacker.waitFor
+      if (urv != 0) {
+        updatePending(source, "Unpacking failed? Trying anyway...", 0L);
       }
+
+      finishLocalImport(source, pdir, name, vers);
+    }
+
+    private def isRemoteArchive (source :String) = try {
+      ArchSuffsRE.matcher(new URL(source).getPath).matches
+    } catch {
+      case e => false
+    }
+
+    private def remoteArchiveImport (source :String) {
+      updatePending(source, "Inferring project name and metadata...", 0L)
+
+      val url = new URL(source)
+      val file = url.getPath.substring(url.getPath.lastIndexOf("/")+1)
+      val (name, vers) = inferNameAndVersion(file)
+
+      // prepare the project directory
+      val pdir = _projectDir(name)
+      if (pdir.exists && pdir.list.length > 0)
+        throw new ImportException("Already have project in " + pdir)
+      if (!pdir.mkdirs)
+        throw new ImportException("Unable to create project directory: " + pdir)
+
+      // download and unpack the source
+      updatePending(source, "Downloading and unpacking source...", 0L)
+      RemoteUnpacker.unpackJar(url, pdir)
+
+      finishLocalImport(source, pdir, name, vers);
     }
 
     private def finishLocalImport (source :String, root :File, name :String, vers :String) {
@@ -158,6 +190,8 @@ trait Importer {
     }
 
     private def mkFile (root :File, path :String*) = (root /: path)(new File(_, _))
+
+    private class ImportException (msg :String) extends Exception(msg)
 
     private val _projects :collection.mutable.Map[String,PendingProject] =
       new ConcurrentHashMap[String,PendingProject]()
