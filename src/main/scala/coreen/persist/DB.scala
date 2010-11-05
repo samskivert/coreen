@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 12;
+    val version = 14;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -241,6 +241,10 @@ trait DBComponent extends Component with DB {
                    "create index idxfcb032d on Sig (defId)",
                    "alter table Sig add constraint SigFK1 foreign key (defId)" +
                    " references Def(id) on delete cascade"))
+      migrate(13, "Changing Sig.data to Sig.uses...",
+              List("alter table Sig alter column data rename to uses"))
+      migrate(14, "Adding column Sig.defs...",
+              List("alter table Sig add column defs binary not null default ''"))
     }
   }
 }

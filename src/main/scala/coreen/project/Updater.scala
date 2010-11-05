@@ -322,14 +322,14 @@ trait Updater {
           case e => println("Bad use! " + u + ": " + e); None
         })
         def parseSig (df :DefElem) = df.sig flatMap(se => defMap.get(df.id) map(
-          defId => Sig(defId, se.text, Convert.encodeUses(parseUses(se.uses)))))
+          defId => Sig(defId, se.text, null, Convert.encodeUses(parseUses(se.uses)))))
         val (ndefs, udefs) = defs partition(df => addedDefs(df.id))
         val (nsigs, usigs) = (allDefs(ndefs).flatMap(parseSig), allDefs(udefs).flatMap(parseSig))
         time("insertSigs") { _db.sigs.insert(nsigs) }
         time("updateSigs") {
           for (us <- usigs) {
             if (_db.sigs.update(s => where(s.defId === us.defId) set(
-              s.text := us.text, s.data := us.data)) == 0) {
+              s.text := us.text, s.uses := us.uses)) == 0) {
               // TEMP: while we migrate from the old world
               _db.sigs.insert(us)
             }

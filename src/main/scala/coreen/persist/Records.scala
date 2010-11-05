@@ -126,11 +126,13 @@ case class Sig (
   defId :Long,
   /** The text of the signature. */
   @Column(length=1024) text :String,
+  /** The binary data for this signature's defs. */
+  defs :Array[Byte],
   /** The binary data for this signature's uses. */
-  data :Array[Byte]
+  uses :Array[Byte]
 ) {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, "", null)
+  def this () = this(0L, "", null, null)
 
   override def toString = defId + ": " + text
 }

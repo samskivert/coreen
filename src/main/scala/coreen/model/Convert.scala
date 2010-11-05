@@ -59,7 +59,7 @@ object Convert
   def initDefInfo[DT <: DefInfo] (sdef :SDef, sig :Option[Sig], mem :DT) = {
     initDef(sdef, mem)
     mem.sig = sig map(_.text) getOrElse("<missing signature>")
-    mem.sigUses = sig map(s => decodeUses(s.data)) getOrElse(Array[JUse]())
+    mem.sigUses = sig map(s => decodeUses(s.uses)) getOrElse(Array[JUse]())
     mem.doc = sdef.doc getOrElse(null)
     mem
   }
