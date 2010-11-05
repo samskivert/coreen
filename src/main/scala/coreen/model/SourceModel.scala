@@ -51,11 +51,16 @@ object SourceModel
 
   /** Models the use of a name somewhere in a source file. */
   case class UseElem (name :String, target :String, kind :Kind, start :Int) extends Span {
-    override def toString = "@" + super.toString
+    override def toString = "@" + super.toString + " -> " + target
   }
 
   /** Models the information for a def signature. */
   case class SigElem (text :String, uses :Seq[UseElem])
+
+  /** Models limited information on a def for a signature. */
+  case class SigDefElem (name :String, kind :Kind, start :Int) extends Span {
+    override def toString = super.toString + ":" + kind
+  }
 
   /** Flattens all nested defs in the supplied seq into a single seq (including those supplied). */
   def allDefs (defs :Seq[DefElem]) :Seq[DefElem] = {
@@ -77,6 +82,7 @@ object SourceModel
       case "def" => mkDef(e, parse0(e.child))
       case "use" => UseElem(
         (e \ "@name").text, (e \ "@target").text, parseKind(e), intAttr(e, "start"))
+      case "sigdef" => SigDefElem((e \ "@name").text, parseKind(e), intAttr(e, "start"))
       case x => null // will be #PCDATA or <sig> or <doc> which are handled elsewhere
     })
   }
