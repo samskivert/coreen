@@ -34,22 +34,20 @@
   <g:HTMLPanel>
     <g:HTMLPanel styleName="{_styles.header}" ui:field="_header">
       <table cellpadding="0" cellspacing="0" width="100%">
-      <tr><td class="{_styles.title}">
-            <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">
-              Projects</g:Hyperlink> -
-            <g:Hyperlink ui:field="_name" styleName="{_styles.inline}"/></td>
-          <td align="right">
-            <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/></td></tr>
-      <tr><td><ui:msg>Version:</ui:msg> <g:InlineLabel ui:field="_version"/></td>
-          <td align="right">
-            <ui:msg>Last updated:</ui:msg>
-            <g:InlineLabel ui:field="_lastUpdated"/></td></tr>
-      <tr><td><ui:msg>Search:</ui:msg>
+      <tr><td>
+            <div class="{_styles.title}">
+              <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">
+                Projects</g:Hyperlink> -
+              <g:Hyperlink ui:field="_name" styleName="{_styles.inline}"/></div>
+            <ui:msg>Version:</ui:msg> <g:InlineLabel ui:field="_version"/></td>
+          <td valign="bottom"><ui:msg>Search:</ui:msg>
             <g:TextBox ui:field="_search" visibleLength="30"/>
             <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
+          <td valign="bottom"><g:Button ui:field="_config"><ui:msg>Config</ui:msg></g:Button></td>
           <td align="right">
-            <g:Button ui:field="_config"><ui:msg>Config</ui:msg></g:Button></td></tr>
-      </table>
+            <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/><br/>
+            <ui:msg>Last updated:</ui:msg> <g:InlineLabel ui:field="_lastUpdated"/></td>
+      </tr></table>
       <g:FlowPanel styleName="{_styles.navbar}" ui:field="_navbar"/>
     </g:HTMLPanel>
 
