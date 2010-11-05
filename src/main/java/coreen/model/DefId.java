@@ -19,6 +19,9 @@ public class DefId implements Serializable
     /** The kind of this def. */
     public Kind kind;
 
+    /** The character offset in the source file at which this def starts. */
+    public int start;
+
     @Override // from Object
     public String toString ()
     {

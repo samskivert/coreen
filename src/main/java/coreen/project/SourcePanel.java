@@ -23,6 +23,7 @@ import coreen.client.Args;
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.model.DefContent;
+import coreen.model.DefId;
 import coreen.model.Project;
 import coreen.model.Use;
 import coreen.ui.WindowFX;
@@ -113,7 +114,7 @@ public class SourcePanel extends AbstractProjectPanel
         _local.removeFrom(_defmap);
     }
 
-    protected void init (String text, Def[] defs, Use[] uses, long scrollToDefId,
+    protected void init (String text, DefId[] defs, Use[] uses, long scrollToDefId,
                          final UsePopup.Linker linker)
     {
         // TODO: make sure this doesn't freak out when source uses CRLF
@@ -133,7 +134,7 @@ public class SourcePanel extends AbstractProjectPanel
         }
 
         List<Elementer> elems = new ArrayList<Elementer>();
-        for (final Def def : defs) {
+        for (final DefId def : defs) {
             elems.add(new Elementer(def.start, def.start+def.name.length()) {
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.kind));

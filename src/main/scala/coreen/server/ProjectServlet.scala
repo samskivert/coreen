@@ -170,7 +170,7 @@ trait ProjectServlet {
         if (defs.isEmpty) defs
         else defs ++ loadDefs(defs.map(_.id) toSet)
       }
-      dc.defs = (loadDefs(Set(defId)) :+ d).toArray sortBy(_.defStart) map(Convert.toJava)
+      dc.defs = (loadDefs(Set(defId)) :+ d).toArray sortBy(_.defStart) map(Convert.toDefId)
       dc.defs foreach { _.start -= start }
       val defIds = dc.defs map(_.id) toSet
       val uses = _db.uses.where(u => u.ownerId in defIds).toArray
@@ -254,7 +254,7 @@ trait ProjectServlet {
       detail.unit = Convert.toJava(unit)
       detail.text = loadSource(p, detail.unit)
       detail.defs = _db.defs.where(d => d.unitId === unit.id).toArray sortBy(_.defStart) map(
-        Convert.toJava)
+        Convert.toDefId)
       detail.uses = _db.uses.where(u => u.unitId === unit.id).toArray sortBy(_.useStart) map(
         Convert.toJava)
       detail

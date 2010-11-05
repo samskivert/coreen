@@ -11,8 +11,8 @@ public class DefContent extends DefDetail
     /** The source text for this def. */
     public String text;
 
-    /** All defs that are children of this def (or its children). */
-    public Def[] defs;
+    /** All defs that are children of this def (and their children). */
+    public DefId[] defs;
 
     /** All uses that occur with this def (or its children). */
     public Use[] uses;

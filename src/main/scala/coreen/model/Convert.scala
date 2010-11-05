@@ -41,6 +41,7 @@ object Convert
     jdef.id = sdef.id
     jdef.name = sdef.name
     jdef.kind = Decode.codeToKind(sdef.kind)
+    jdef.start = sdef.defStart
     jdef
   }
 
@@ -51,7 +52,6 @@ object Convert
     jdef.flags = sdef.flags;
     jdef.outerId = sdef.outerId
     jdef.superId = sdef.superId
-    jdef.start = sdef.defStart
     jdef
   }
 

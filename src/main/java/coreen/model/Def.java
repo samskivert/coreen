@@ -23,9 +23,6 @@ public class Def extends DefId
     /** The id of this def's primary super def (or 0 if they have none). */
     public long superId;
 
-    /** The character offset in the source file at which this def starts. */
-    public int start;
-
     /**
      * Returns true if this def has public access, false otherwise.
      */

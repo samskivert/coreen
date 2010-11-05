@@ -18,7 +18,7 @@ public class CompUnitDetail
     public String text;
 
     /** The defs that occur in this compilation unit (sorted in occurrence order). */
-    public Def[] defs;
+    public DefId[] defs;
 
     /** The uses that occur in this compilation unit (sorted in occurrence order). */
     public Use[] uses;
