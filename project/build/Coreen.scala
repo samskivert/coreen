@@ -22,7 +22,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   // database depends
   val h2db = "com.h2database" % "h2" % "1.2.142"
-  val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC2"
+  val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC3"
 
   // depends for our auto-updating client
   val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"
