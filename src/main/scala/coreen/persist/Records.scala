@@ -81,8 +81,6 @@ case class Def (
   flavor :Int,
   /** Bits for flags. */
   flags :Int,
-  /** This definition's (type) signature. */
-  @Column(length=1024) sig :Option[String],
   /** This definition's documentation. */
   @Column(length=32768) doc :Option[String],
   /** The character offset in the source file of the start of this definition. */
@@ -95,7 +93,7 @@ case class Def (
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, Some(""), Some(""), 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, Some(""), 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
                            ", name=" + name + ", kind=" + kind + "]")
@@ -109,15 +107,32 @@ case class Use (
   ownerId :Long,
   /** The id of the definition of the referent of this use. */
   referentId :Long,
+  /** The kind of the referent of this use. */
+  kind :Int,
   /** The location in the source file of the start of this use. */
   useStart :Int,
   /** The location in the source file of the end of this use. */
   useEnd :Int
 ) {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, 0, 0)
+  def this () = this(0L, 0L, 0L, 0, 0, 0)
 
-  override def toString = ("[owner=" + ownerId + ", ref=" + referentId + "]")
+  override def toString = "[owner=" + ownerId + ", ref=" + referentId + "]"
+}
+
+/** Contains information for a def's signature. */
+case class Sig (
+  /** The id of the def for whom we provide signature data. */
+  defId :Long,
+  /** The text of the signature. */
+  @Column(length=1024) text :String,
+  /** The binary data for this signature's uses. */
+  data :Array[Byte]
+) {
+  /** Zero args ctor for use when unserializing. */
+  def this () = this(0L, "", null)
+
+  override def toString = defId + ": " + text
 }
 
 /** Maintains a mapping from type to supertype. */
@@ -133,5 +148,5 @@ case class Super (
   /** Defines our primary key. */
   def id = compositeKey(defId, superId)
 
-  override def toString = (defId + " -> " + superId)
+  override def toString = defId + " -> " + superId
 }

@@ -9,13 +9,14 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
 import coreen.persist.DBComponent
-import coreen.server.{DirsComponent, ExecComponent, LogComponent}
+import coreen.server.{DirsComponent, StdoutConsoleComponent, ExecComponent, LogComponent}
 
 /**
  * Tests random parts of the Updater.
  */
 class UpdaterSpec extends FlatSpec with ShouldMatchers with Updater
-  with LogComponent with DirsComponent with ExecComponent with DBComponent
+  with LogComponent with StdoutConsoleComponent with DirsComponent
+  with ExecComponent with DBComponent
 {
   "collectFileTypes" should "find files" in {
     val sentinel = getClass.getClassLoader.getResource("com/test/Test.java")

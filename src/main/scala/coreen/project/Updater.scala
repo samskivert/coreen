@@ -9,15 +9,15 @@ import java.net.URI
 import java.util.concurrent.Callable
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.{Map => MMap}
+import scala.collection.mutable.{Map => MMap, Set => MSet}
 import scala.io.Source
 import scala.xml.{XML, Elem}
 
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.SourceModel._
-import coreen.model.{SourceModel, Kind}
-import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Super}
+import coreen.model.{Convert, Kind, SourceModel, Use => JUse}
+import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Sig, Super}
 import coreen.server.{Log, Exec, Dirs, Console}
 
 /** Provides project updating services. */
@@ -107,7 +107,7 @@ trait Updater {
             ulog.append("Removed " + toDelete.size + " obsolete compunits.")
           }
           if (!toAdd.isEmpty) {
-            toAdd.map(CompUnit(p.id, _, now)) foreach { cu =>
+            for (cu <- toAdd.map(CompUnit(p.id, _, now))) {
               _db.compunits.insert(cu)
               // add the id of the newly inserted unit to our (path -> id) mapping
               cuIds += (cu.path -> cu.id)
@@ -115,8 +115,7 @@ trait Updater {
             ulog.append("Added " + toAdd.size + " new compunits.")
           }
           if (!toUpdate.isEmpty) {
-            _db.compunits.update(cu =>
-              where(cu.id in toUpdate) set(cu.lastUpdated := now))
+            _db.compunits.update(cu => where(cu.id in toUpdate) set(cu.lastUpdated := now))
             // add the ids of the updated units to our (path -> id) mapping
             oldCUs filter(cu => toUpdate(cu.id)) foreach { cu => cuIds += (cu.path -> cu.id) }
             ulog.append("Updated " + toUpdate.size + " compunits.")
@@ -135,27 +134,29 @@ trait Updater {
         // this map will contain a mapping from fqName to defId for all referable defs (i.e. those
         // that are not internal to a function or initialization expression)
         val defMap = MMap[String,Long]()
+        val newDefs = MSet[String]()
 
         // we extract all of the module definitions, map them by id, and then select (arbitrarily)
         // the first occurance of a definition for the specified module id to represent that
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
-        val byId = cus.flatMap(_.allDefs) filter(_.kind == Kind.MODULE) groupBy(_.id)
-        processDefs(cuDef.id, defMap, byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
+        val byId = cus.flatMap(cu => allDefs(cu.defs)) filter(_.kind == Kind.MODULE) groupBy(_.id)
+        processDefs(cuDef.id, defMap, newDefs,
+                    byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
 
         // first process all of the definitions in all of the compunits...
         for (cu <- cus) {
           ulog.append("Processing defs in " + cu.src + "...")
           // we want to filter out any defs for which we have no module id mapping; this filters
           // out code from modules that have already been claimed by some other project
-          processDefs(cuIds(cu.src), defMap, cu.defs filter(d => defMap.contains(d.id)))
+          processDefs(cuIds(cu.src), defMap, newDefs, cu.defs filter(d => defMap.contains(d.id)))
         }
 
         // then process all of the uses (which may reference the newly added defs)...
         for (cu <- cus) {
           ulog.append("Processing uses in " + cu.src + "...")
-          processUses(cuIds(cu.src), defMap, cu.defs)
+          processUses(cuIds(cu.src), defMap, newDefs, cu.defs)
         }
 
         // finally record supertype relationships (which may also reference newly added defs)...
@@ -203,7 +204,9 @@ trait Updater {
       def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) :List[String]
     }
 
-    def processDefs (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+    def processDefs (
+      unitId :Long, defMap :MMap[String,Long], addedDefs :MSet[String], defs :Seq[DefElem]
+    ) {
       // load up the fqNames for all existing defs in this compunit
       val emap = time("loadNames") { transaction {
         from(_db.defs, _db.defmap) { (d, dn) =>
@@ -243,7 +246,7 @@ trait Updater {
           case Some(defId) => {
             val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.kindToCode(df.kind),
                            Decode.flavorToCode(df.flavor), df.flags,
-                           stropt(df.sig), stropt(truncate(df.doc, 32765)),
+                           stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
@@ -257,14 +260,15 @@ trait Updater {
         // insert, update, and delete
         if (!toAdd.isEmpty) {
           println("Adding defs " + toAdd)
+          addedDefs ++= toAdd
           val added = toAdd map(nmap) map(ndefs)
           time("addNewDefs") { _db.defs.insert(added) }
           // println("Inserted " + toAdd.size + " new defs")
         }
         if (!toUpdate.isEmpty) {
           // TODO: remove this reporting and filtering when above bug is fixed
-          toUpdate filter(id => !ndefs.contains(emap(id))) foreach {
-            mid => println("*** Missing " + mid) }
+          for (mid <- toUpdate filter(id => !ndefs.contains(emap(id))))
+            println("*** Missing " + mid)
           _db.defs.update(toUpdate map(emap) filter(ndefs.contains) map(ndefs))
           // println("Updated " + toUpdate.size + " defs")
         }
@@ -276,7 +280,9 @@ trait Updater {
       }
     }
 
-    def processUses (unitId :Long, defMap :MMap[String,Long], defs :Seq[DefElem]) {
+    def processUses (
+      unitId :Long, defMap :MMap[String,Long], addedDefs :MSet[String], defs :Seq[DefElem]
+    ) {
       transaction {
         // delete the old uses recorded for this compunit
         time("deleteOldUses") { _db.uses.deleteWhere(u => u.unitId === unitId) }
@@ -286,7 +292,8 @@ trait Updater {
           defMap.get(df.id) match {
             case Some(defId) => {
               val nuses = df.uses.map(
-                u => (Use(unitId, defId, -1, u.start, u.start + u.name.length), u.target))
+                u => (Use(unitId, defId, -1, Decode.kindToCode(u.kind),
+                          u.start, u.start + u.name.length), u.target))
               ((out ++ nuses) /: df.defs)(processUses)
             }
             case None => out
@@ -307,6 +314,27 @@ trait Updater {
             case None => (acc._1, up :: acc._2)
         })
         time("insertUses") { _db.uses.insert(bound) }
+
+        // now that all of our referents are loaded, process the signatures
+        def parseUses (uses :Seq[UseElem]) = uses flatMap(u => try {
+          defMap.get(u.target) map(refId => new JUse(refId, u.kind, u.start, u.name.length))
+        } catch {
+          case e => println("Bad use! " + u + ": " + e); None
+        })
+        def parseSig (df :DefElem) = df.sig flatMap(se => defMap.get(df.id) map(
+          defId => Sig(defId, se.text, Convert.encodeUses(parseUses(se.uses)))))
+        val (ndefs, udefs) = defs partition(df => addedDefs(df.id))
+        val (nsigs, usigs) = (allDefs(ndefs).flatMap(parseSig), allDefs(udefs).flatMap(parseSig))
+        time("insertSigs") { _db.sigs.insert(nsigs) }
+        time("updateSigs") {
+          for (us <- usigs) {
+            if (_db.sigs.update(s => where(s.defId === us.defId) set(
+              s.text := us.text, s.data := us.data)) == 0) {
+              // TEMP: while we migrate from the old world
+              _db.sigs.insert(us)
+            }
+          }
+        }
       }
     }
 
@@ -333,7 +361,7 @@ trait Updater {
         val toUpdate = MMap[Long,Long]()
 
         // note all of the super additions, deletions and updates that are needed
-        def processDef (d :DefElem) :Unit = defMap.get(d.id) foreach { defId =>
+        def processDef (d :DefElem) :Unit = for (defId <- defMap.get(d.id)) {
           val osups = superMap getOrElse(defId, Set())
           val nsups = (d.supers.toSet -- missingIds) map(defMap) toSet; // grr!
           // note the deletions and additions to be made
@@ -353,9 +381,8 @@ trait Updater {
 
         // do the adding, deleting and updating
         toDel foreach { s => _db.supers.delete(s.id) }
-        toUpdate foreach {
-          case (defId, superId) => _db.defs update(d =>
-            where(d.id === defId) set(d.superId := superId))
+        for ((defId, superId) <- toUpdate) {
+          _db.defs update(d => where(d.id === defId) set(d.superId := superId))
         }
         toAdd // returned to outer scope for processing
       }

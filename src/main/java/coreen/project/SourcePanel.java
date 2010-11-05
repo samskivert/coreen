@@ -55,6 +55,13 @@ public class SourcePanel extends AbstractProjectPanel
         loadDef(defId, linker, addDefIcon);
     }
 
+    public SourcePanel (Def def, String text, Use[] uses, DefMap defmap, UsePopup.Linker linker)
+    {
+        this(defmap);
+        init(text, new Def[0], uses, 0, linker);
+        // TODO: add a def icon
+    }
+
     /**
      * Loads the source for the specified def into this panel.
      */
@@ -151,6 +158,10 @@ public class SourcePanel extends AbstractProjectPanel
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
+                if (elem.startPos >= text.length()) {
+                    GWT.log("Invalid element? " + elem + " " + text.length() + " " + elem.startPos);
+                    continue;
+                }
                 String seg = expandTabs(text.substring(offset, elem.startPos));
                 // special handling for the first line since we can't rely on it following a
                 // newline to tell us that it needs to be trimmed

@@ -146,8 +146,10 @@ trait ProjectServlet {
       // TODO: I don't think inherited but unimplemented interface members are handled here
       val superdefs = loadSupers(ts.superId, mems map(_.superId) toSet)
 
+      val members = mems ++ superdefs
+      val sigs = _db.loadSigs(members map(_.id) toSet)
       ts.supers = (supers map(Convert.toJava) toArray)
-      ts.members = (mems ++ superdefs) sorted(ByFlavorName) map(Convert.toDefInfo)
+      ts.members = members sorted(ByFlavorName) map(d => Convert.toDefInfo(d, sigs.get(d.id)))
       ts
     }
 
@@ -224,12 +226,15 @@ trait ProjectServlet {
     private def requireDef (id :Long) = transaction {
       _db.defs.lookup(id) match {
         case Some(d) => d
-        case None => throw new ServiceException("e.no_such_def")
+        case None => {
+          _log.warning("Requested unknown def " + id)
+          throw new ServiceException("e.no_such_def")
+        }
       }
     }
 
     private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
-      Convert.initDefInfo(d, dd)
+      Convert.initDefInfo(d, _db.sigs.where(s => s.defId === d.id).headOption, dd)
       dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
       dd.path = loadDefPath(d.outerId, Nil).toArray
       dd

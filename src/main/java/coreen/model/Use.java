@@ -14,6 +14,9 @@ public class Use
     /** The id of the definition of the referent of this use. */
     public long referentId;
 
+    /** The kind of the referent of this use. */
+    public Kind kind;
+
     /** The character offset in the source file at which this span starts. */
     public int start;
 
@@ -21,9 +24,10 @@ public class Use
     public int length;
 
     /** Creates and initializes this instance. */
-    public Use (long referentId, int start, int length)
+    public Use (long referentId, Kind kind, int start, int length)
     {
         this.referentId = referentId;
+        this.kind = kind;
         this.start = start;
         this.length = length;
     }
@@ -34,6 +38,6 @@ public class Use
     @Override // from Object
     public String toString ()
     {
-        return "[ref=" + referentId + ", loc=" + start + "-" + length + "]";
+        return "[ref=" + referentId + ", kind=" + kind + ", loc=" + start + "-" + length + "]";
     }
 }

@@ -33,7 +33,8 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
 
       // create
       val now = System.currentTimeMillis
-      val p1in = _db.projects.insert(new Project("Test 1", "/foo/bar/test1", "1.0", None, now, now))
+      val p1in = _db.projects.insert(
+        new Project("Test 1", "/foo/bar/test1", "1.0", None, None, now, now))
 
       // read
       val p1out = _db.projects.lookup(p1in.id).get
@@ -110,5 +111,5 @@ class DBSpec extends FlatSpec with ShouldMatchers with DB
   }
 
   def fakeDef (id :Long, outerId :Long, superId :Long, unitId :Long, name :String) =
-    Def(id, outerId, superId, unitId, name, 1, 1, 0, None, None, 0, 10, 0, 10)
+    Def(id, outerId, superId, unitId, name, 1, 1, 0, None, 0, 10, 0, 10)
 }

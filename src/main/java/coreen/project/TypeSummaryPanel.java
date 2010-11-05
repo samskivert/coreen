@@ -234,7 +234,9 @@ public class TypeSummaryPanel extends Composite
         }
         panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
-                final SigLabel sig = new SigLabel(member, member.sig, _defmap);
+                final SourcePanel sig = new SourcePanel(
+                    member, member.sig, member.sigUses, _defmap, _linker);
+                // final SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 Widget panel = Widgets.newFlowPanel(
                     _styles.sigPanel(), DefUtil.iconForDef(member), sig);
                 // if we lack doc label to put a dashed line above our sig, we add one manually

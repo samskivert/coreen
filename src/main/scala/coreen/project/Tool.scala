@@ -22,7 +22,6 @@ object Tool extends AnyRef
       case Array("list") => invoke(listProjects)
       case Array("update", pid) => invoke(updateProject(pid.toInt))
       case Array("import", dir) => invoke(importProject(dir))
-      case Array("types", pid) => invoke(dumpTypes(pid.toInt))
     }
   } catch {
     case _ :MatchError | _ :NumberFormatException =>
@@ -49,16 +48,6 @@ object Tool extends AnyRef
   def importProject (dir :String) {
     _importer.importProject(dir)
     Thread.sleep(3000L) // give the async tasks a moment to get queued up
-  }
-
-  def dumpTypes (pid :Long) {
-    transaction {
-      from(_db.compunits, _db.defs)((cu, d) =>
-        where(cu.projectId === pid and cu.id === d.unitId and
-              (d.kind lte Decode.kindToCode(Kind.TYPE)))
-        select(d)
-      ) foreach { d => println(d.kind + " " + d.sig) }
-    }
   }
 
   protected def invoke (action : =>Unit) {

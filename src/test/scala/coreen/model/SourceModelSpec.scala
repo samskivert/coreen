@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package coreen.nml
+package coreen.model
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers

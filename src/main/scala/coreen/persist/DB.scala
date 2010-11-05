@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 9;
+    val version = 12;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -58,6 +58,14 @@ trait DB {
       u.referentId is(indexed)
     )}
 
+    /** Provides access to the sigs table. */
+    val sigs = table[Sig]
+    on(sigs) { s => declare(
+      s.defId is(indexed)
+    )}
+    // val defsToSigs = oneToManyRelation(defs, sigs).via((d, s) => d.id === s.defId)
+    // defsToSigs.ForeignKeyDeclaration.constrainReference(onDelete cascade)
+
     /** Provides access to the supers table. */
     val supers = manyToManyRelation(defs, defs).via[Super](
       (dd, ss, s) => (s.defId === dd.id, s.superId === ss.id))
@@ -82,6 +90,10 @@ trait DB {
     def loadDefNames (ids :scala.collection.Set[Long]) :Map[String,Long] =
       defmap.where(dn => dn.id in ids) map(dn => (dn.fqName, dn.id)) toMap
 
+    /** Loads up the signature information for the specified defs. */
+    def loadSigs (ids :scala.collection.Set[Long]) :Map[Long, Sig] =
+      _db.sigs.where(s => s.defId in ids) map(s => (s.defId -> s)) toMap
+
     /** Resolves the details for a collection of search matches. */
     def resolveMatches[DD <: DefDetail] (matches :Seq[Def], createDD :() => DD)
                                         (implicit m :ClassManifest[DD]) :Array[DD] = {
@@ -99,11 +111,15 @@ trait DB {
         }
       }
 
-      val defMap = resolveDefs(mapped(matches), parents(matches))
+      val matchMap = mapped(matches)
+      val defMap = resolveDefs(matchMap, parents(matches))
       def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
         case None => path.toArray
         case Some(d) => mkPath(defMap.get(d.outerId), Convert.toDefId(d) :: path)
       }
+
+      // resolve the signatures for our matches
+      val sigs = loadSigs(matchMap.keySet)
 
       // sanity check the results and warn about matches for which we have no comp unit
       val (have, missing) = matches partition(d => unitMap.isDefinedAt(d.unitId))
@@ -113,7 +129,7 @@ trait DB {
 
       have map { d =>
         val pid = unitMap(d.unitId)
-        val r = Convert.initDefInfo(d, createDD())
+        val r = Convert.initDefInfo(d, sigs.get(d.id), createDD())
         r.unit = new JCompUnit(d.unitId, pid, null)
         r.path = mkPath(defMap.get(d.outerId), List())
         r
@@ -215,6 +231,16 @@ trait DBComponent extends Component with DB {
       migrate(9, "Changing Def.kind to Def.flavor and Def.typ to Def.kind...",
               List("alter table Def alter column kind rename to flavor",
                    "alter table Def alter column typ rename to kind"))
+      migrate(10, "Dropping Def.sig...",
+              List("alter table Def drop column sig"))
+      migrate(11, "Adding Use.kind...",
+              List("alter table Use add column kind INTEGER(10) not null default 0"))
+      migrate(12, "Creating Sig...",
+              List("create table Sig (data binary not null, " +
+                   "text varchar(1024) not null, defId bigint not null)",
+                   "create index idxfcb032d on Sig (defId)",
+                   "alter table Sig add constraint SigFK1 foreign key (defId)" +
+                   " references Def(id) on delete cascade"))
     }
   }
 }
