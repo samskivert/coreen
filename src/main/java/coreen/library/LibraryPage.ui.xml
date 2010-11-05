@@ -24,7 +24,8 @@
     <tr><td valign="top" class="{style.title}">
           <g:Hyperlink targetHistoryToken=""><ui:msg>Projects</ui:msg></g:Hyperlink></td>
         <td><ui:msg>Search:</ui:msg>
-            <g:TextBox ui:field="_search" visibleLength="30"/></td>
+            <g:TextBox ui:field="_search" visibleLength="30"/>
+            <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
         <td align="right" valign="bottom">
           <a href="#IMPORT"><ui:msg>Import...</ui:msg></a>
         </td>

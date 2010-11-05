@@ -43,7 +43,8 @@
           <td valign="bottom"><ui:msg>Search:</ui:msg>
             <g:TextBox ui:field="_search" visibleLength="30"/>
             <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
-          <td valign="bottom"><g:Button ui:field="_config"><ui:msg>Config</ui:msg></g:Button></td>
+          <td align="right" valign="bottom">
+            <g:Button ui:field="_config"><ui:msg>Config</ui:msg></g:Button></td>
           <td align="right">
             <ui:msg>Imported:</ui:msg> <g:InlineLabel ui:field="_imported"/><br/>
             <ui:msg>Last updated:</ui:msg> <g:InlineLabel ui:field="_lastUpdated"/></td>
