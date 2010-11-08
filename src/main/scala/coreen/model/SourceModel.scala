@@ -30,8 +30,7 @@ object SourceModel
 
   /** Models a compilation unit. */
   case class CompUnitElem (var src :String, defs :Seq[DefElem]) {
-    def getDef (path :String) :Option[DefElem] = getDef(path split("\\.") toList)
-    def getDef (path :List[String]) :Option[DefElem] = defs flatMap(_.getDef(path)) headOption
+    def getDef (path :String) :Option[DefElem] = defs flatMap(_.getDef(path)) headOption
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
@@ -39,10 +38,12 @@ object SourceModel
                       flavor :Flavor, flags :Int, supers :Seq[String],
                       start :Int, bodyStart :Int, bodyEnd :Int,
                       defs :Seq[DefElem], uses :Seq[UseElem]) extends Span {
-    def getDef (path :List[String]) :Option[DefElem] = path match {
-      case h :: Nil => if (h == name) Some(this) else None
-      case h :: t => if (h == name) defs flatMap(_.getDef(t)) headOption else None
-      case _ => None
+    def getDef (path :String) :Option[DefElem] = {
+      if (path == name) Some(this)
+      else if (path.startsWith(name + ".")) {
+        val rest = path.substring(name.length+1)
+        defs flatMap(_.getDef(rest)) headOption
+      } else None
     }
 
     def toEdits (source :String) :Seq[Edit] =
@@ -55,7 +56,7 @@ object SourceModel
   }
 
   /** Models the information for a def signature. */
-  case class SigElem (text :String, uses :Seq[UseElem])
+  case class SigElem (text :String, defs :Seq[SigDefElem], uses :Seq[UseElem])
 
   /** Models limited information on a def for a signature. */
   case class SigDefElem (name :String, kind :Kind, start :Int) extends Span {
@@ -124,7 +125,10 @@ object SourceModel
   }
 
   protected def parseSig (elem :Node) = {
-    SigElem(elem.text, parse0(elem.child) map(_.asInstanceOf[UseElem]))
+    val children = parse0(elem.child)
+    SigElem(elem.text.trim,
+            children filter(_.isInstanceOf[SigDefElem]) map(_.asInstanceOf[SigDefElem]),
+            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
   }
 
   protected def intAttr (elem :Node, attr :String) = {
