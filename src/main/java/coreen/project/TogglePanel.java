@@ -16,6 +16,7 @@ import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
 import coreen.icons.IconResources;
+import coreen.ui.UIUtil;
 
 /**
  * Toggles between two widgets, one which is the collapsed representation and one that is the
@@ -42,7 +43,7 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
         for (Widget w : widgets) {
             panel.add(w);
         }
-        panel.add(Widgets.newLabel("", _rsrc.styles().defClear()));
+        panel.add(UIUtil.newClear());
         return panel;
     }
 
@@ -90,7 +91,7 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
     protected abstract Widget createExpanded ();
 
     protected Value<Boolean> _model;
-    protected Widget _clear = Widgets.newLabel("", _rsrc.styles().defClear());
+    protected Widget _clear = UIUtil.newClear();
 
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
     protected static final IconResources _icons = GWT.create(IconResources.class);

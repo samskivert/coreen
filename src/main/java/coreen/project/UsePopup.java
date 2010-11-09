@@ -176,9 +176,9 @@ public class UsePopup extends PopupPanel
         }
 
         protected void hidePopup () {
-            if (_current != null) {
-                _current.hide();
-            }
+            // if (_current != null) {
+            //     _current.hide();
+            // }
         }
 
         protected void poppedDown () {
@@ -219,13 +219,9 @@ public class UsePopup extends PopupPanel
 
         FlowPanel panel = new FlowPanel();
         panel.add(new TypeLabel(deet, linker, defmap));
-        Widget sig;
-        if (deet.unit.projectId > 0) {
-            sig = (_link = linker.makeLink(deet));
-        } else {
-            sig = Widgets.newLabel(deet.sig);
-        }
-        sig.addStyleName(_rsrc.styles().code());
+        _link = linker.makeLink(deet); // TODO: nix
+        Widget sig = new SourcePanel(deet, defmap, linker);
+        // sig.addStyleName(_rsrc.styles().code());
         panel.add(sig);
         setWidget(panel);
     }

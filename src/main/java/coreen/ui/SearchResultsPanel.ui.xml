@@ -5,6 +5,9 @@
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
   <ui:style type="coreen.ui.SearchResultsPanel.Styles" field="_styles">
+    .resultTable {
+      width: 100%;
+    }
     .resultCell {
       border-bottom: 1px solid;
     }

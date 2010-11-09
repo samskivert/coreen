@@ -60,7 +60,7 @@ public class SourcePanel extends AbstractProjectPanel
     public SourcePanel (DefInfo def, DefMap defmap, UsePopup.Linker linker)
     {
         this(defmap);
-        init(def.sig, def.sigDefs, def.sigUses, 0, linker);
+        init(def.sig, def.sigDefs, def.sigUses, -1L, linker);
         // TODO: add a def icon
     }
 
@@ -72,7 +72,7 @@ public class SourcePanel extends AbstractProjectPanel
         _projsvc.getContent(defId, new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
                 Widget deficon = addDefIcon ? DefUtil.iconForDef(content) : null;
-                init(content.text, content.defs, content.uses, 0L, linker);
+                init(content.text, content.defs, content.uses, -1L, linker);
                 if (deficon != null) {
                     ((FlowPanel)_contents.getWidget()).insert(deficon, 0);
                 }
@@ -182,6 +182,7 @@ public class SourcePanel extends AbstractProjectPanel
 
         final Widget scrollTo = _local.get(scrollToDefId);
         if (scrollTo != null) {
+            GWT.log("Scrolling to " + scrollToDefId);
             DeferredCommand.addCommand(new Command() {
                 public void execute () {
                     WindowFX.scrollTo(scrollTo);

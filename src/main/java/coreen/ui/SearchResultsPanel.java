@@ -73,7 +73,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
             rlist.add(result);
         }
 
-        FluentTable table = new FluentTable(5, 0);
+        FluentTable table = new FluentTable(5, 0, _styles.resultTable());
         for (Kind kind : Kind.values()) {
             if (bykind.containsKey(kind)) {
                 for (R result : bykind.get(kind)) {
@@ -97,38 +97,28 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        final TypeLabel label = new TypeLabel(result, UsePopup.TYPE, _defmap) {
-            protected Widget createDefLabel (DefDetail def) {
-                List<Object> args = new ArrayList<Object>();
-                args.add(result.unit.projectId);
-                args.add(ProjectPage.Detail.TYP);
-                for (DefId tid : result.path) {
-                    if (tid.kind != Kind.MODULE) {
-                        args.add(tid.id);
-                    }
-                }
-                args.add(result.id);
-                return Link.create(def.name, Page.PROJECT, args.toArray());
-            }
-        };
-
-        // TODO: clean this all up and use a TypeSummaryPanel for module/types that allows deferred
-        // fetching of members
         switch (result.kind) {
         case MODULE:
         case TYPE:
-            return new TogglePanel(Value.create(false)) {
-                protected Widget createCollapsed () {
-                    return Widgets.newFlowPanel(label, new SigLabel(result, result.sig, _defmap));
-                }
-                protected Widget createExpanded () {
-                    return new TypeSummaryPanel(result.id, false);
+            return TypeSummaryPanel.create(result, _defmap, UsePopup.TYPE);
+        default:
+            TypeLabel label = new TypeLabel(result, UsePopup.TYPE, _defmap) {
+                protected Widget createDefLabel (DefDetail def) {
+                    List<Object> args = new ArrayList<Object>();
+                    args.add(result.unit.projectId);
+                    args.add(ProjectPage.Detail.TYP);
+                    for (DefId tid : result.path) {
+                        if (tid.kind != Kind.MODULE) {
+                            args.add(tid.id);
+                        }
+                    }
+                    args.add(result.id);
+                    return Link.create(def.name, Page.PROJECT, args.toArray());
                 }
             };
-        default:
             return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
-                    return new SigLabel(result, result.sig, _defmap);
+                    return new SourcePanel(result, _defmap, UsePopup.TYPE);
                 }
                 protected Widget createExpanded () {
                     return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
@@ -139,6 +129,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected interface Styles extends CssResource
     {
+        String resultTable ();
         String resultCell ();
     }
     protected @UiField Styles _styles;

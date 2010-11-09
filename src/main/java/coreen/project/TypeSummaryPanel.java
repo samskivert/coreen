@@ -52,18 +52,29 @@ public class TypeSummaryPanel extends Composite
 {
     public final long defId;
 
-    /** Used when we're totally standalone. */
-    public TypeSummaryPanel (long defId, boolean headerless)
+    /** Creates a totally standalone panel that fetches all of its own data. */
+    public static TypeSummaryPanel create (long defId)
     {
-        this(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE, headerless);
+        return new TypeSummaryPanel(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE);
     }
 
-    /** Used when we're part of a type hierarchy. */
-    public TypeSummaryPanel (long defId, DefMap defmap, IdMap<Boolean> expanded,
-                             UsePopup.Linker linker)
+    /** Creates a panel to be used as part of a type hierarchy. */
+    public static TypeSummaryPanel create (long defId, DefMap defmap, IdMap<Boolean> expanded,
+                                           UsePopup.Linker linker)
     {
-        this(defId, defmap, expanded, linker, false);
-        addStyleName(_styles.topgap());
+        TypeSummaryPanel panel = new TypeSummaryPanel(defId, defmap, expanded, linker);
+        panel.addStyleName(panel._styles.topgap());
+        return panel;
+    }
+
+    /** Creates a panel that acts like a type label and allows deferred expansion of members. */
+    public static TypeSummaryPanel create (DefDetail deets, DefMap defmap, UsePopup.Linker linker)
+    {
+        TypeSummaryPanel panel = new TypeSummaryPanel(
+            deets.id, defmap, IdMap.create(false), linker);
+        panel.initHeader(deets);
+        panel._loaded = true;
+        return panel;
     }
 
     @Override // from Widget
@@ -91,28 +102,30 @@ public class TypeSummaryPanel extends Composite
     }
 
     /** Used when we're part of a type hierarchy. */
-    protected TypeSummaryPanel (long defId, DefMap defmap, IdMap<Boolean> expanded,
-                                UsePopup.Linker linker, boolean headerless)
+    protected TypeSummaryPanel (
+        long defId, DefMap defmap, IdMap<Boolean> expanded, UsePopup.Linker linker)
     {
         initWidget(_binder.createAndBindUi(this));
         this.defId = defId;
         _defmap = defmap;
         _expanded = expanded;
         _linker = linker;
-        _headerless = headerless;
     }
 
     protected void ensureLoaded ()
     {
         if (!_loaded) {
             _loaded = true;
-            _contents.setWidget(Widgets.newLabel("Loading..."));
+            _contents.add(Widgets.newLabel("Loading..."));
             _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
                 public void onSuccess (TypeSummary sum) {
-                    init(sum);
+                    _contents.clear();
+                    initHeader(sum);
+                    initBody(sum);
                     // make sure we fit in the view
                     DeferredCommand.addCommand(new Command() {
                         public void execute () {
+                            GWT.log("Scrolling!");
                             WindowFX.scrollToPos(
                                 WindowUtil.getScrollIntoView(TypeSummaryPanel.this));
                         }
@@ -122,58 +135,81 @@ public class TypeSummaryPanel extends Composite
         }
     }
 
-    protected void init (final TypeSummary sum)
+    protected void initHeader (final DefDetail deets)
     {
-        FlowPanel contents = Widgets.newFlowPanel();
+        FlowPanel header = Widgets.newFlowPanel(_styles.header());
+        if (deets.kind == Kind.TYPE) {
+            _outerHov.put(deets.id, Value.create(false));
+            header.add(new TypeLabel(deets, _linker, _defmap) {
+                protected Widget createDefLabel (DefDetail def) {
+                    Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
+                    Bindings.bindHovered(_outerHov.get(def.id), label);
+                    return label;
+                }
+                protected Widget createSuperLabel (Def sup) {
+                    Label label = Widgets.newLabel(sup.name);
+                    // toggle visibility when this label is clicked
+                    Value<Boolean> viz = _superViz.get(sup.id);
+                    label.addClickHandler(Bindings.makeToggler(viz));
+                    label.addStyleName(_rsrc.styles().actionable());
+                    Bindings.bindStateStyle(viz, null, _styles.superUp(), label);
+                    // also note hoveredness when hovered
+                    final Value<Boolean> hov = _outerHov.get(sup.id);
+                    Bindings.bindHovered(hov, label);
+                    return label;
+                }
+            });
+        } else if (deets.doc != null) {
+            header.add(new DocLabel(deets.doc));
+        }
 
-        // these will control the visibility of members defined by this supertype
-        final Map<Long, Value<Boolean>> superViz = new HashMap<Long, Value<Boolean>>();
-        final Map<Long, Value<Boolean>> outerHov = new HashMap<Long, Value<Boolean>>();
+        SourcePanel sig = new SourcePanel(deets, _defmap, _linker);
+        sig.addStyleName(_styles.sigPanel());
+
+        if (deets instanceof TypeSummary) {
+            header.add(sig);
+
+        } else {
+            final Value<Boolean> expanded = Value.create(false);
+            header.add(TogglePanel.makeToggleButton(expanded));
+            header.add(sig);
+            header.add(UIUtil.newClear());
+            expanded.addListener(new Value.Listener<Boolean>() {
+                public void valueChanged (Boolean value) {
+                    if (!value) {
+                        return; // shouldn't happen, but who knows
+                    }
+                    expanded.removeListener(this); // avoid repeat clicky
+                    final Widget loading = Widgets.newLabel("Loading...");
+                    _contents.add(loading);
+                    _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
+                        public void onSuccess (TypeSummary sum) {
+                            _contents.remove(loading);
+                            Bindings.bindVisible(expanded, initBody(sum));
+                            // TODO: add super types to TypeLabel
+                        }
+                    });
+                }
+                });
+        }
+        _contents.add(header);
+    }
+
+    protected FlowPanel initBody (final TypeSummary sum)
+    {
         for (Def sup : sum.supers) {
             boolean showMembers = !sup.name.equals("Object"); // TODO
-            superViz.put(sup.id, Value.create(showMembers));
-            outerHov.put(sup.id, Value.create(false));
+            _superViz.put(sup.id, Value.create(showMembers));
+            _outerHov.put(sup.id, Value.create(false));
         }
-        outerHov.put(sum.id, Value.create(false));
-
-        FlowPanel header = Widgets.newFlowPanel(_styles.header());
-        if (!_headerless) {
-            if (sum.kind == Kind.TYPE) {
-                header.add(new TypeLabel(sum, _linker, _defmap) {
-                    protected Widget createDefLabel (DefDetail def) {
-                        Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
-                        Bindings.bindHovered(outerHov.get(def.id), label);
-                        return label;
-                    }
-                    protected Widget createSuperLabel (Def sup) {
-                        Label label = Widgets.newLabel(sup.name);
-                        // toggle visibility when this label is clicked
-                        Value<Boolean> viz = superViz.get(sup.id);
-                        label.addClickHandler(Bindings.makeToggler(viz));
-                        label.addStyleName(_rsrc.styles().actionable());
-                        Bindings.bindStateStyle(viz, null, _styles.superUp(), label);
-                        // also note hoveredness when hovered
-                        final Value<Boolean> hov = outerHov.get(sup.id);
-                        Bindings.bindHovered(hov, label);
-                        return label;
-                    }
-                });
-            } else if (sum.doc != null) {
-                header.add(new DocLabel(sum.doc));
-            }
-        }
-        SourcePanel sig = new SourcePanel(sum, _defmap, _linker);
-        sig.addStyleName(_styles.sigPanel());
-        header.add(sig);
-        contents.add(header);
 
         FlowPanel members = Widgets.newFlowPanel(_styles.members());
-        int added = addMembers(members, true, sum.members, superViz, outerHov);
+        int added = addMembers(members, true, sum.members);
         if (added < sum.members.length) {
             FlowPanel nonpubs = new FlowPanel() {
                 public void setVisible (boolean visible) {
                     if (visible && getWidgetCount() == 0) {
-                        addMembers(this, false, sum.members, superViz, outerHov);
+                        addMembers(this, false, sum.members);
                     }
                     super.setVisible(visible);
                 }
@@ -183,7 +219,7 @@ public class TypeSummaryPanel extends Composite
                                                     Widgets.newLabel("Non-public members")));
             members.add(nonpubs);
         }
-        contents.add(members);
+        _contents.add(members);
 
         // add a listener to all non-public members that shows the non-public members section
         // whenever any of them are marked as showing
@@ -200,23 +236,21 @@ public class TypeSummaryPanel extends Composite
             }
         }
 
-        _contents.setWidget(contents);
+        return members;
     }
 
-    protected int addMembers (FlowPanel panel, boolean access, DefInfo[] members,
-                              Map<Long, Value<Boolean>> outerViz,
-                              Map<Long, Value<Boolean>> outerHov)
+    protected int addMembers (FlowPanel panel, boolean access, DefInfo[] members)
     {
         int added = 0;
         for (DefInfo member : members) {
             if (member.isPublic() == access) {
                 Widget mpanel = createMemberWidget(member);
                 panel.add(mpanel);
-                Value<Boolean> isViz = outerViz.get(member.outerId);
+                Value<Boolean> isViz = _superViz.get(member.outerId);
                 if (isViz != null) {
                     Bindings.bindVisible(isViz, mpanel);
                 }
-                Value<Boolean> isHov = outerHov.get(member.outerId);
+                Value<Boolean> isHov = _outerHov.get(member.outerId);
                 if (isHov != null) {
                     Bindings.bindStateStyle(isHov, _styles.outerHovered(), null, mpanel);
                 }
@@ -252,6 +286,7 @@ public class TypeSummaryPanel extends Composite
                 } else {
                     return new SourcePanel(member.id, _defmap, _linker, true) {
                         protected void didInit (FlowPanel contents) {
+                            GWT.log("Scrolling to expanded member " + member.id);
                             WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
                         }
                     };
@@ -273,7 +308,7 @@ public class TypeSummaryPanel extends Composite
         String outerHovered ();
     }
     protected @UiField Styles _styles;
-    protected @UiField SimplePanel _contents;
+    protected @UiField FlowPanel _contents;
 
     protected boolean _loaded, _headerless;
     protected DefMap _defmap;
@@ -282,6 +317,10 @@ public class TypeSummaryPanel extends Composite
     protected Value<Boolean> _npshowing = Value.create(false);
 
     protected PopupGroup _popups = new PopupGroup(300);
+
+    // these control the visibility of members defined by this supertype
+    protected Map<Long, Value<Boolean>> _superViz = new HashMap<Long, Value<Boolean>>();
+    protected Map<Long, Value<Boolean>> _outerHov = new HashMap<Long, Value<Boolean>>();
 
     protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

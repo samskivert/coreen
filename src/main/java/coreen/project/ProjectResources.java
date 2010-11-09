@@ -42,7 +42,6 @@ public interface ProjectResources extends ClientBundle
         String typeIconUR ();
         String typeIconLL ();
         String defLabel ();
-        String defClear ();
         String toggle ();
         String typeGraph ();
     }

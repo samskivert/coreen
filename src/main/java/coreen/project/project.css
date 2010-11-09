@@ -12,35 +12,35 @@
 }
 
 .defModule {
-  color: #228B22;
+  color: #9933FF;
 }
 .defType {
   color: #228B22;
 }
 .defFunc {
-  color: #0000FF;
+  color: #0033FF;
 }
 .defTerm {
-  color: #228B22;
+  color: #B8860B;
 }
 .defUnknown {
-  color: #228B22;
+  color: #000000;
 }
 
 .useModule {
-  color: #228B22;
+  color: #330066;
 }
 .useType {
-  color: #228B22;
+  color: #336600;
 }
 .useFunc {
-  color: #0000FF;
+  color: #003366;
 }
 .useTerm {
-  color: #228B22;
+  color: #993300;
 }
 .useUnknown {
-  color: #228B22;
+  color: #000000;
 }
 
 .use {
@@ -93,7 +93,7 @@
 }
 
 .highlight {
-  background: #FF0000;
+  border: 1px solid #0066FF;
 }
 
 .indent {
@@ -138,10 +138,6 @@
 .defLabel {
   display: inline;
   white-space: nowrap;
-}
-
-.defClear {
-  clear: both;
 }
 
 .toggle {

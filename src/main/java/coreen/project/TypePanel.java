@@ -31,12 +31,8 @@ public class TypePanel extends AbstractProjectPanel
     {
         long defId = args.get(2, 0L);
         if (_panel == null || _panel.defId != defId) {
-            ((SimplePanel)getWidget()).setWidget(_panel = new TypeSummaryPanel(defId, false) {
-                protected void init (final TypeSummary sum) {
-                    super.init(sum);
-                    UIUtil.setWindowTitle(proj.name, sum.name);
-                }
-            });
+            ((SimplePanel)getWidget()).setWidget(_panel = TypeSummaryPanel.create(defId));
+            // TODO: UIUtil.setWindowTitle(proj.name, sum.name);
         }
         for (int idx = 3; args.get(idx, 0L) != 0L; idx++) {
             _panel.showMember(args.get(idx, 0L));

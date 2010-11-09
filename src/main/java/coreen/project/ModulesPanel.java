@@ -182,7 +182,7 @@ public class ModulesPanel extends SummaryPanel
             });
             new Shower(_showing.get(def.id), _types) {
                 protected Widget createWidget () {
-                    return new TypeSummaryPanel(def.id, _defmap, _showing, _linker);
+                    return TypeSummaryPanel.create(def.id, _defmap, _showing, _linker);
                 }
             };
         }

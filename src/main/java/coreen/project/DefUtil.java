@@ -16,6 +16,7 @@ import com.threerings.gwt.ui.Widgets;
 import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.Kind;
+import coreen.ui.UIUtil;
 import coreen.util.DefMap;
 
 /**
@@ -43,7 +44,7 @@ public class DefUtil
      */
     public static void addClear (FlowPanel panel)
     {
-        panel.add(Widgets.newLabel(" ", _rsrc.styles().defClear()));
+        panel.add(UIUtil.newClear());
     }
 
     /**

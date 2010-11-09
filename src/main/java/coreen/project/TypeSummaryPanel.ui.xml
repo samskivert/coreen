@@ -40,5 +40,5 @@
     }
   </ui:style>
 
-  <g:SimplePanel styleName="{_styles.contents}" ui:field="_contents"/>
+  <g:FlowPanel styleName="{_styles.contents}" ui:field="_contents"/>
 </ui:UiBinder>
