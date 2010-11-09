@@ -113,7 +113,7 @@ public class ProjectPage extends AbstractPage
             }
         };
         _go.addClickHandler(onSearch);
-        _search.addKeyPressHandler(new EnterClickAdapter(onSearch));
+        EnterClickAdapter.bind(_search, onSearch);
     }
 
     @Override // from AbstractPage
