@@ -15,6 +15,7 @@ public interface UIResources extends ClientBundle
     public interface Styles extends CssResource {
         String console ();
         String popup ();
+        String clear ();
     }
 
     @Source("ui.css")

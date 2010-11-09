@@ -3,9 +3,12 @@
 
 package coreen.ui;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.Widget;
+
+import com.threerings.gwt.ui.Widgets;
 
 /**
  * Various UI related utilities.
@@ -43,5 +46,18 @@ public class UIUtil
             buf.append(part);
         }
         Window.setTitle(buf.toString());
+    }
+
+    /**
+     * Creates a widget that with CSS style {@code clear: both}.
+     */
+    public static Widget newClear ()
+    {
+        return Widgets.newLabel(" ", _rsrc.styles().clear());
+    }
+
+    protected static final UIResources _rsrc = GWT.create(UIResources.class);
+    static {
+        _rsrc.styles().ensureInjected();
     }
 }

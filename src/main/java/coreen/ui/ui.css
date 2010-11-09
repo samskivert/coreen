@@ -16,3 +16,7 @@
   background: white;
   max-width: 800px;
 }
+
+.clear {
+  clear: both;
+}
