@@ -134,7 +134,7 @@ case class Sig (
   /** Zero args ctor for use when unserializing. */
   def this () = this(0L, "", null, null)
 
-  override def toString = defId + ": " + text
+  override def toString = defId + ": " + text + " (" + defs.length + ", " + uses.length + ")"
 }
 
 /** Maintains a mapping from type to supertype. */

@@ -8,8 +8,7 @@ import java.io.Serializable;
 /**
  * Identifies the use of a definition that exists in a source file.
  */
-public class Use
-    implements Serializable
+public class Use implements Serializable, Span
 {
     /** The id of the definition of the referent of this use. */
     public long referentId;
@@ -34,6 +33,30 @@ public class Use
 
     /** Used when unserializing. */
     public Use () {}
+
+    // from interface Span
+    public long getId ()
+    {
+        return referentId;
+    }
+
+    // from interface XXX
+    public Kind getKind ()
+    {
+        return kind;
+    }
+
+    // from interface Span
+    public int getStart ()
+    {
+        return start;
+    }
+
+    // from interface Span
+    public int getLength ()
+    {
+        return length;
+    }
 
     @Override // from Object
     public String toString ()

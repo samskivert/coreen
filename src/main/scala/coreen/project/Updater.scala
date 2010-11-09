@@ -16,7 +16,7 @@ import scala.xml.{XML, Elem}
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.SourceModel._
-import coreen.model.{Convert, Kind, SourceModel, Use => JUse}
+import coreen.model.{Convert, Kind, SourceModel, SigDef, Use => JUse}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Sig, Super}
 import coreen.server.{Log, Exec, Dirs, Console}
 
@@ -316,20 +316,23 @@ trait Updater {
         time("insertUses") { _db.uses.insert(bound) }
 
         // now that all of our referents are loaded, process the signatures
+        def parseSigDefs (defs :Seq[SigDefElem]) =
+          defs map(d => new SigDef(0, d.kind, d.start, d.name.length))
         def parseUses (uses :Seq[UseElem]) = uses flatMap(u => try {
           defMap.get(u.target) map(refId => new JUse(refId, u.kind, u.start, u.name.length))
         } catch {
           case e => println("Bad use! " + u + ": " + e); None
         })
         def parseSig (df :DefElem) = df.sig flatMap(se => defMap.get(df.id) map(
-          defId => Sig(defId, se.text, null, Convert.encodeUses(parseUses(se.uses)))))
+          defId => Sig(defId, se.text, Convert.encodeSigDefs(parseSigDefs(se.defs)),
+                       Convert.encodeUses(parseUses(se.uses)))))
         val (ndefs, udefs) = defs partition(df => addedDefs(df.id))
         val (nsigs, usigs) = (allDefs(ndefs).flatMap(parseSig), allDefs(udefs).flatMap(parseSig))
         time("insertSigs") { _db.sigs.insert(nsigs) }
         time("updateSigs") {
           for (us <- usigs) {
             if (_db.sigs.update(s => where(s.defId === us.defId) set(
-              s.text := us.text, s.uses := us.uses)) == 0) {
+              s.text := us.text, s.defs := us.defs, s.uses := us.uses)) == 0) {
               // TEMP: while we migrate from the old world
               _db.sigs.insert(us)
             }

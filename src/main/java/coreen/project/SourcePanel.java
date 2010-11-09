@@ -23,8 +23,9 @@ import coreen.client.Args;
 import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.model.DefContent;
-import coreen.model.DefId;
+import coreen.model.DefInfo;
 import coreen.model.Project;
+import coreen.model.Span;
 import coreen.model.Use;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
@@ -56,10 +57,10 @@ public class SourcePanel extends AbstractProjectPanel
         loadDef(defId, linker, addDefIcon);
     }
 
-    public SourcePanel (Def def, String text, Use[] uses, DefMap defmap, UsePopup.Linker linker)
+    public SourcePanel (DefInfo def, DefMap defmap, UsePopup.Linker linker)
     {
         this(defmap);
-        init(text, new Def[0], uses, 0, linker);
+        init(def.sig, def.sigDefs, def.sigUses, 0, linker);
         // TODO: add a def icon
     }
 
@@ -114,7 +115,7 @@ public class SourcePanel extends AbstractProjectPanel
         _local.removeFrom(_defmap);
     }
 
-    protected void init (String text, DefId[] defs, Use[] uses, long scrollToDefId,
+    protected void init (String text, Span[] defs, Span[] uses, long scrollToDefId,
                          final UsePopup.Linker linker)
     {
         // TODO: make sure this doesn't freak out when source uses CRLF
@@ -134,20 +135,20 @@ public class SourcePanel extends AbstractProjectPanel
         }
 
         List<Elementer> elems = new ArrayList<Elementer>();
-        for (final DefId def : defs) {
-            elems.add(new Elementer(def.start, def.start+def.name.length()) {
+        for (final Span def : defs) {
+            elems.add(new Elementer(def.getStart(), def.getStart()+def.getLength()) {
                 public Widget createElement (String text) {
-                    Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.kind));
-                    _local.map(def.id, w);
+                    Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.getKind()));
+                    _local.map(def.getId(), w);
                     return w;
                 }
             });
         }
-        for (final Use use : uses) {
-            elems.add(new Elementer(use.start, use.start+use.length) {
+        for (final Span use : uses) {
+            elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
-                    new UsePopup.Popper(use.referentId, span, linker, _local, true);
+                    new UsePopup.Popper(use.getId(), span, linker, _local, true);
                     return span;
                 }
             });

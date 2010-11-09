@@ -58,7 +58,9 @@ object Convert
   /** Initializes a DefInfo from a Scala Def. */
   def initDefInfo[DT <: DefInfo] (sdef :SDef, sig :Option[Sig], mem :DT) = {
     initDef(sdef, mem)
+    println("Init " + sdef.id + " " + sig)
     mem.sig = sig map(_.text) getOrElse("<missing signature>")
+    mem.sigDefs = sig map(s => decodeSigDefs(s.defs)) getOrElse(Array[SigDef]())
     mem.sigUses = sig map(s => decodeUses(s.uses)) getOrElse(Array[JUse]())
     mem.doc = sdef.doc getOrElse(null)
     mem
@@ -90,5 +92,32 @@ object Convert
     out
   }
 
+  /** Encodes a collection of sigdefs into binary blob form. */
+  def encodeSigDefs (sdefs :Seq[SigDef]) :Array[Byte] = {
+    // val data = Array.ofDim[Byte](sdefs.size * (8+4+4+4))
+    val bout = new ByteArrayOutputStream
+    val out = new DataOutputStream(bout)
+    for (sdef <- sdefs) {
+      out.writeLong(sdef.id)
+      out.writeInt(Decode.kindToCode(sdef.kind))
+      out.writeInt(sdef.start)
+      out.writeInt(sdef.length)
+    }
+    bout.toByteArray
+    // data
+  }
+
+  /** Decodes a collection of sigdefs from binary blob form. */
+  def decodeSigDefs (data :Array[Byte]) :Array[SigDef] = {
+    val in = new DataInputStream(new ByteArrayInputStream(data))
+    val count = data.length/SIGDEF_BYTES
+    val out = Array.ofDim[SigDef](count)
+    for (ii <- 0 until count) {
+      out(ii) = new SigDef(in.readLong, Decode.codeToKind(in.readInt), in.readInt, in.readInt)
+    }
+    out
+  }
+
   private[this] val USE_BYTES = 8+4+4+4
+  private[this] val SIGDEF_BYTES = 8+4+4+4
 }

@@ -162,7 +162,7 @@ public class TypeSummaryPanel extends Composite
                 header.add(new DocLabel(sum.doc));
             }
         }
-        SigLabel sig = new SigLabel(sum, sum.sig, _defmap);
+        SourcePanel sig = new SourcePanel(sum, _defmap, _linker);
         sig.addStyleName(_styles.sigPanel());
         header.add(sig);
         contents.add(header);
@@ -234,8 +234,7 @@ public class TypeSummaryPanel extends Composite
         }
         panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
-                final SourcePanel sig = new SourcePanel(
-                    member, member.sig, member.sigUses, _defmap, _linker);
+                final SourcePanel sig = new SourcePanel(member, _defmap, _linker);
                 // final SigLabel sig = new SigLabel(member, member.sig, _defmap);
                 Widget panel = Widgets.newFlowPanel(
                     _styles.sigPanel(), DefUtil.iconForDef(member), sig);
