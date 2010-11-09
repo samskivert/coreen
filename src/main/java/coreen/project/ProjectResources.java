@@ -13,12 +13,19 @@ public interface ProjectResources extends ClientBundle
 {
     /** Defines our shared CSS styles. */
     public interface ProjectStyles extends CssResource {
-        String code ();
         String defModule ();
         String defType ();
         String defFunc ();
         String defTerm ();
         String defUnknown ();
+
+        String useModule ();
+        String useType ();
+        String useFunc ();
+        String useTerm ();
+        String useUnknown ();
+
+        String code ();
         String use ();
         String doc ();
         String usePopup ();

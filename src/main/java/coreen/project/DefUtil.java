@@ -49,7 +49,7 @@ public class DefUtil
     /**
      * Returns the appropriate style for a def of the specified kind.
      */
-    public static String getStyle (Kind kind)
+    public static String getDefStyle (Kind kind)
     {
         switch (kind) {
         case MODULE: return _rsrc.styles().defModule();
@@ -57,6 +57,20 @@ public class DefUtil
         case FUNC: return _rsrc.styles().defFunc();
         case TERM: return _rsrc.styles().defTerm();
         default: return _rsrc.styles().defUnknown();
+        }
+    }
+
+    /**
+     * Returns the appropriate style for a def of the specified kind.
+     */
+    public static String getUseStyle (Kind kind)
+    {
+        switch (kind) {
+        case MODULE: return _rsrc.styles().useModule();
+        case TYPE: return _rsrc.styles().useType();
+        case FUNC: return _rsrc.styles().useFunc();
+        case TERM: return _rsrc.styles().useTerm();
+        default: return _rsrc.styles().useUnknown();
         }
     }
 

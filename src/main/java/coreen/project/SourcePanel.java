@@ -138,7 +138,7 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Span def : defs) {
             elems.add(new Elementer(def.getStart(), def.getStart()+def.getLength()) {
                 public Widget createElement (String text) {
-                    Widget w = Widgets.newInlineLabel(text, DefUtil.getStyle(def.getKind()));
+                    Widget w = Widgets.newInlineLabel(text, DefUtil.getDefStyle(def.getKind()));
                     _local.map(def.getId(), w);
                     return w;
                 }
@@ -147,7 +147,7 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Span use : uses) {
             elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
-                    Widget span = Widgets.newInlineLabel(text, _rsrc.styles().use());
+                    Widget span = Widgets.newInlineLabel(text, DefUtil.getUseStyle(use.getKind()));
                     new UsePopup.Popper(use.getId(), span, linker, _local, true);
                     return span;
                 }

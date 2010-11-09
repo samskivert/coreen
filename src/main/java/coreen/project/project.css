@@ -27,6 +27,22 @@
   color: #228B22;
 }
 
+.useModule {
+  color: #228B22;
+}
+.useType {
+  color: #228B22;
+}
+.useFunc {
+  color: #0000FF;
+}
+.useTerm {
+  color: #228B22;
+}
+.useUnknown {
+  color: #228B22;
+}
+
 .use {
   color: #B8860B;
 }
