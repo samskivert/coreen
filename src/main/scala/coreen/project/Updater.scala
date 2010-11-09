@@ -16,8 +16,8 @@ import scala.xml.{XML, Elem}
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.SourceModel._
-import coreen.model.{Convert, Kind, SourceModel, SigDef, Use => JUse}
-import coreen.persist.{DB, Decode, Project, CompUnit, Def, DefName, Use, Sig, Super}
+import coreen.model.{Convert, DefInfo, Kind, SourceModel, SigDef, Use => JUse}
+import coreen.persist.{CompUnit, DB, Decode, Def, DefName, Doc, Project, Sig, Super, Use}
 import coreen.server.{Log, Exec, Dirs, Console}
 
 /** Provides project updating services. */
@@ -246,7 +246,6 @@ trait Updater {
           case Some(defId) => {
             val ndef = Def(defId, outerId, 0L, unitId, df.name, Decode.kindToCode(df.kind),
                            Decode.flavorToCode(df.flavor), df.flags,
-                           stropt(truncate(df.doc, 32765)),
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (ndef.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
@@ -315,7 +314,7 @@ trait Updater {
         })
         time("insertUses") { _db.uses.insert(bound) }
 
-        // now that all of our referents are loaded, process the signatures
+        // now that all of our referents are loaded, process the signatures and docs
         def parseSigDefs (defs :Seq[SigDefElem]) =
           defs map(d => new SigDef(0, d.kind, d.start, d.name.length))
         def parseUses (uses :Seq[UseElem]) = uses flatMap(u => try {
@@ -326,15 +325,27 @@ trait Updater {
         def parseSig (df :DefElem) = df.sig flatMap(se => defMap.get(df.id) map(
           defId => Sig(defId, se.text, Convert.encodeSigDefs(parseSigDefs(se.defs)),
                        Convert.encodeUses(parseUses(se.uses)))))
+        def parseDoc (df :DefElem) = df.doc flatMap(de => defMap.get(df.id) map(
+          defId => Doc(defId, truncate(de.text, DefInfo.MAX_DOC_LENGTH-3),
+                       Convert.encodeUses(parseUses(de.uses)))))
         val (ndefs, udefs) = defs partition(df => addedDefs(df.id))
         val (nsigs, usigs) = (allDefs(ndefs).flatMap(parseSig), allDefs(udefs).flatMap(parseSig))
+        val (ndocs, udocs) = (allDefs(ndefs).flatMap(parseDoc), allDefs(udefs).flatMap(parseDoc))
         time("insertSigs") { _db.sigs.insert(nsigs) }
         time("updateSigs") {
           for (us <- usigs) {
             if (_db.sigs.update(s => where(s.defId === us.defId) set(
               s.text := us.text, s.defs := us.defs, s.uses := us.uses)) == 0) {
-              // TEMP: while we migrate from the old world
-              _db.sigs.insert(us)
+              _db.sigs.insert(us) // TEMP: while we migrate from the old world
+            }
+          }
+        }
+        time("insertDocs") { _db.docs.insert(ndocs) }
+        time("updateDocs") {
+          for (ud <- udocs) {
+            if (_db.docs.update(d => where(d.defId === ud.defId) set(
+              d.text := ud.text, d.uses := ud.uses)) == 0) {
+              _db.docs.insert(ud) // TEMP: while we migrate from the old world
             }
           }
         }

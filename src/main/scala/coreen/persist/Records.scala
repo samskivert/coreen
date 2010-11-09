@@ -8,6 +8,8 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.annotations.Column
 import org.squeryl.dsl.CompositeKey2
 
+import coreen.model.DefInfo
+
 /** Contains project metadata. */
 case class Project (
   /** The (human readable) name of this project. */
@@ -81,8 +83,6 @@ case class Def (
   flavor :Int,
   /** Bits for flags. */
   flags :Int,
-  /** This definition's documentation. */
-  @Column(length=32768) doc :Option[String],
   /** The character offset in the source file of the start of this definition. */
   defStart :Int,
   /** The character offset in the source file of the end of this definition. */
@@ -93,7 +93,7 @@ case class Def (
   bodyEnd :Int
 ) extends KeyedEntity[Long] {
   /** Zero args ctor for use when unserializing. */
-  def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, Some(""), 0, 0, 0, 0)
+  def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
                            ", name=" + name + ", kind=" + kind + "]")
@@ -135,6 +135,21 @@ case class Sig (
   def this () = this(0L, "", null, null)
 
   override def toString = defId + ": " + text + " (" + defs.length + ", " + uses.length + ")"
+}
+
+/** Contains information for a def's documentation. */
+case class Doc (
+  /** The id of the def for whom we provide documentation. */
+  defId :Long,
+  /** The text of the documentation. */
+  @Column(length=32768) text :String, // TODO: use DefInfo.MAX_DOC_LENGTH
+  /** The binary data for uses that occur in the docs. */
+  uses :Array[Byte]
+) {
+  /** Zero args ctor for use when unserializing. */
+  def this () = this(0L, "", null)
+
+  override def toString = defId + ": " + text + " (" + uses.length + ")"
 }
 
 /** Maintains a mapping from type to supertype. */

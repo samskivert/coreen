@@ -22,7 +22,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 14;
+    val version = 16;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -66,6 +66,14 @@ trait DB {
     // val defsToSigs = oneToManyRelation(defs, sigs).via((d, s) => d.id === s.defId)
     // defsToSigs.ForeignKeyDeclaration.constrainReference(onDelete cascade)
 
+    /** Provides access to the docs table. */
+    val docs = table[Doc]
+    on(docs) { s => declare(
+      s.defId is(indexed)
+    )}
+    // val defsToDocs = oneToManyRelation(defs, docs).via((d, s) => d.id === s.defId)
+    // defsToDocs.ForeignKeyDeclaration.constrainReference(onDelete cascade)
+
     /** Provides access to the supers table. */
     val supers = manyToManyRelation(defs, defs).via[Super](
       (dd, ss, s) => (s.defId === dd.id, s.superId === ss.id))
@@ -94,6 +102,10 @@ trait DB {
     def loadSigs (ids :scala.collection.Set[Long]) :Map[Long, Sig] =
       _db.sigs.where(s => s.defId in ids) map(s => (s.defId -> s)) toMap
 
+    /** Loads up the doc information for the specified defs. */
+    def loadDocs (ids :scala.collection.Set[Long]) :Map[Long, Doc] =
+      _db.docs.where(d => d.defId in ids) map(d => (d.defId -> d)) toMap
+
     /** Resolves the details for a collection of search matches. */
     def resolveMatches[DD <: DefDetail] (matches :Seq[Def], createDD :() => DD)
                                         (implicit m :ClassManifest[DD]) :Array[DD] = {
@@ -118,8 +130,9 @@ trait DB {
         case Some(d) => mkPath(defMap.get(d.outerId), Convert.toDefId(d) :: path)
       }
 
-      // resolve the signatures for our matches
+      // resolve the signatures and docs for our matches
       val sigs = loadSigs(matchMap.keySet)
+      val docs = loadDocs(matchMap.keySet)
 
       // sanity check the results and warn about matches for which we have no comp unit
       val (have, missing) = matches partition(d => unitMap.isDefinedAt(d.unitId))
@@ -129,7 +142,7 @@ trait DB {
 
       have map { d =>
         val pid = unitMap(d.unitId)
-        val r = Convert.initDefInfo(d, sigs.get(d.id), createDD())
+        val r = Convert.initDefInfo(d, sigs.get(d.id), docs.get(d.id), createDD())
         r.unit = new JCompUnit(d.unitId, pid, null)
         r.path = mkPath(defMap.get(d.outerId), List())
         r
@@ -238,13 +251,21 @@ trait DBComponent extends Component with DB {
       migrate(12, "Creating Sig...",
               List("create table Sig (data binary not null, " +
                    "text varchar(1024) not null, defId bigint not null)",
-                   "create index idxfcb032d on Sig (defId)",
+                   "create index idxSigDefId on Sig (defId)",
                    "alter table Sig add constraint SigFK1 foreign key (defId)" +
                    " references Def(id) on delete cascade"))
       migrate(13, "Changing Sig.data to Sig.uses...",
               List("alter table Sig alter column data rename to uses"))
       migrate(14, "Adding column Sig.defs...",
               List("alter table Sig add column defs binary not null default ''"))
+      migrate(15, "Dropping Def.doc...",
+              List("alter table Def drop column doc"))
+      migrate(16, "Creating Doc...",
+              List("create table Doc (uses binary not null, " +
+                   "text varchar(32768) not null, defId bigint not null)",
+                   "create index idxDocDefId on Doc (defId)",
+                   "alter table Doc add constraint DocFK1 foreign key (defId)" +
+                   " references Def(id) on delete cascade"))
     }
   }
 }

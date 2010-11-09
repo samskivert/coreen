@@ -147,9 +147,11 @@ trait ProjectServlet {
       val superdefs = loadSupers(ts.superId, mems map(_.superId) toSet)
 
       val members = mems ++ superdefs
-      val sigs = _db.loadSigs(members map(_.id) toSet)
+      val memIds = members map(_.id) toSet
+      val (sigs, docs) = (_db.loadSigs(memIds), _db.loadDocs(memIds))
       ts.supers = (supers map(Convert.toJava) toArray)
-      ts.members = members sorted(ByFlavorName) map(d => Convert.toDefInfo(d, sigs.get(d.id)))
+      ts.members = members sorted(ByFlavorName) map(
+        d => Convert.toDefInfo(d, sigs.get(d.id), docs.get(d.id)))
       ts
     }
 
@@ -233,10 +235,11 @@ trait ProjectServlet {
       }
     }
 
-    private def initDefDetail[DD <: DefDetail] (d :Def, dd :DD) :DD = {
-      Convert.initDefInfo(d, _db.sigs.where(s => s.defId === d.id).headOption, dd)
-      dd.unit = Convert.toJava(_db.compunits.lookup(d.unitId).get)
-      dd.path = loadDefPath(d.outerId, Nil).toArray
+    private def initDefDetail[DD <: DefDetail] (df :Def, dd :DD) :DD = {
+      Convert.initDefInfo(df, _db.sigs.where(s => s.defId === df.id).headOption,
+                          _db.docs.where(d => d.defId === df.id).headOption, dd)
+      dd.unit = Convert.toJava(_db.compunits.lookup(df.unitId).get)
+      dd.path = loadDefPath(df.outerId, Nil).toArray
       dd
     }
 

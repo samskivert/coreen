@@ -34,8 +34,8 @@ object SourceModel
   }
 
   /** Models a definition (e.g. class, field, function, method, variable). */
-  case class DefElem (name :String, id :String, sig :Option[SigElem], doc :String, kind :Kind,
-                      flavor :Flavor, flags :Int, supers :Seq[String],
+  case class DefElem (name :String, id :String, sig :Option[SigElem], doc :Option[DocElem],
+                      kind :Kind, flavor :Flavor, flags :Int, supers :Seq[String],
                       start :Int, bodyStart :Int, bodyEnd :Int,
                       defs :Seq[DefElem], uses :Seq[UseElem]) extends Span {
     def getDef (path :String) :Option[DefElem] = {
@@ -62,6 +62,9 @@ object SourceModel
   case class SigDefElem (name :String, kind :Kind, start :Int) extends Span {
     override def toString = super.toString + ":" + kind
   }
+
+  /** Models the information for a doc signature. */
+  case class DocElem (text :String, uses :Seq[UseElem])
 
   /** Flattens all nested defs in the supplied seq into a single seq (including those supplied). */
   def allDefs (defs :Seq[DefElem]) :Seq[DefElem] = {
@@ -91,7 +94,7 @@ object SourceModel
   protected def mkDef (elem :Node, children :Seq[AnyRef]) :DefElem =
     DefElem((elem \ "@name").text, (elem \ "@id").text,
             (elem \ "sig").headOption map(parseSig), // we have zero or one <sig> blocks
-            (elem \ "doc").text,
+            (elem \ "doc").headOption map(parseDoc), // we have zero or one <doc blocks
             parseKind(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
             intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
             children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
@@ -128,6 +131,12 @@ object SourceModel
     val children = parse0(elem.child)
     SigElem(elem.text.trim,
             children filter(_.isInstanceOf[SigDefElem]) map(_.asInstanceOf[SigDefElem]),
+            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
+  }
+
+  protected def parseDoc (elem :Node) = {
+    val children = parse0(elem.child)
+    DocElem(elem.text.trim,
             children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
   }
 

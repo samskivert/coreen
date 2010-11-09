@@ -7,7 +7,7 @@ import java.io.{DataOutputStream, ByteArrayOutputStream, DataInputStream, ByteAr
 import java.util.Date
 
 import coreen.model.{Project => JProject, CompUnit => JCompUnit, Def => JDef, Use => JUse}
-import coreen.persist.{Decode, Sig}
+import coreen.persist.{Decode, Doc, Sig}
 import coreen.persist.{Project => SProject, CompUnit => SCompUnit, Def => SDef, Use => SUse}
 
 /**
@@ -30,7 +30,8 @@ object Convert
   def toDefId (d :SDef) :DefId = initDefId(d, new DefId)
 
   /** Converts a Scala Def to a DefInfo. */
-  def toDefInfo (d :SDef, s :Option[Sig]) :DefInfo = initDefInfo(d, s, new DefInfo)
+  def toDefInfo (d :SDef, sig :Option[Sig], doc :Option[Doc]) :DefInfo =
+    initDefInfo(d, sig, doc, new DefInfo)
 
   /** Converts a Scala Use to a Java Use. */
   def toJava (u :SUse) :JUse =
@@ -56,13 +57,13 @@ object Convert
   }
 
   /** Initializes a DefInfo from a Scala Def. */
-  def initDefInfo[DT <: DefInfo] (sdef :SDef, sig :Option[Sig], mem :DT) = {
+  def initDefInfo[DT <: DefInfo] (sdef :SDef, sig :Option[Sig], doc :Option[Doc], mem :DT) = {
     initDef(sdef, mem)
-    println("Init " + sdef.id + " " + sig)
     mem.sig = sig map(_.text) getOrElse("<missing signature>")
     mem.sigDefs = sig map(s => decodeSigDefs(s.defs)) getOrElse(Array[SigDef]())
     mem.sigUses = sig map(s => decodeUses(s.uses)) getOrElse(Array[JUse]())
-    mem.doc = sdef.doc getOrElse(null)
+    mem.doc = doc map(_.text) getOrElse(null)
+    mem.docUses = doc map(d => decodeUses(d.uses)) getOrElse(Array[JUse]())
     mem
   }
 

@@ -8,6 +8,12 @@ package coreen.model;
  */
 public class DefInfo extends Def
 {
+    /** The maximum number of characters allowed for a single def's signature. */
+    public static final int MAX_SIG_LENGTH = 1024;
+
+    /** The maximum number of characters allowed for a single def's documentation. */
+    public static final int MAX_DOC_LENGTH = 32768;
+
     /** This def's signature. */
     public String sig;
 
@@ -19,4 +25,7 @@ public class DefInfo extends Def
 
     /** This def's documentation. */
     public String doc;
+
+    /** The uses that occur in the documentation. */
+    public Use[] docUses;
 }
