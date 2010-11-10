@@ -23,6 +23,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   // database depends
   val h2db = "com.h2database" % "h2" % "1.2.142"
   val squeryl = "org.squeryl" % "squeryl_2.8.0" % "0.9.4-RC3"
+  val neo4jKernel = "org.neo4j" % "neo4j-kernel" % "1.2-1.2.M03"
 
   // depends for our auto-updating client
   val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"

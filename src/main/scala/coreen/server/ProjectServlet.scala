@@ -61,14 +61,7 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def deleteProject (id :Long) :Unit = transaction {
-      // TODO: redo all of this with foreign keys and let the database sort it out
-      val defIds = from(_db.defs, _db.compunits)(
-        (d, cu) => where(d.unitId === cu.id and cu.projectId === id) select(d.id))
-      _db.uses.deleteWhere(u => u.referentId in defIds)
-      _db.defmap.deleteWhere(dn => dn.id in defIds)
-      _db.defs.deleteWhere(d => d.id in from(_db.compunits)(
-        cu => where(cu.projectId === id) select(cu.id)))
-      _db.compunits.deleteWhere(cu => cu.projectId === id)
+      // delete the project and let foreign key constraints take care of the rest
       _db.projects.deleteWhere(p => p.id === id)
     }
 
@@ -238,7 +231,11 @@ trait ProjectServlet {
     private def initDefDetail[DD <: DefDetail] (df :Def, dd :DD) :DD = {
       Convert.initDefInfo(df, _db.sigs.where(s => s.defId === df.id).headOption,
                           _db.docs.where(d => d.defId === df.id).headOption, dd)
-      dd.unit = Convert.toJava(_db.compunits.lookup(df.unitId).get)
+      dd.unit = _db.compunits.lookup(df.unitId) match {
+        case Some(cu) => Convert.toJava(cu)
+        case None => _log.warning("Missing compunit for def?",
+                                  "defId", df.id, "unitId", df.unitId) ; new JCompUnit
+      }
       dd.path = loadDefPath(df.outerId, Nil).toArray
       dd
     }

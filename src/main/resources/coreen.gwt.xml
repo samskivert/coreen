@@ -4,6 +4,16 @@
   <!--<inherits name="com.google.gwt.i18n.I18N"/>-->
   <inherits name="com.threerings.gwt.Utils"/>
 
-  <source path="coreen"/>
+  <!-- alas, we need to exclude one directory -->
+  <source path="coreen/client"/>
+  <source path="coreen/config"/>
+  <source path="coreen/icons"/>
+  <source path="coreen/library"/>
+  <source path="coreen/model"/>
+  <source path="coreen/project"/>
+  <source path="coreen/rpc"/>
+  <source path="coreen/ui"/>
+  <source path="coreen/util"/>
+
   <entry-point class="coreen.client.CoreenClient"/>
 </module>

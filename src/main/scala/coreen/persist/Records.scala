@@ -43,7 +43,7 @@ case class CompUnit (
   /** The id of the project to which this compilation unit belongs. */
   projectId :Long,
   /** The path (relative to the project root) to this compilation unit. */
-  path :String,
+  @Column(length=1024) path :String,
   /** The time at which this compilation unit was last updated. */
   lastUpdated :Long
 ) extends KeyedEntity[Long] {
@@ -54,15 +54,6 @@ case class CompUnit (
   def this () = this(0L, "", 0L)
 
   override def toString = "[id=" + id + ", pid=" + projectId + ", path=" + path + "]"
-}
-
-/** A mapping from fully qualified name to id for defs. */
-case class DefName (
-  /** The fully qualified name of this def. */
-  @Column(length=1024) fqName :String
-) extends KeyedEntity[Long] {
-  /** A unique identifier for this definition (1 or higher). */
-  val id :Long = 0L
 }
 
 /** Contains metadata for a definition. */

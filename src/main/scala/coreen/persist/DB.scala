@@ -14,8 +14,12 @@ import org.squeryl.Query
 import org.squeryl.adapters.H2Adapter
 import org.squeryl.{Schema, Session, SessionFactory}
 
+import org.neo4j.graphdb.{Direction, GraphDatabaseService, Node, Transaction}
+import org.neo4j.kernel.EmbeddedGraphDatabase
+
 import coreen.model.{Kind, DefId, DefDetail, Convert, Def => JDef, CompUnit => JCompUnit}
 import coreen.server.{Dirs, Log, Component}
+import coreen.util.Tree
 
 /** Provides database services. */
 trait DB {
@@ -32,6 +36,9 @@ trait DB {
     on(compunits) { cu => declare(
       cu.path is(indexed)
     )}
+    val unitsToProject = oneToManyRelation(projects, compunits).via(
+      (p, cu) => p.id === cu.projectId)
+    unitsToProject.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Provides access to the defs table. */
     val defs = table[Def]
@@ -43,12 +50,9 @@ trait DB {
       d.outerId is(indexed),
       d.name is (indexed, dbType("varchar_ignorecase"))
     )}
-
-    /** A mapping from fully qualfied def name to id (and vice versa). */
-    val defmap = table[DefName]
-    on(defmap) { dn => declare(
-      dn.fqName is(indexed, unique)
-    )}
+    val defsToUnit = oneToManyRelation(compunits, defs).via(
+      (cu, d) => cu.id === d.unitId)
+    defsToUnit.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Provides access to the uses table. */
     val uses = table[Use]
@@ -57,22 +61,25 @@ trait DB {
       u.ownerId is(indexed),
       u.referentId is(indexed)
     )}
+    val usesToOwner = oneToManyRelation(defs, uses).via(
+      (d, u) => d.id === u.ownerId)
+    usesToOwner.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Provides access to the sigs table. */
     val sigs = table[Sig]
     on(sigs) { s => declare(
       s.defId is(indexed)
     )}
-    // val defsToSigs = oneToManyRelation(defs, sigs).via((d, s) => d.id === s.defId)
-    // defsToSigs.ForeignKeyDeclaration.constrainReference(onDelete cascade)
+    val defsToSigs = oneToManyRelation(defs, sigs).via((d, s) => d.id === s.defId)
+    defsToSigs.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Provides access to the docs table. */
     val docs = table[Doc]
     on(docs) { s => declare(
       s.defId is(indexed)
     )}
-    // val defsToDocs = oneToManyRelation(defs, docs).via((d, s) => d.id === s.defId)
-    // defsToDocs.ForeignKeyDeclaration.constrainReference(onDelete cascade)
+    val defsToDocs = oneToManyRelation(defs, docs).via((d, s) => d.id === s.defId)
+    defsToDocs.foreignKeyDeclaration.constrainReference(onDelete cascade)
 
     /** Provides access to the supers table. */
     val supers = manyToManyRelation(defs, defs).via[Super](
@@ -83,20 +90,105 @@ trait DB {
     supers.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
     supers.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
 
+    /** Creates a def map that can be used to resolve names. The intended usage pattern is to
+     * create a DefMap for a particular task, caching names while the task is being performed, and
+     * then dropping references to the map so that it may be garbage collected. */
+    def newDefMap = new DefMap {
+      def resolveIds (fqNames :Traversable[String], andChildren :Boolean) {
+        val root = new Tree[Boolean]()
+        fqNames foreach(n => root.add(n.split(" "), andChildren))
+        val tx = _neodb.beginTx
+        try {
+          resolveChildren(root, _map)
+          tx.success
+        } finally {
+          tx.finish
+        }
+      }
+
+      def assignIds (fqNames :Traversable[String]) {
+        val root = new Tree[Unit]()
+        fqNames foreach(n => root.add(n.split(" "), ()))
+        val tx = _neodb.beginTx
+        try {
+          assignChildren(root, _map)
+          tx.success
+        } finally {
+          tx.finish
+        }
+      }
+
+      def get (fqName :String) = _map.get(fqName.split(" ")) map(_.getId)
+
+      def resolveChildren (node :Tree[Boolean], map :Tree[Node]) {
+        import scalaj.collection.Imports._
+        node.value match {
+          case Some(true) => resolveAllChildren(map)
+          case _ => if (!node.children.isEmpty) {
+            // resolve any unresolved children
+            val toLoad = node.children.keySet -- map.children.keySet
+            if (!toLoad.isEmpty) {
+              val curnode = map.value.get
+              for (nn <- curnode.getRelationships(
+                GraphRelations.ENCLOSES, Direction.OUTGOING).asScala) {
+                val onode = nn.getOtherNode(curnode)
+                val name = onode.getProperty("name").asInstanceOf[String]
+                if (toLoad(name)) {
+                  map.add(name, onode)
+                }
+              }
+            }
+            // now recurse over the children and resolve them
+            for (name <- node.children.keySet) {
+              val nnext = node(name)
+              // we may have nothing left to resolve, or this name node may not exist
+              if (map.children.contains(name)) {
+                resolveChildren(nnext, map(name))
+              }
+            }
+          }
+        }
+      }
+
+      def resolveAllChildren (map :Tree[Node]) {
+        import scalaj.collection.Imports._
+        // TODO: rewrite with a traverser
+        if (map.children.isEmpty) {
+          val curnode = map.value.get
+          for (nn <- curnode.getRelationships(
+            GraphRelations.ENCLOSES, Direction.OUTGOING).asScala) {
+            val onode = nn.getOtherNode(curnode)
+            map.add(onode.getProperty("name").asInstanceOf[String], onode)
+          }
+          map.children.values.foreach(c => resolveAllChildren(c))
+        } // else they're already resolved
+      }
+
+      def assignChildren (node :Tree[Unit], map :Tree[Node]) {
+        val curnode = map.value.get
+
+        // create nodes for any children we're missing
+        for (name <- (node.children.keySet -- map.children.keySet)) {
+          val node = _neodb.createNode
+          node.setProperty("name", name)
+          curnode.createRelationshipTo(node, GraphRelations.ENCLOSES)
+          map.add(name, node)
+        }
+
+        for ((name, next) <- node.children) {
+          if (!next.children.isEmpty) assignChildren(next, map.get(name))
+        }
+      }
+
+      protected val _map = new Tree(_neodb.getReferenceNode)
+    }
+
     /** Returns a query that yields all modules in the specified project. */
     def loadModules (projectId :Long) :Query[Def] =
       from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and cu.id === d.unitId and
               (d.kind === Decode.kindToCode(Kind.MODULE)))
         select(d))
-
-    /** Returns a mapping from fqName to id for all known values in the supplied fqName set. */
-    def loadDefIds (fqNames :scala.collection.Set[String]) :Map[String,Long] =
-      defmap.where(dn => dn.fqName in fqNames) map(dn => (dn.fqName, dn.id)) toMap
-
-    /** Returns a mapping from fqName to id for all known values in the supplied id set. */
-    def loadDefNames (ids :scala.collection.Set[Long]) :Map[String,Long] =
-      defmap.where(dn => dn.id in ids) map(dn => (dn.fqName, dn.id)) toMap
 
     /** Loads up the signature information for the specified defs. */
     def loadSigs (ids :scala.collection.Set[Long]) :Map[Long, Sig] =
@@ -160,11 +252,17 @@ trait DB {
       create
     }
   }
+
+  /** Provides graph database services, used to maintain (fqName -> id) mapping. */
+  val _neodb :GraphDatabaseService
 }
 
 /** A concrete implementation of {@link DB}. */
 trait DBComponent extends Component with DB {
   this :Log with Dirs =>
+
+  val _neodb :GraphDatabaseService =
+    new EmbeddedGraphDatabase(new File(_coreenDir, "neodb").getAbsolutePath)
 
   /** Mixer can override this to log database queries. */
   protected def dblogger :(String => Unit) = null
@@ -267,5 +365,10 @@ trait DBComponent extends Component with DB {
                    "alter table Doc add constraint DocFK1 foreign key (defId)" +
                    " references Def(id) on delete cascade"))
     }
+  }
+
+  override protected def shutdownComponents {
+    super.shutdownComponents
+    _neodb.shutdown // shut down our neo4j db
   }
 }
