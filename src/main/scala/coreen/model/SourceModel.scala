@@ -124,7 +124,7 @@ object SourceModel
 
   protected def parseSupers (elem :Node) = (elem \ "@supers").text.trim match {
     case "" => List()
-    case ids => ids split(" ") map(_.trim) toList
+    case ids => ids split(";") map(_.trim) toList
   }
 
   protected def parseSig (elem :Node) = {

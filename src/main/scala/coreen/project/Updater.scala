@@ -244,11 +244,10 @@ trait Updater {
           }
         }
         if (unknownDefs.size > 0) {
-          println("Looking for " + unknownDefs.size + " unknown defs")
+          _log.info("Looking for " + unknownDefs.size + " unknown defs")
           time("identifyDefs") {
             for ((defId, dUnitId) <- from(_db.defs)(
               d => where(d.id in unknownDefs.keySet) select(d.id, d.unitId))) {
-                println("Found def " + defId + " " + dUnitId)
                 if (dUnitId == unitId) {
                   oldDefs += unknownDefs(defId)
                 } else {
@@ -276,7 +275,7 @@ trait Updater {
                            df.start, df.start+df.name.length, df.bodyStart, df.bodyEnd)
             ((out + (df.id -> ndef)) /: df.defs)(makeDefs(ndef.id))
           }
-          case None => println("*** No mapping for " + df.id); out // TODO: still?
+          case None => _log.info("** No mapping for " + df.id); out // TODO: still?
         }
         val ndefs = (Map[String,Def]() /: defs)(makeDefs(0L))
 
@@ -342,13 +341,13 @@ trait Updater {
         def parseUses (uses :Seq[UseElem]) = uses flatMap(u => try {
           defMap.get(u.target) map(refId => new JUse(refId, u.kind, u.start, u.name.length))
         } catch {
-          case e => println("Bad use! " + u + ": " + e); None
+          case e => _log.info("** Bad use! " + u + ": " + e); None
         })
         def parseSig (df :DefElem) = df.sig flatMap(se => defMap.get(df.id) match {
           case Some(defId) => Some(Sig(defId, se.text,
                                        Convert.encodeSigDefs(parseSigDefs(se.defs)),
                                        Convert.encodeUses(parseUses(se.uses))))
-          case None => println("*** No def for sig? " + df.id); None
+          case None => _log.info("** No def for sig? " + df.id); None
         })
         def parseDoc (df :DefElem) = df.doc flatMap(de => defMap.get(df.id) map(
           defId => Doc(defId, truncate(de.text, DefInfo.MAX_DOC_LENGTH-3),
@@ -412,7 +411,7 @@ trait Updater {
           if (!d.supers.isEmpty) {
             defMap.get(d.supers.head) match {
               case Some(superId) => toUpdate += (defId -> superId)
-              case None =>
+              case None => _log.info("** Unknown super " + d.supers.head + " (of " + d.id + ")")
             }
           }
           // finally process this def's children
