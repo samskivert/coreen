@@ -26,7 +26,10 @@ trait DirsComponent extends Component with Dirs {
   this :Log =>
 
   val _appdir = Option(System.getProperty("appdir")) map(new File(_))
-  val _coreenDir = new File(System.getProperty("user.home") + File.separator + ".coreen")
+  val _coreenDir = {
+    val dname = if (_appdir.isDefined) ".coreen" else ".coreendev"
+    new File(System.getProperty("user.home") + File.separator + dname)
+  }
 
   override protected def initComponents {
     super.initComponents
