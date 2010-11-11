@@ -63,17 +63,11 @@ public class TypeLabel extends FlowPanel
         header.add(Widgets.newLabel("]"));
 
         Label supHier = Widgets.newLabel(" ↑ ", _rsrc.styles().actionable());
+        SuperTypesPopup.bind(supHier, deet, defmap);
         header.add(supHier);
         Label subs = Widgets.newLabel(" ↓ ", _rsrc.styles().actionable());
         header.add(subs);
         // END TODO
-
-        // stuff below the header
-        SuperTypesPanel spanel = new SuperTypesPanel(deet, linker, defmap);
-        Value<Boolean> showSupers = Value.create(false);
-        supHier.addClickHandler(Bindings.makeToggler(showSupers));
-        Bindings.bindVisible(showSupers, spanel);
-        add(spanel);
 
         if (deet.doc != null) {
             add(new DocLabel(deet.doc));
