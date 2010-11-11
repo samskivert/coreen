@@ -6,7 +6,6 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
     .contents {
-      width: 100%;
     }
     .topgap {
       border-top: 1px solid;
@@ -14,6 +13,7 @@
     }
     .header {
       background: #F3F3F3;
+      padding: 0px 5px;
     }
     .members {
       margin-left: 20px;

@@ -217,13 +217,8 @@ public class UsePopup extends PopupPanel
         setStyleName(_rsrc.styles().usePopup());
         _popper = popper;
 
-        FlowPanel panel = new FlowPanel();
-        panel.add(new TypeLabel(deet, linker, defmap));
-        _link = linker.makeLink(deet); // TODO: nix
-        Widget sig = new SourcePanel(deet, defmap, linker);
-        // sig.addStyleName(_rsrc.styles().code());
-        panel.add(sig);
-        setWidget(panel);
+        _link = linker.makeLink(deet); // we just use this for its history token...
+        setWidget(TypeSummaryPanel.create(deet, defmap, linker));
     }
 
     @Override // from PopupPanel
