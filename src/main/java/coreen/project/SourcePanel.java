@@ -138,6 +138,7 @@ public class SourcePanel extends AbstractProjectPanel
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, DefUtil.getDefStyle(def.getKind()));
                     if (def.getId() > 0) { // TODO: nix when we add ids to SigDefs
+                        w.setTitle(""+def.getId());
                         _local.map(def.getId(), w);
                     }
                     return w;

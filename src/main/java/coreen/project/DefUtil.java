@@ -56,14 +56,16 @@ public class DefUtil
                     return Link.create(def.name, Page.PROJECT, args.toArray());
                 }
             };
-            return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
+            TogglePanel contents = new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     return new SourcePanel(deets, defmap, linker);
                 }
                 protected Widget createExpanded () {
                     return new SourcePanel(deets.id, defmap, linker, false);
                 }
-            });
+            };
+            contents.addStyleName(_rsrc.styles().belowTypeLabel());
+            return Widgets.newFlowPanel(label, contents);
         }
     }
 

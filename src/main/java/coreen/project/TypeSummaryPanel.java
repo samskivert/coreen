@@ -160,17 +160,18 @@ public class TypeSummaryPanel extends Composite
             header.add(new DocLabel(deets.doc));
         }
 
+        final FlowPanel body = Widgets.newFlowPanel(_rsrc.styles().belowTypeLabel());
         SourcePanel sig = new SourcePanel(deets, _defmap, _linker);
         sig.addStyleName(_styles.sigPanel());
 
         if (deets instanceof TypeSummary) {
-            header.add(sig);
+            body.add(sig);
 
         } else {
             final Value<Boolean> expanded = Value.create(false);
-            header.add(TogglePanel.makeToggleButton(expanded));
-            header.add(sig);
-            header.add(UIUtil.newClear());
+            body.add(TogglePanel.makeToggleButton(expanded));
+            body.add(sig);
+            body.add(UIUtil.newClear());
             expanded.addListener(new Value.Listener<Boolean>() {
                 public void valueChanged (Boolean value) {
                     if (!value) {
@@ -178,10 +179,10 @@ public class TypeSummaryPanel extends Composite
                     }
                     expanded.removeListener(this); // avoid repeat clicky
                     final Widget loading = Widgets.newLabel("Loading...");
-                    _contents.add(loading);
-                    _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
+                    body.add(loading);
+                    _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(body) {
                         public void onSuccess (TypeSummary sum) {
-                            _contents.remove(loading);
+                            body.remove(loading);
                             Bindings.bindVisible(expanded, initBody(sum));
                             // TODO: add super types to TypeLabel
                         }
@@ -189,7 +190,9 @@ public class TypeSummaryPanel extends Composite
                 }
                 });
         }
+
         _contents.add(header);
+        _contents.add(body);
     }
 
     protected FlowPanel initBody (final TypeSummary sum)
@@ -315,4 +318,5 @@ public class TypeSummaryPanel extends Composite
     protected static final Binder _binder = GWT.create(Binder.class);
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectMessages _msgs = GWT.create(ProjectMessages.class);
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

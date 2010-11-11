@@ -12,8 +12,6 @@
       margin-top: 2px;
     }
     .header {
-      background: #F3F3F3;
-      padding: 0px 5px;
     }
     .members {
       margin-left: 20px;

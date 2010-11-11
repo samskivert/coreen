@@ -180,15 +180,13 @@ trait ProjectServlet {
       val buf = ArrayBuffer[Array[JDef]]()
       def addSuperTypes (d :Def) {
         val sdefs = _db.supers.left(d).toList
-        if (!sdefs.isEmpty) {
-          buf += (sdefs.find(_.id == d.superId) match {
-            case None => (d :: sdefs)
+        buf += (sdefs.find(_.id == d.superId) match {
+          case None => (d :: sdefs)
             case Some(pd) => {
               addSuperTypes(pd)
               (d :: sdefs.filterNot(_.id == pd.id))
             }
-          }).map(Convert.toJava).toArray
-        }
+        }).map(Convert.toJava).toArray
       }
       addSuperTypes(d)
       buf.toArray
