@@ -131,7 +131,8 @@ trait ProjectServlet {
           case Some(sd) => {
             supers += sd
             val smems = _db.defs.where(
-              d => d.outerId === superId and not (d.id in filterIds)) toArray;
+              d => d.outerId === superId and not (d.id in filterIds)) filter(
+                d => JDef.isInherited(d.flags)) toArray;
             smems ++ loadSupers(sd.superId, filterIds ++ smems.map(_.superId))
           }
           case _ => Array[Def]()

@@ -119,7 +119,14 @@ object SourceModel
   }
 
   protected def parseFlags (elem :Node) = {
-    if ((elem \ "@access").text.equalsIgnoreCase("public")) JDef.PUBLIC else 0
+    val access = (elem \ "@access").text
+    val flavor = parseFlavor(elem)
+    // TODO: should we handle this in a less Java-centric way?
+    var flags = 0
+    if (access.equalsIgnoreCase("public")) flags |= JDef.PUBLIC
+    if (!access.equalsIgnoreCase("private") &&
+        flavor != Flavor.CONSTRUCTOR)      flags |= JDef.INHERITED
+    flags
   }
 
   protected def parseSupers (elem :Node) = (elem \ "@supers").text.trim match {
