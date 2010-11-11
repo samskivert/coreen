@@ -16,6 +16,7 @@ public interface UIResources extends ClientBundle
         String console ();
         String popup ();
         String clear ();
+        String actionable ();
     }
 
     @Source("ui.css")

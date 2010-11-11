@@ -24,6 +24,7 @@ import coreen.model.DefId;
 import coreen.model.Kind;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
+import coreen.ui.PopupGroup;
 import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
@@ -108,6 +109,11 @@ public class UsePopup extends PopupPanel
             }
         }
 
+        public Popper setGroup (PopupGroup group) {
+            _group = group;
+            return this;
+        }
+
         public Popper setHighlight (boolean highlight) {
             _highlight = highlight;
             return this;
@@ -148,7 +154,9 @@ public class UsePopup extends PopupPanel
         }
 
         protected void showPopup () {
-            hidePopup();
+            if (_group != null) {
+                _group.setShowing(_popup);
+            }
 
             // if the def came into view while we were waiting, just highlight it
             if (_highlight && UseHighlighter.highlightTarget(_defmap, _referentId)) {
@@ -157,7 +165,6 @@ public class UsePopup extends PopupPanel
 
             // if we already have our popup, then just show it
             if (_popup != null) {
-                _current = _popup;
                 UIUtil.showAbove(_popup, _target);
                 return;
             }
@@ -169,12 +176,6 @@ public class UsePopup extends PopupPanel
                     showPopup();
                 }
             });
-        }
-
-        protected void hidePopup () {
-            // if (_current != null) {
-            //     _current.hide();
-            // }
         }
 
         protected void poppedDown () {
@@ -195,6 +196,7 @@ public class UsePopup extends PopupPanel
 
         protected UsePopup _popup;
         protected long _lastPopdown;
+        protected PopupGroup _group;
 
         protected static final long BOUNCE = 250L;
     }
@@ -226,8 +228,6 @@ public class UsePopup extends PopupPanel
 
     protected Popper _popper;
     protected Hyperlink _link;
-
-    protected static UsePopup _current;
 
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);

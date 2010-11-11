@@ -195,6 +195,23 @@ trait ProjectServlet {
     }
 
     // from interface ProjectService
+    def getSubTypes (defId :Long) :Array[Array[JDef]] = transaction {
+      val d = requireDef(defId)
+      val buf = ArrayBuffer[Array[JDef]]()
+      def addSubTypes (defIds :Set[Long]) {
+        val sdefs = from(_db.defs,_db.supers)(
+          (d, s) => where((d.id === s.defId) and (s.superId in defIds)) select(d)) toArray;
+        if (!sdefs.isEmpty) {
+          buf += sdefs map(Convert.toJava)
+          addSubTypes(sdefs map(_.id) toSet)
+        }
+      }
+      buf += Array(Convert.toJava(d))
+      addSubTypes(Set(d.id))
+      buf.toArray
+    }
+
+    // from interface ProjectService
     def search (projectId :Long, query :String) :Array[DefDetail] = transaction {
       _db.resolveMatches(from(_db.compunits, _db.defs)((cu, d) =>
         where(cu.projectId === projectId and
@@ -202,6 +219,11 @@ trait ProjectServlet {
               d.name === query and
               d.kind.~ < Decode.kindToCode(Kind.TERM))
         select(d)) toSeq, () => new DefDetail)
+    }
+
+    // from interface ProjectService
+    def findUses (defId :Long) :Array[ProjectService.UsesResult] = transaction {
+      null
     }
 
     override protected def doUnexpectedFailure (e :Throwable) {

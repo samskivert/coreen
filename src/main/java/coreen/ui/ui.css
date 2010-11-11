@@ -20,3 +20,8 @@
 .clear {
   clear: both;
 }
+
+.actionable {
+  cursor: pointer;
+  text-decoration: none;
+}

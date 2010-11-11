@@ -39,14 +39,34 @@ public interface ProjectServiceAsync
     void getProject (long id, AsyncCallback<Project> callback);
 
     /**
+     * The async version of {@link ProjectService#updateProject}.
+     */
+    void updateProject (Project p, AsyncCallback<Void> callback);
+
+    /**
+     * The async version of {@link ProjectService#rebuildProject}.
+     */
+    void rebuildProject (long id, AsyncCallback<Void> callback);
+
+    /**
+     * The async version of {@link ProjectService#deleteProject}.
+     */
+    void deleteProject (long id, AsyncCallback<Void> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnits}.
+     */
+    void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getModsAndMembers}.
+     */
+    void getModsAndMembers (long projectId, AsyncCallback<Def[][]> callback);
+
+    /**
      * The async version of {@link ProjectService#getModules}.
      */
     void getModules (long projectId, AsyncCallback<Def[]> callback);
-
-    /**
-     * The async version of {@link ProjectService#getMembers}.
-     */
-    void getMembers (long defId, AsyncCallback<Def[]> callback);
 
     /**
      * The async version of {@link ProjectService#getTypes}.
@@ -54,9 +74,14 @@ public interface ProjectServiceAsync
     void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
-     * The async version of {@link ProjectService#getSuperTypes}.
+     * The async version of {@link ProjectService#getMembers}.
      */
-    void getSuperTypes (long defId, AsyncCallback<Def[][]> callback);
+    void getMembers (long defId, AsyncCallback<Def[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getCompUnit}.
+     */
+    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
 
     /**
      * The async version of {@link ProjectService#getDef}.
@@ -69,32 +94,17 @@ public interface ProjectServiceAsync
     void getSummary (long defId, AsyncCallback<TypeSummary> callback);
 
     /**
-     * The async version of {@link ProjectService#getCompUnits}.
+     * The async version of {@link ProjectService#getSuperTypes}.
      */
-    void getCompUnits (long projectId, AsyncCallback<CompUnit[]> callback);
+    void getSuperTypes (long defId, AsyncCallback<Def[][]> callback);
 
     /**
-     * The async version of {@link ProjectService#getCompUnit}.
+     * The async version of {@link ProjectService#getSubTypes}.
      */
-    void getCompUnit (long unitId, AsyncCallback<CompUnitDetail> callback);
+    void getSubTypes (long defId, AsyncCallback<Def[][]> callback);
 
     /**
-     * The async version of {@link ProjectService#updateProject}.
+     * The async version of {@link ProjectService#findUses}.
      */
-    void updateProject (Project p, AsyncCallback<Void> callback);
-
-    /**
-     * The async version of {@link ProjectService#deleteProject}.
-     */
-    void deleteProject (long id, AsyncCallback<Void> callback);
-
-    /**
-     * The async version of {@link ProjectService#getModsAndMembers}.
-     */
-    void getModsAndMembers (long projectId, AsyncCallback<Def[][]> callback);
-
-    /**
-     * The async version of {@link ProjectService#rebuildProject}.
-     */
-    void rebuildProject (long id, AsyncCallback<Void> callback);
+    void findUses (long defId, AsyncCallback<ProjectService.UsesResult[]> callback);
 }

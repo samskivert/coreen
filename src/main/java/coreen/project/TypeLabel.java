@@ -17,6 +17,7 @@ import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Kind;
+import coreen.ui.PopupGroup;
 import coreen.util.DefMap;
 
 /**
@@ -24,12 +25,13 @@ import coreen.util.DefMap;
  */
 public class TypeLabel extends FlowPanel
 {
-    public TypeLabel (DefDetail deet, UsePopup.Linker linker, DefMap defmap)
+    public TypeLabel (DefDetail deet, DefMap defmap, UsePopup.Linker linker)
     {
-        this(deet, null, linker, defmap);
+        this(deet, null, defmap, linker);
     }
 
-    public TypeLabel (DefDetail deet, Def[] supers, UsePopup.Linker linker, DefMap defmap)
+    public TypeLabel (final DefDetail deet, Def[] supers, final DefMap defmap,
+                      UsePopup.Linker linker)
     {
         addStyleName(_rsrc.styles().typeLabel());
 
@@ -62,10 +64,20 @@ public class TypeLabel extends FlowPanel
         header.add(src);
         header.add(Widgets.newLabel("]"));
 
-        Label supHier = Widgets.newLabel(" ↑ ", _rsrc.styles().actionable());
-        SuperTypesPopup.bind(supHier, deet, defmap);
+        Label supHier = Widgets.newLabel(" ↑ ");
+        new PopupGroup().bindClick(supHier, new PopupGroup.Thunk() {
+            public Widget create (PopupGroup.Positioner repos) {
+                return new SuperTypesPanel(deet, defmap, repos);
+            }
+        });
         header.add(supHier);
-        Label subs = Widgets.newLabel(" ↓ ", _rsrc.styles().actionable());
+
+        Label subs = Widgets.newLabel(" ↓ ");
+        new PopupGroup().showBelow().bindClick(subs, new PopupGroup.Thunk() {
+            public Widget create (PopupGroup.Positioner repos) {
+                return new SubTypesPanel(deet, defmap, repos);
+            }
+        });
         header.add(subs);
         // END TODO
 

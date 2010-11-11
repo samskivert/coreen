@@ -4,6 +4,9 @@
 package coreen.ui;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.dom.client.HasMouseOutHandlers;
 import com.google.gwt.event.dom.client.HasMouseOverHandlers;
 import com.google.gwt.event.dom.client.MouseOutEvent;
@@ -14,30 +17,57 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Popups;
+
 /**
  * Handles popping up on mouse over (after a delay or immediately), and ensuring that only one
  * popup in the group is visible at a given time.
  */
 public class PopupGroup
 {
+    /** Allows the widget created by a {@link Thunk} to realign the popup if its size changes. */
+    public interface Positioner {
+        public void sizeDidChange ();
+    }
+
     /** Used by {@link #bindPopup} to defer popup contents creation. */
     public interface Thunk {
-        public Widget create ();
+        public Widget create (Positioner pos);
     }
 
     /**
-     * Creates a popup group that shows its popups after the mouse has been hovering for the
-     * specifide number of millseconds.
+     * Configures this popup group to show its popups above its target.
      */
-    public PopupGroup (int popDelay)
+    public PopupGroup showAbove ()
     {
-        _popDelay = popDelay;
+        _showAbove = true;
+        return this;
     }
 
     /**
-     * Binds a popup to the
+     * Configures this popup group to show its popups below its target.
      */
-    public <T extends Widget & HasMouseOverHandlers & HasMouseOutHandlers> void bindPopup (
+    public PopupGroup showBelow ()
+    {
+        _showAbove = false;
+        return this;
+    }
+
+    /**
+     * Configures this group to show hover popups after the specified (millisecond) delay.
+     */
+    public PopupGroup setHoverDelay (int millis)
+    {
+        _hoverDelay = millis;
+        return this;
+    }
+
+    /**
+     * Binds listeners the specified target widget that will cause a popup to be created when the
+     * mouse hovers over the widget for a time greater than or equal to the popup delay supplied to
+     * this group at construction time.
+     */
+    public <T extends Widget & HasMouseOverHandlers & HasMouseOutHandlers> void bindHover (
         final T target, final Thunk contents)
     {
         Popper popper = new Popper(target, contents);
@@ -45,7 +75,32 @@ public class PopupGroup
         target.addMouseOutHandler(popper);
     }
 
-    protected class Popper extends Timer implements MouseOverHandler, MouseOutHandler
+    /**
+     * Binds listeners to the specified target widget that will cause a popup to be created when
+     * the widget is clicked.
+     */
+    public <T extends Widget & HasClickHandlers> void bindClick (
+        final T target, final Thunk contents)
+    {
+        Popper popper = new Popper(target, contents);
+        target.addClickHandler(popper);
+        target.addStyleName(_rsrc.styles().actionable());
+    }
+
+    /**
+     * Configures the showing popup for this group. Any previously showing popup will be hidden. In
+     * general this method is only used internally, but a popup group can be used by externally
+     * managed popups in which case this method is needed.
+     */
+    public void setShowing (PopupPanel showing)
+    {
+        if (_showing != null) {
+            _showing.hide();
+        }
+        _showing = showing;
+    }
+
+    protected class Popper extends Timer implements MouseOverHandler, MouseOutHandler, ClickHandler
     {
         public Popper (Widget target, Thunk thunk) {
             _target = target;
@@ -53,10 +108,10 @@ public class PopupGroup
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            if (_popDelay == 0) {
+            if (_hoverDelay == 0) {
                 run();
             } else {
-                schedule(_popDelay);
+                schedule(_hoverDelay);
             }
         }
 
@@ -67,17 +122,30 @@ public class PopupGroup
             // }
         }
 
+        public void onClick (ClickEvent event) {
+            run();
+        }
+
         public void run () {
             if (_popup == null) {
                 _popup = new PopupPanel(true);
                 _popup.setStyleName(_rsrc.styles().popup());
-                _popup.setWidget(_thunk.create());
+                _popup.setWidget(_thunk.create(new Positioner() {
+                    public void sizeDidChange () {
+                        positionPopup();
+                    }
+                }));
             }
-            if (_showing != null) {
-                _showing.hide();
+            setShowing(_popup);
+            positionPopup();
+        }
+
+        protected void positionPopup () {
+            if (_showAbove) {
+                UIUtil.showAbove(_popup, _target);
+            } else {
+                Popups.showNear(_popup, _target);
             }
-            _showing = _popup;
-            UIUtil.showAbove(_popup, _target);
         }
 
         protected Widget _target;
@@ -85,11 +153,14 @@ public class PopupGroup
         protected PopupPanel _popup;
     }
 
-    protected int _popDelay;
+    protected int _hoverDelay = DEFAULT_HOVER_DELAY;
+    protected boolean _showAbove = true;
     protected PopupPanel _showing;
 
     protected static final UIResources _rsrc = GWT.create(UIResources.class);
     static {
         _rsrc.styles().ensureInjected();
     }
+
+    protected static final int DEFAULT_HOVER_DELAY = 300;
 }

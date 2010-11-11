@@ -18,6 +18,11 @@ public interface LibraryServiceAsync
     void search (String query, AsyncCallback<LibraryService.SearchResult[]> callback);
 
     /**
+     * The async version of {@link LibraryService#getProjects}.
+     */
+    void getProjects (AsyncCallback<Project[]> callback);
+
+    /**
      * The async version of {@link LibraryService#getPendingProjects}.
      */
     void getPendingProjects (AsyncCallback<PendingProject[]> callback);
@@ -26,9 +31,4 @@ public interface LibraryServiceAsync
      * The async version of {@link LibraryService#importProject}.
      */
     void importProject (String source, AsyncCallback<PendingProject> callback);
-
-    /**
-     * The async version of {@link LibraryService#getProjects}.
-     */
-    void getProjects (AsyncCallback<Project[]> callback);
 }

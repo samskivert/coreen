@@ -143,3 +143,7 @@
   position: relative;
   top: 2px;
 }
+
+.subtypesRow {
+  border-top: 1px solid;
+}

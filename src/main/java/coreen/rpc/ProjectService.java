@@ -3,17 +3,11 @@
 
 package coreen.rpc;
 
+import com.google.gwt.user.client.rpc.IsSerializable;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-import coreen.model.CompUnit;
-import coreen.model.CompUnitDetail;
-import coreen.model.Def;
-import coreen.model.DefContent;
-import coreen.model.DefDetail;
-import coreen.model.Project;
-import coreen.model.TypeDetail;
-import coreen.model.TypeSummary;
+import coreen.model.*;
 
 /**
  * Provides project-related services.
@@ -23,6 +17,16 @@ public interface ProjectService extends RemoteService
 {
     /** The path at which this service's servlet is mapped. */
     public static final String ENTRY_POINT = "project";
+
+    /** Returned by {@link #getUses}. */
+    public static class UsesResult implements IsSerializable {
+        /** The path to the def in which these uses occur. */
+        public DefId[] path;
+        /** The sought for uses in question. */
+        public Use[] uses;
+        /** The lines on which the uses occur (corresponding by index to {@link #uses}). */
+        public String[] lines;
+    }
 
     /** Returns metadata for the specified project.
      * @throws ServiceException with e.no_such_project if project unknown. */
@@ -78,14 +82,26 @@ public interface ProjectService extends RemoteService
     DefContent getContent (long defId) throws ServiceException;
 
     /** Returns the supertypes of the specified definition. The 2D array is of the form:
-     * { ..., { grandparent, pextra1, pextra2 }, { parent, extra1, extra2 } }, where parent is the
-     * primary supertype of the def, and grandparent is the primary supertype of parent. The
-     * "extra" types are extra supertypes of the definition, and the "pextra" supertypes are extra
-     * supertypes of the parent. Note that it is possible for the grandparentmost primary type to
-     * be null, if the root has extra supertypes but no primary.
+     * {@code { ..., { grandparent }, { parent, pextra1, pextra2 }, { def, extra1, extra2 } }},
+     * where parent is the primary supertype of the def, and grandparent is the primary supertype
+     * of parent. The "extra" types are extra supertypes of the definition (interfaces), and the
+     * "pextra" supertypes are extra supertypes of the parent.
      * @throws ServiceException with e.no_such_def if the def is unknown. */
     Def[][] getSuperTypes (long defId) throws ServiceException;
 
+    /** Returns the subtypes of the specified definition. The 2D array is of the form:
+     * {@code { { def }, { sub1, sub2, ... }, { subsub1, subsub2, ... }, ... }}, where the second
+     * row contains all immediate subtypes of the def, the third row contains all subtypes of any
+     * types in the first row, and so forth. To avoid mayhem if one is foolish enough to request
+     * the subtypes of a root type or a very popular interface type, the results are limited to 100
+     * types.
+     */
+    Def[][] getSubTypes (long defId) throws ServiceException;
+
     /** Searches for defs in the specified project that match the specified query. */
     DefDetail[] search (long projectId, String query) throws ServiceException;
+
+    /** Locates and returns all uses of the specified def. If the def is a function, uses of
+     * supertypes of the function will be included as well. */
+    UsesResult[] findUses (long defId);
 }

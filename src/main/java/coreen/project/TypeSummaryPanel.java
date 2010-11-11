@@ -137,7 +137,7 @@ public class TypeSummaryPanel extends Composite
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (deets.kind == Kind.TYPE) {
             _outerHov.put(deets.id, Value.create(false));
-            header.add(new TypeLabel(deets, supers, _linker, _defmap) {
+            header.add(new TypeLabel(deets, supers, _defmap, _linker) {
                 protected Widget createDefLabel (DefDetail def) {
                     Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
                     Bindings.bindHovered(_outerHov.get(def.id), label);
@@ -306,8 +306,6 @@ public class TypeSummaryPanel extends Composite
     protected IdMap<Boolean> _expanded;
     protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
-
-    protected PopupGroup _popups = new PopupGroup(300);
 
     // these control the visibility of members defined by this supertype
     protected Map<Long, Value<Boolean>> _superViz = new HashMap<Long, Value<Boolean>>();

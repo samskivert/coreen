@@ -42,7 +42,7 @@ public class DefUtil
         case TYPE:
             return TypeSummaryPanel.create(deets, defmap, linker);
         default:
-            TypeLabel label = new TypeLabel(deets, linker, defmap) {
+            TypeLabel label = new TypeLabel(deets, defmap, linker) {
                 protected Widget createDefLabel (DefDetail def) {
                     List<Object> args = new ArrayList<Object>();
                     args.add(deets.unit.projectId);
