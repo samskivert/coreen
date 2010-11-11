@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.StringUtil;
 import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
@@ -40,22 +41,13 @@ public class DefUtil
         switch (deets.kind) {
         case MODULE:
         case TYPE:
-            return TypeSummaryPanel.create(deets, defmap, linker);
+            // this is a hack to handle Java anonymous classes; we should either have a CLOSURE
+            // type or somehow identify explicitly that a type is anonymous; we want to treat such
+            // types differently in the user interface
+            if (!StringUtil.isBlank(deets.name)) {
+                return TypeSummaryPanel.create(deets, defmap, linker);
+            } // else fall through and create source panel
         default:
-            TypeLabel label = new TypeLabel(deets, defmap, linker) {
-                protected Widget createDefLabel (DefDetail def) {
-                    List<Object> args = new ArrayList<Object>();
-                    args.add(deets.unit.projectId);
-                    args.add(ProjectPage.Detail.TYP);
-                    for (DefId tid : deets.path) {
-                        if (tid.kind != Kind.MODULE) {
-                            args.add(tid.id);
-                        }
-                    }
-                    args.add(deets.id);
-                    return Link.create(def.name, Page.PROJECT, args.toArray());
-                }
-            };
             TogglePanel contents = new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     return new SourcePanel(deets, defmap, linker);
@@ -65,7 +57,7 @@ public class DefUtil
                 }
             };
             contents.addStyleName(_rsrc.styles().belowTypeLabel());
-            return Widgets.newFlowPanel(label, contents);
+            return Widgets.newFlowPanel(new TypeLabel(deets, defmap, linker), contents);
         }
     }
 

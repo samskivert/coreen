@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
@@ -13,6 +16,8 @@ import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
+import coreen.client.Link;
+import coreen.client.Page;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
@@ -65,6 +70,7 @@ public class TypeLabel extends FlowPanel
         header.add(Widgets.newLabel("]"));
 
         Label supHier = Widgets.newLabel(" ↑ ");
+        supHier.setTitle("Show supertypes...");
         new PopupGroup().bindClick(supHier, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
                 return new SuperTypesPanel(deet, defmap, repos);
@@ -73,6 +79,7 @@ public class TypeLabel extends FlowPanel
         header.add(supHier);
 
         Label subs = Widgets.newLabel(" ↓ ");
+        subs.setTitle("Show subtypes...");
         new PopupGroup().showBelow().bindClick(subs, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
                 return new SubTypesPanel(deet, defmap, repos);
@@ -88,7 +95,17 @@ public class TypeLabel extends FlowPanel
 
     protected Widget createDefLabel (DefDetail def)
     {
-        return Widgets.newLabel(def.name, _rsrc.styles().Type());
+        List<Object> args = new ArrayList<Object>();
+        args.add(def.unit.projectId);
+        args.add(ProjectPage.Detail.TYP);
+        for (DefId tid : def.path) {
+            if (tid.kind != Kind.MODULE) {
+                args.add(tid.id);
+            }
+        }
+        args.add(def.id);
+        return Link.create(def.name, Page.PROJECT, args.toArray());
+        // return Widgets.newLabel(def.name, _rsrc.styles().Type());
     }
 
     protected Widget createSuperLabel (Def sup)

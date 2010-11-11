@@ -48,8 +48,7 @@ public abstract class TypeHierPanel extends FlowPanel
         if (def == null) {
             return Widgets.newInlineLabel("");
         }
-        String name = StringUtil.isBlank(def.name) ? "<anon>" : def.name;
-        Widget label = Widgets.newInlineLabel(def.name);
+        Widget label = Widgets.newInlineLabel(StringUtil.isBlank(def.name) ? "<anon>" : def.name);
         if (def.id != _def.id) {
             new UsePopup.Popper(def.id, label, UsePopup.TYPE, _defmap, true).setGroup(_pgroup);
         }

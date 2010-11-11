@@ -14,6 +14,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -139,9 +140,10 @@ public class TypeSummaryPanel extends Composite
             _outerHov.put(deets.id, Value.create(false));
             header.add(new TypeLabel(deets, supers, _defmap, _linker) {
                 protected Widget createDefLabel (DefDetail def) {
-                    Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
-                    Bindings.bindHovered(_outerHov.get(def.id), label);
-                    return label;
+                    Widget label = super.createDefLabel(def);
+                    FocusPanel focus = new FocusPanel(label);
+                    Bindings.bindHovered(_outerHov.get(def.id), focus);
+                    return focus;
                 }
                 protected Widget createSuperLabel (Def sup) {
                     Label label = Widgets.newLabel(sup.name);
