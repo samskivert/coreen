@@ -137,7 +137,9 @@ public class SourcePanel extends AbstractProjectPanel
             elems.add(new Elementer(def.getStart(), def.getStart()+def.getLength()) {
                 public Widget createElement (String text) {
                     Widget w = Widgets.newInlineLabel(text, DefUtil.getDefStyle(def.getKind()));
-                    _local.map(def.getId(), w);
+                    if (def.getId() > 0) { // TODO: nix when we add ids to SigDefs
+                        _local.map(def.getId(), w);
+                    }
                     return w;
                 }
             });
