@@ -72,7 +72,7 @@ public class TypeSummaryPanel extends Composite
     {
         TypeSummaryPanel panel = new TypeSummaryPanel(
             deets.id, defmap, IdMap.create(false), linker);
-        panel.initHeader(deets);
+        panel.initHeader(deets, new Def[0]);
         panel._loaded = true;
         return panel;
     }
@@ -120,7 +120,7 @@ public class TypeSummaryPanel extends Composite
             _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
                 public void onSuccess (TypeSummary sum) {
                     _contents.clear();
-                    initHeader(sum);
+                    initHeader(sum, sum.supers);
                     initBody(sum);
                     // make sure we fit in the view
                     DeferredCommand.addCommand(new Command() {
@@ -135,12 +135,18 @@ public class TypeSummaryPanel extends Composite
         }
     }
 
-    protected void initHeader (final DefDetail deets)
+    protected void initHeader (final DefDetail deets, Def[] supers)
     {
+        for (Def sup : supers) {
+            boolean showMembers = !sup.name.equals("Object"); // TODO
+            _superViz.put(sup.id, Value.create(showMembers));
+            _outerHov.put(sup.id, Value.create(false));
+        }
+
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
         if (deets.kind == Kind.TYPE) {
             _outerHov.put(deets.id, Value.create(false));
-            header.add(new TypeLabel(deets, _linker, _defmap) {
+            header.add(new TypeLabel(deets, supers, _linker, _defmap) {
                 protected Widget createDefLabel (DefDetail def) {
                     Label label = Widgets.newLabel(def.name, _rsrc.styles().Type());
                     Bindings.bindHovered(_outerHov.get(def.id), label);
@@ -197,12 +203,6 @@ public class TypeSummaryPanel extends Composite
 
     protected FlowPanel initBody (final TypeSummary sum)
     {
-        for (Def sup : sum.supers) {
-            boolean showMembers = !sup.name.equals("Object"); // TODO
-            _superViz.put(sup.id, Value.create(showMembers));
-            _outerHov.put(sup.id, Value.create(false));
-        }
-
         FlowPanel members = Widgets.newFlowPanel(_styles.members());
         int added = addMembers(members, true, sum.members);
         if (added < sum.members.length) {

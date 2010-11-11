@@ -17,7 +17,6 @@ import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Kind;
-import coreen.model.TypeSummary;
 import coreen.util.DefMap;
 
 /**
@@ -28,11 +27,6 @@ public class TypeLabel extends FlowPanel
     public TypeLabel (DefDetail deet, UsePopup.Linker linker, DefMap defmap)
     {
         this(deet, null, linker, defmap);
-    }
-
-    public TypeLabel (TypeSummary sum, UsePopup.Linker linker, DefMap defmap)
-    {
-        this(sum, sum.supers, linker, defmap);
     }
 
     public TypeLabel (DefDetail deet, Def[] supers, UsePopup.Linker linker, DefMap defmap)
