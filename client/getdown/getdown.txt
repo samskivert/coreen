@@ -25,7 +25,7 @@ resource = coreen-java-reader.jar
 resource = background.png
 
 # Parameters passed to the JVM
-# jvmarg = -Xmx512M
+jvmarg = -mx1024M
 jvmarg = -Dappdir=%APPDIR%
 
 # Main entry point
