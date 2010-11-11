@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -12,9 +15,14 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
+import coreen.client.Link;
+import coreen.client.Page;
 import coreen.icons.IconResources;
 import coreen.model.Def;
+import coreen.model.DefDetail;
+import coreen.model.DefId;
 import coreen.model.Kind;
 import coreen.ui.UIUtil;
 import coreen.util.DefMap;
@@ -24,6 +32,42 @@ import coreen.util.DefMap;
  */
 public class DefUtil
 {
+    /**
+     * Creates a summary view for the supplied def details.
+     */
+    public static Widget createDefSummary (final DefDetail deets, final DefMap defmap,
+                                           final UsePopup.Linker linker)
+    {
+        switch (deets.kind) {
+        case MODULE:
+        case TYPE:
+            return TypeSummaryPanel.create(deets, defmap, linker);
+        default:
+            TypeLabel label = new TypeLabel(deets, linker, defmap) {
+                protected Widget createDefLabel (DefDetail def) {
+                    List<Object> args = new ArrayList<Object>();
+                    args.add(deets.unit.projectId);
+                    args.add(ProjectPage.Detail.TYP);
+                    for (DefId tid : deets.path) {
+                        if (tid.kind != Kind.MODULE) {
+                            args.add(tid.id);
+                        }
+                    }
+                    args.add(deets.id);
+                    return Link.create(def.name, Page.PROJECT, args.toArray());
+                }
+            };
+            return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
+                protected Widget createCollapsed () {
+                    return new SourcePanel(deets, defmap, linker);
+                }
+                protected Widget createExpanded () {
+                    return new SourcePanel(deets.id, defmap, linker, false);
+                }
+            });
+        }
+    }
+
     /**
      * Adds a label for a def to a flow panel, along with all the appropriate accouterments.
      */

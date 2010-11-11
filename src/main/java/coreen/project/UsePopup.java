@@ -218,7 +218,7 @@ public class UsePopup extends PopupPanel
         _popper = popper;
 
         _link = linker.makeLink(deet); // we just use this for its history token...
-        setWidget(TypeSummaryPanel.create(deet, defmap, linker));
+        setWidget(DefUtil.createDefSummary(deet, defmap, linker));
     }
 
     @Override // from PopupPanel

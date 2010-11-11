@@ -26,13 +26,9 @@ import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
 import coreen.model.Kind;
+import coreen.project.DefUtil;
 import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
-import coreen.project.SigLabel;
-import coreen.project.SourcePanel;
-import coreen.project.TogglePanel;
-import coreen.project.TypeLabel;
-import coreen.project.TypeSummaryPanel;
 import coreen.project.UsePopup;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
@@ -97,34 +93,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        switch (result.kind) {
-        case MODULE:
-        case TYPE:
-            return TypeSummaryPanel.create(result, _defmap, UsePopup.TYPE);
-        default:
-            TypeLabel label = new TypeLabel(result, UsePopup.TYPE, _defmap) {
-                protected Widget createDefLabel (DefDetail def) {
-                    List<Object> args = new ArrayList<Object>();
-                    args.add(result.unit.projectId);
-                    args.add(ProjectPage.Detail.TYP);
-                    for (DefId tid : result.path) {
-                        if (tid.kind != Kind.MODULE) {
-                            args.add(tid.id);
-                        }
-                    }
-                    args.add(result.id);
-                    return Link.create(def.name, Page.PROJECT, args.toArray());
-                }
-            };
-            return Widgets.newFlowPanel(label, new TogglePanel(Value.create(false)) {
-                protected Widget createCollapsed () {
-                    return new SourcePanel(result, _defmap, UsePopup.TYPE);
-                }
-                protected Widget createExpanded () {
-                    return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
-                }
-            });
-        }
+        return DefUtil.createDefSummary(result, _defmap, UsePopup.TYPE);
     }
 
     protected interface Styles extends CssResource
