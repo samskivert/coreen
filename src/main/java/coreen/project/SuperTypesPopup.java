@@ -7,10 +7,10 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
 
 import coreen.client.ClientMessages;
@@ -70,18 +70,19 @@ public class SuperTypesPopup extends PopupPanel
             return;
         }
 
-        FluentTable table = new FluentTable();
+        FlowPanel contents = new FlowPanel();
         for (Def[] row : defs) {
-            FluentTable.Cell cell = table.add().setWidget(makeLabel(row[0], true));
+            FlowPanel rc = new FlowPanel();
+            rc.add(makeLabel(row[0], row[0].id != _def.id));
             if (row.length > 1) {
-                cell = cell.right().setText(" ⇙ ");
+                rc.add(Widgets.newInlineLabel(" ← "));
             }
             for (int ii = 1; ii < row.length; ii++) {
-                cell = cell.right().setWidget(makeLabel(row[ii], true));
+                rc.add(makeLabel(row[ii], true));
             }
+            contents.add(rc);
         }
-        table.add().setWidget(makeLabel(_def, false));
-        setWidget(table);
+        setWidget(contents);
         recenter();
     }
 
@@ -94,7 +95,7 @@ public class SuperTypesPopup extends PopupPanel
         if (popper) {
             new UsePopup.Popper(def.id, label, UsePopup.TYPE, _defmap, true);
         }
-        return Widgets.newFlowPanel(DefUtil.iconForDef(def), label);
+        return DefUtil.adornDef(def, label);
     }
 
     protected void recenter ()

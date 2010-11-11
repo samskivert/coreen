@@ -181,13 +181,13 @@ trait ProjectServlet {
       def addSuperTypes (d :Def) {
         val sdefs = _db.supers.left(d).toList
         if (!sdefs.isEmpty) {
-          val (pdef, darray) = sdefs.find(_.id == d.superId) match {
-            case None => (None, (null :: sdefs.map(Convert.toJava)) toArray)
-            case Some(pd) =>
-              (Some(pd), (pd :: sdefs.filterNot(_.id == pd.id)) map(Convert.toJava) toArray)
-          }
-          if (!pdef.isEmpty) addSuperTypes(pdef.get)
-          buf += darray
+          buf += (sdefs.find(_.id == d.superId) match {
+            case None => (d :: sdefs)
+            case Some(pd) => {
+              addSuperTypes(pd)
+              (d :: sdefs.filterNot(_.id == pd.id))
+            }
+          }).map(Convert.toJava).toArray
         }
       }
       addSuperTypes(d)
