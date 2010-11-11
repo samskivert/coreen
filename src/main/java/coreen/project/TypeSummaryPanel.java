@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -16,22 +14,15 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
-import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Functions;
 import com.threerings.gwt.util.Value;
 import com.threerings.gwt.util.WindowUtil;
 
-import coreen.icons.IconResources;
 import coreen.model.Def;
-import coreen.model.DefContent;
 import coreen.model.DefDetail;
 import coreen.model.DefInfo;
 import coreen.model.Kind;

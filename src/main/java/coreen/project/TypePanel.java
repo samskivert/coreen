@@ -8,7 +8,6 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import coreen.client.Args;
 import coreen.ui.UIUtil;
 import coreen.model.Project;
-import coreen.model.TypeSummary;
 
 /**
  * Displays a single type.

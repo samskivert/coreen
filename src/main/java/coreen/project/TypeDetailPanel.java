@@ -27,7 +27,6 @@ import com.threerings.gwt.util.WindowUtil;
 
 import coreen.icons.IconResources;
 import coreen.model.Def;
-import coreen.model.DefContent;
 import coreen.model.Kind;
 import coreen.model.TypeDetail;
 import coreen.rpc.ProjectService;

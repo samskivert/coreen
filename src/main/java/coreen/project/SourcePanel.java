@@ -21,12 +21,10 @@ import com.threerings.gwt.ui.Widgets;
 
 import coreen.client.Args;
 import coreen.model.CompUnitDetail;
-import coreen.model.Def;
 import coreen.model.DefContent;
 import coreen.model.DefInfo;
 import coreen.model.Project;
 import coreen.model.Span;
-import coreen.model.Use;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;

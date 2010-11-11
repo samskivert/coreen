@@ -4,7 +4,6 @@
 package coreen.project;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.ui.SimplePanel;
 
 import coreen.client.Args;
 import coreen.model.DefDetail;

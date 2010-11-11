@@ -3,12 +3,9 @@
 
 package coreen.rpc;
 
-import java.io.Serializable;
-
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.PendingProject;
 import coreen.model.Project;

@@ -3,8 +3,6 @@
 
 package coreen.model;
 
-import java.io.Serializable;
-
 /**
  * Extends {@link DefInfo} with info on compunit and ids of all enclosing defs.
  */

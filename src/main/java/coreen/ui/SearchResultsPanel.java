@@ -18,16 +18,10 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Value;
 
-import coreen.client.Link;
-import coreen.client.Page;
-import coreen.model.Def;
 import coreen.model.DefDetail;
-import coreen.model.DefId;
 import coreen.model.Kind;
 import coreen.project.DefUtil;
-import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
 import coreen.project.UsePopup;
 import coreen.util.DefMap;

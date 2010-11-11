@@ -22,7 +22,6 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.EnterClickAdapter;
-import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.DateUtil;
 import com.threerings.gwt.util.Value;
@@ -32,13 +31,10 @@ import coreen.client.Args;
 import coreen.client.ClientMessages;
 import coreen.client.Link;
 import coreen.client.Page;
-import coreen.model.DefDetail;
 import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
-import coreen.ui.SearchResultsPanel;
 import coreen.ui.UIUtil;
-import coreen.util.ClickCallback;
 import coreen.util.PanelCallback;
 
 /**
