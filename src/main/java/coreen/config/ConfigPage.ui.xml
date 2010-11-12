@@ -38,8 +38,10 @@
       <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">Coreen</g:Hyperlink> -
       Configuration
     </div>
+
     <div class="{_styles.subtitle}">Adjust settings:</div>
-    <g:SimplePanel ui:field="_contents"/>
+    <g:SimplePanel ui:field="_settings"/>
+
     <div class="{_styles.subtitle}" style="margin-top: 25px">Colophon:</div>
     <div style="margin-bottom: 15px">Coreen is a research product developed by
     <a href="http://samskivert.com/">Michael Bayne</a>, begun in August 2010.</div>

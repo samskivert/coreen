@@ -50,10 +50,10 @@ public class ConfigPage extends AbstractPage
     public void setArgs (final Args args)
     {
         // load up the metadata for this project
-        _contents.setWidget(Widgets.newLabel(_cmsgs.loading()));
-        _libsvc.getConfig(new PanelCallback<Map<String, String>>(_contents) {
+        _settings.setWidget(Widgets.newLabel(_cmsgs.loading()));
+        _libsvc.getConfig(new PanelCallback<Map<String, String>>(_settings) {
             public void onSuccess (Map<String, String> config) {
-                _contents.setWidget(createContents(config));
+                _settings.setWidget(createContents(config));
             }
         });
     }
@@ -92,7 +92,7 @@ public class ConfigPage extends AbstractPage
     {
     }
     protected @UiField Styles _styles;
-    protected @UiField SimplePanel _contents;
+    protected @UiField SimplePanel _settings;
 
     protected interface Binder extends UiBinder<Widget, ConfigPage> {}
     protected static final Binder _binder = GWT.create(Binder.class);
