@@ -223,7 +223,7 @@ trait ProjectServlet {
     // from interface ProjectService
     def findUses (defId :Long) :Array[ProjectService.UsesResult] = transaction {
       // load up ye metric tonne of metadata
-      val uses = _db.uses.where(u => u.referentId === defId).toSeq
+      val uses = _db.uses.where(u => u.referentId === defId).take(MaxUsesResults).toSeq
       val byEncl = uses.groupBy(_.ownerId)
       val defs = _db.defs.where(d => d.id in byEncl.keySet).toSeq
       val enclUnitIds = defs.map(_.unitId).toSet
@@ -353,5 +353,6 @@ trait ProjectServlet {
     }
 
     private val LineSeparator = System.getProperty("line.separator")
+    private val MaxUsesResults = 256 // we loves the binary
   }
 }
