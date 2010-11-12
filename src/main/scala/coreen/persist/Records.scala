@@ -10,6 +10,16 @@ import org.squeryl.dsl.CompositeKey2
 
 import coreen.model.DefInfo
 
+/** Used to maintain Coreen configuration. */
+case class Setting (
+  /** A configuration key. */
+  @Column(length=512) key :String,
+  /** A configuration value. */
+  @Column(length=1024) value :String
+) {
+  def this () = this("", "")
+}
+
 /** Contains project metadata. */
 case class Project (
   /** The (human readable) name of this project. */

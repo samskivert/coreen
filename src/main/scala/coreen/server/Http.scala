@@ -20,17 +20,12 @@ import coreen.rpc.{ConsoleService, LibraryService, ProjectService}
 
 /** Provides HTTP services. */
 trait Http {
-  this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
-
-  /** The hostname to which we bind and listen for HTTP connections. */
-  def getHttpHostname :String
-
-  /** The port to which we bind and listen for HTTP connections. */
-  def getHttpPort :Int
+  this :Log with Dirs with Console with Config
+            with LibraryServlet with ProjectServlet with ConsoleServlet =>
 
   /** Returns a URI that can be used to communicate with the Coreen server. */
   def getServerURL (path :String) =
-    new URL("http", getHttpHostname, getHttpPort, "/coreen/" + path)
+    new URL("http", _config.getHttpHostname, _config.getHttpPort, "/coreen/" + path)
 
   /** Customizes a Jetty server and handles HTTP requests. */
   class HttpServer extends Server {
@@ -38,8 +33,8 @@ trait Http {
       // use a custom connector that works around some jetty non-awesomeness
       setConnectors(Array(
         new SelectChannelConnector {
-          setHost(getHttpHostname)
-          setPort(getHttpPort)
+          setHost(_config.getHttpHostname)
+          setPort(_config.getHttpPort)
         }
       ))
 
@@ -122,11 +117,8 @@ trait Http {
 
 /** A concrete implementation of {@link Http}. */
 trait HttpComponent extends Component with Http {
-  this :Log with Dirs with Console with LibraryServlet with ProjectServlet with ConsoleServlet =>
-
-  def getHttpHostname = "localhost"
-  // if we're running in development mode, use a special port
-  def getHttpPort = if (_appdir.isDefined) 8080 else 8081
+  this :Log with Dirs with Console with Config
+            with LibraryServlet with ProjectServlet with ConsoleServlet =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer

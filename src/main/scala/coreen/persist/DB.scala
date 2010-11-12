@@ -26,7 +26,13 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 17;
+    val version = 18;
+
+    /** Provides access to the configuration table. */
+    val settings = table[Setting]
+    on(settings) { s => declare(
+      s.key is(indexed, unique)
+    )}
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -321,7 +327,10 @@ trait DBComponent extends Component with DB {
       writeVersion(_db.version)
 
     } else { // otherwise do migration(s)
-      // no migrations at the moment
+      migrate(18, "Adding settings table...",
+              List("create table Setting (key varchar(512) not null, " +
+                   "                       value varchar(1024) not null)",
+                   "create unique index idx_settings on Setting (key)"))
     }
   }
 
