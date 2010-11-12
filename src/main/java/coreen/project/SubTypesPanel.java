@@ -42,7 +42,7 @@ public class SubTypesPanel extends TypeHierPanel
         }
         add(makeLabel(defs[0][0])); // this is the type we asked about
         for (int ii = 1; ii < defs.length; ii++) {
-            FlowPanel rc = Widgets.newFlowPanel(_rsrc.styles().subtypesRow());
+            FlowPanel rc = Widgets.newFlowPanel(_rsrc.styles().borderTop());
             for (Def stype : defs[ii]) {
                 rc.add(makeLabel(stype));
                 rc.add(Widgets.newInlineLabel(" "));

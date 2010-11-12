@@ -28,6 +28,7 @@ public interface ProjectResources extends ClientBundle
         String code ();
         String use ();
         String doc ();
+        String borderTop ();
         String usePopup ();
         String actionable ();
         String selected ();
@@ -45,7 +46,6 @@ public interface ProjectResources extends ClientBundle
         String typeIconLL ();
         String defLabel ();
         String toggle ();
-        String subtypesRow ();
     }
 
     @Source("project.css")

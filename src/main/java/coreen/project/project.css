@@ -5,12 +5,6 @@
   text-decoration: none;
 }
 
-.code {
-  font-family: monospace;
-  font-size: 12pt;
-  white-space: pre;
-}
-
 .defModule {
   color: #9933FF;
 }
@@ -43,6 +37,12 @@
   color: #000000;
 }
 
+.code {
+  font-family: monospace;
+  font-size: 12pt;
+  white-space: pre;
+}
+
 .use {
   color: #B8860B;
 }
@@ -50,6 +50,7 @@
 .doc {
   color: #333333;
   border-top: 1px dashed;
+  max-width: 800px;
 }
 
 .doc p {
@@ -69,6 +70,10 @@
 
 .doc dd {
   margin: 0px;
+}
+
+.borderTop {
+  border-top: 1px dashed;
 }
 
 .usePopup {
@@ -150,8 +155,4 @@
   float: left;
   position: relative;
   top: 2px;
-}
-
-.subtypesRow {
-  border-top: 1px solid;
 }

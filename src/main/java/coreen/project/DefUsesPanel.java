@@ -5,8 +5,10 @@ package coreen.project;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.client.ClientMessages;
 import coreen.model.Def;
@@ -38,13 +40,28 @@ public class DefUsesPanel extends FlowPanel
 
     protected void init (ProjectService.UsesResult[] results)
     {
-        DefMap defmap = new DefMap();
-        for (ProjectService.UsesResult result : results) {
-            add(new TypeLabel(result, defmap, UsePopup.TYPE));
-            for (int ii = 0; ii < result.uses.length; ii++) {
-                // TODO: add line number
-                add(new SourcePanel(result.lines[ii], result.uses[ii], defmap, UsePopup.TYPE));
-            }
+        final DefMap defmap = new DefMap();
+        add(Widgets.newInlineLabel((results.length == 0) ? "No uses of " : "Uses of "));
+        DefUtil.addDef(this, _def, defmap, UsePopup.TYPE);
+        for (final ProjectService.UsesResult result : results) {
+            FlowPanel header = TypeLabel.makeTypeHeader(result, defmap, UsePopup.TYPE);
+            header.addStyleName(_rsrc.styles().borderTop());
+            add(header);
+            add(new TogglePanel(Value.create(false)) {
+                protected Widget createCollapsed () {
+                    FlowPanel bits = new FlowPanel();
+                    bits.add(new SourcePanel(result, defmap, UsePopup.TYPE));
+                    for (int ii = 0; ii < result.uses.length; ii++) {
+                        // TODO: add line number
+                        bits.add(new SourcePanel(result.lines[ii], result.uses[ii],
+                                                 defmap, UsePopup.TYPE));
+                    }
+                    return bits;
+                }
+                protected Widget createExpanded () {
+                    return new SourcePanel(result.id, defmap, UsePopup.TYPE, false);
+                }
+            });
         }
     }
 

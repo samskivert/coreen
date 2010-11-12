@@ -165,7 +165,7 @@ public class ModulesPanel extends SummaryPanel
     protected void addMembers (FlowPanel panel, final Def mod, Def[] members)
     {
         for (final Def def : members) {
-            Label label = DefUtil.addDef(panel, def, _linker, _defmap);
+            Label label = DefUtil.addDef(panel, def, _defmap, _linker);
             Bindings.bindStateStyle(_showing.get(def.id), _rsrc.styles().selected(), null, label);
             label.addStyleName(_rsrc.styles().actionable());
             label.addClickHandler(new ClickHandler() {

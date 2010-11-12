@@ -58,14 +58,14 @@ public class SourcePanel extends AbstractProjectPanel
     public SourcePanel (DefInfo def, DefMap defmap, UsePopup.Linker linker)
     {
         this(defmap);
-        init(def.sig, def.sigDefs, def.sigUses, -1L, linker);
+        init(def.sig, def.sigDefs, def.sigUses, -1L, linker, false);
         // TODO: add a def icon
     }
 
     public SourcePanel (String text, Span use, DefMap defmap, UsePopup.Linker linker)
     {
         this(defmap);
-        init(text, new Span[0], new Span[] { use }, -1L, linker);
+        init(text, new Span[0], new Span[] { use }, -1L, linker, true);
     }
 
     /**
@@ -76,7 +76,7 @@ public class SourcePanel extends AbstractProjectPanel
         _projsvc.getContent(defId, new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
                 Widget deficon = addDefIcon ? DefUtil.iconForDef(content) : null;
-                init(content.text, content.defs, content.uses, -1L, linker);
+                init(content.text, content.defs, content.uses, -1L, linker, false);
                 if (deficon != null) {
                     ((FlowPanel)_contents.getWidget()).insert(deficon, 0);
                 }
@@ -96,7 +96,7 @@ public class SourcePanel extends AbstractProjectPanel
         final long scrollToDefId = args.get(3, 0L);
         _projsvc.getCompUnit(args.get(2, 0L), new PanelCallback<CompUnitDetail>(_contents) {
             public void onSuccess (CompUnitDetail detail) {
-                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE);
+                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE, false);
             }
         });
     }
@@ -120,12 +120,12 @@ public class SourcePanel extends AbstractProjectPanel
     }
 
     protected void init (String text, Span[] defs, Span[] uses, long scrollToDefId,
-                         final UsePopup.Linker linker)
+                         final UsePopup.Linker linker, boolean disablePrefixTrim)
     {
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
         String first = expandTabs(lines.get(0));
-        int prefix = first.indexOf(first.trim());
+        int prefix = disablePrefixTrim ? 0 : first.indexOf(first.trim());
         if (prefix > 0) {
             // scan through another ten lines to ensure that the first line wasn't anomalous in
             // establishing our indentation prefix
@@ -179,7 +179,12 @@ public class SourcePanel extends AbstractProjectPanel
                 }
                 code.add(Widgets.newInlineLabel(trimPrefix(seg, prefix)));
             }
-            code.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
+            if (elem.endPos > text.length()) {
+                GWT.log("Invalid element " + elem.startPos + ":" + elem.endPos + " exceeds " +
+                        text.length());
+            } else {
+                code.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
+            }
             offset = elem.endPos;
         }
         if (offset < text.length()) {

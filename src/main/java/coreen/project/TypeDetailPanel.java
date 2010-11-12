@@ -192,7 +192,7 @@ public class TypeDetailPanel extends Composite
             members.add(deets);
 
             // add the def label and its various hangers-on
-            DefUtil.addDef(panel, def, _linker, _defmap).addClickHandler(new ClickHandler() {
+            DefUtil.addDef(panel, def, _defmap, _linker).addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (!deets.isVisible()) {
                         deets.setVisible(true);

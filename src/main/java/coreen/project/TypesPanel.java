@@ -75,7 +75,7 @@ public class TypesPanel extends SummaryPanel
                     right().setWidget(Widgets.newFlowPanel(types, details));
             }
 
-            Label label = DefUtil.addDef(types, def, UsePopup.BY_TYPES, _defmap);
+            Label label = DefUtil.addDef(types, def, _defmap, UsePopup.BY_TYPES);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_showing.get(def.id).get()) {

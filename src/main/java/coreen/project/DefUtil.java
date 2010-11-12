@@ -64,8 +64,8 @@ public class DefUtil
     /**
      * Adds a label for a def to a flow panel, along with all the appropriate accouterments.
      */
-    public static Label addDef (FlowPanel panel, final Def def, UsePopup.Linker linker,
-                                final DefMap defmap)
+    public static Label addDef (FlowPanel panel, final Def def, final DefMap defmap,
+                                UsePopup.Linker linker)
     {
         InlineLabel label = new InlineLabel(def.name);
         // new UsePopup.Popper(def.id, label, linker, defmap, false);

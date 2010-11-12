@@ -30,6 +30,30 @@ import coreen.util.DefMap;
  */
 public class TypeLabel extends FlowPanel
 {
+    public static FlowPanel makeTypeHeader (DefDetail deet, DefMap defmap, UsePopup.Linker linker)
+    {
+        Widget deflabel = Widgets.newLabel(deet.name, _rsrc.styles().Type());
+        new UsePopup.Popper(deet.id, deflabel, linker, defmap, true);
+        return makeTypeHeader(deet, deflabel, defmap, linker);
+    }
+
+    public static FlowPanel makeTypeHeader (DefDetail deet, Widget deflabel, DefMap defmap,
+                                            UsePopup.Linker linker)
+    {
+        FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
+        header.add(DefUtil.iconForDef(deet));
+        for (DefId encl : deet.path) {
+            Widget plabel = Widgets.newLabel(encl.name);
+            if (encl.kind != Kind.MODULE) {
+                new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
+            }
+            header.add(plabel);
+            header.add(Widgets.newLabel(".")); // TODO: customizable path separator?
+        }
+        header.add(deflabel);
+        return header;
+    }
+
     public TypeLabel (DefDetail deet, DefMap defmap, UsePopup.Linker linker)
     {
         this(deet, null, defmap, linker);
@@ -40,19 +64,8 @@ public class TypeLabel extends FlowPanel
     {
         addStyleName(_rsrc.styles().typeLabel());
 
-        // header
-        FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
+        FlowPanel header = makeTypeHeader(deet, createDefLabel(deet), defmap, linker);
         add(header);
-        header.add(DefUtil.iconForDef(deet));
-        for (DefId encl : deet.path) {
-            Widget plabel = Widgets.newLabel(encl.name);
-            if (encl.kind != Kind.MODULE) {
-                new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
-            }
-            header.add(plabel);
-            header.add(Widgets.newLabel(".")); // TODO: customizable path separator?
-        }
-        header.add(createDefLabel(deet));
 
         for (int ii = 0, ll = (supers == null) ? 0 : supers.length; ii < ll; ii++) {
             header.add(Widgets.newLabel((ii == 0) ? " ← " : ", "));
