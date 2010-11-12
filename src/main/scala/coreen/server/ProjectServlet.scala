@@ -7,12 +7,12 @@ import java.io.File
 import javax.servlet.http.HttpServletResponse
 
 import scala.io.Source
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, Map => MMap}
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef}
+import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef, Use => JUse}
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
 import coreen.model.{Kind, Flavor}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def}
@@ -156,7 +156,7 @@ trait ProjectServlet {
       val p = requireProject(dc.unit.projectId)
 
       // load up the source text for this definition
-      val text = loadSource(p, dc.unit)
+      val text = loadSource(p, dc.unit.path)
       val start = text.lastIndexOf(LineSeparator, d.bodyStart)+1
       dc.text = text.substring(start, d.bodyEnd)
 
@@ -222,15 +222,38 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def findUses (defId :Long) :Array[ProjectService.UsesResult] = transaction {
-      null
+      // load up ye metric tonne of metadata
+      val uses = _db.uses.where(u => u.referentId === defId).toSeq
+      val byEncl = uses.groupBy(_.ownerId)
+      val defs = _db.defs.where(d => d.id in byEncl.keySet).toSeq
+      val enclUnitIds = defs.map(_.unitId).toSet
+      val units = _db.compunits.where(cu => cu.id in enclUnitIds).map(cu => (cu.id, cu)).toMap
+      val unitProjIds = units.values.map(_.projectId).toSet
+      val projs = _db.projects.where(p => p.id in unitProjIds).map(p => (p.id, p)).toMap
+      val unitSrc = MMap[Long, String]()
+
+      // resolve the def detail information for all of our matches
+      val results = _db.resolveMatches(defs, () => new ProjectService.UsesResult)
+
+      // now fill in the enclosed uses and associated lines of source text
+      for (res <- results) {
+        res.uses = byEncl.getOrElse(res.id, Seq()).map(Convert.toJava).toArray
+        val src = unitSrc.getOrElseUpdate(res.unit.id, (
+          for (u <- units.get(res.unit.id); p <- projs.get(u.projectId))
+          yield loadSource(p, u.path)).headOption.getOrElse(
+            "<missing project " + res.unit.projectId + ">"))
+        val (lines, lineNos) = res.uses.map(extractUseLine(src)).unzip
+        res.lines = lines.toArray
+        res.lineNos = lineNos.toArray
+      }
+
+      results
     }
 
     override protected def doUnexpectedFailure (e :Throwable) {
       e.printStackTrace
       getThreadLocalResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage)
     }
-
-    private def isRoot (df :Def) = df.name == "Object" // TODO!
 
     private def requireProject (id :Long) = transaction {
       _db.projects.lookup(id) match {
@@ -273,7 +296,7 @@ trait ProjectServlet {
     private def loadCompUnitDetail (p :Project, unit :CompUnit) = {
       val detail = new CompUnitDetail
       detail.unit = Convert.toJava(unit)
-      detail.text = loadSource(p, detail.unit)
+      detail.text = loadSource(p, detail.unit.path)
       detail.defs = _db.defs.where(d => d.unitId === unit.id).toArray sortBy(_.defStart) map(
         Convert.toDefId)
       detail.uses = _db.uses.where(u => u.unitId === unit.id).toArray sortBy(_.useStart) map(
@@ -281,11 +304,30 @@ trait ProjectServlet {
       detail
     }
 
+    private def extractUseLine (src :String)(use :JUse) = {
+      if (use.start >= src.length) {
+        _log.warning("Invalid use? " + use + " (src length " + src.length + ")")
+        ("<invalid>", -1)
+      } else {
+        var pos = -1
+        var lpos = 0
+        var lineNo = 1
+        while (pos < use.start) {
+          lpos = pos+1
+          lineNo += 1
+          pos = src.indexOf("\n", lpos)
+          if (pos == -1) pos = src.length
+        }
+        use.start -= (lpos)
+        (src.substring(lpos, pos), lineNo)
+      }
+    }
+
     private def strToOpt (value :String) =
       if (value == null || value == "") None else Some(value)
 
-    private def loadSource (p :Project, unit :JCompUnit) =
-      Source.fromURI(new File(p.rootPath).toURI.resolve(unit.path)).mkString("")
+    private def loadSource (p :Project, path :String) =
+      Source.fromURI(new File(p.rootPath).toURI.resolve(path)).mkString("")
 
     // defines the sort ordering of def flavors
     private val FlavorPriority = List(Flavor.ENUM,

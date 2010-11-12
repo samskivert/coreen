@@ -69,7 +69,7 @@ public class TypeLabel extends FlowPanel
         header.add(src);
         header.add(Widgets.newLabel("]"));
 
-        Label supHier = Widgets.newLabel(" ↑ ");
+        Label supHier = Widgets.newLabel(" ▲ ");
         supHier.setTitle("Show supertypes...");
         new PopupGroup().bindClick(supHier, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
@@ -78,7 +78,7 @@ public class TypeLabel extends FlowPanel
         });
         header.add(supHier);
 
-        Label subs = Widgets.newLabel(" ↓ ");
+        Label subs = Widgets.newLabel(" ▼ ");
         subs.setTitle("Show subtypes...");
         new PopupGroup().showBelow().bindClick(subs, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
@@ -86,6 +86,15 @@ public class TypeLabel extends FlowPanel
             }
         });
         header.add(subs);
+
+        Label uses = Widgets.newLabel(" ▶ ");
+        uses.setTitle("Show uses...");
+        new PopupGroup().showBelow().bindClick(uses, new PopupGroup.Thunk() {
+            public Widget create (PopupGroup.Positioner repos) {
+                return new DefUsesPanel(deet, repos);
+            }
+        });
+        header.add(uses);
         // END TODO
 
         if (deet.doc != null) {

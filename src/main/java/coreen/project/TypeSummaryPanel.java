@@ -117,7 +117,6 @@ public class TypeSummaryPanel extends Composite
                     // make sure we fit in the view
                     DeferredCommand.addCommand(new Command() {
                         public void execute () {
-                            GWT.log("Scrolling!");
                             WindowFX.scrollToPos(
                                 WindowUtil.getScrollIntoView(TypeSummaryPanel.this));
                         }

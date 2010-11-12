@@ -62,6 +62,12 @@ public class SourcePanel extends AbstractProjectPanel
         // TODO: add a def icon
     }
 
+    public SourcePanel (String text, Span use, DefMap defmap, UsePopup.Linker linker)
+    {
+        this(defmap);
+        init(text, new Span[0], new Span[] { use }, -1L, linker);
+    }
+
     /**
      * Loads the source for the specified def into this panel.
      */

@@ -204,18 +204,17 @@ trait DB {
       val unitMap = from(_db.compunits)(cu =>
         where(cu.id in matches.map(_.unitId).toSet) select(cu.id, cu.projectId)) toMap
 
-      def mapped (defs :Seq[Def]) = defs map(m => (m.id -> m)) toMap
       def parents (defs :Seq[Def]) =  defs map(_.outerId) filter(0.!=) toSet
       def resolveDefs (have :Map[Long, Def], want :Set[Long]) :Map[Long, Def] = {
         val need = want -- have.keySet
         if (need.isEmpty) have
         else {
           val more = _db.defs.where(d => d.id in need).toArray
-          resolveDefs(have ++ mapped(more), parents(more))
+          resolveDefs(have ++ mapDefs(more), parents(more))
         }
       }
 
-      val matchMap = mapped(matches)
+      val matchMap = mapDefs(matches)
       val defMap = resolveDefs(matchMap, parents(matches))
       def mkPath (d :Option[Def], path :List[DefId]) :Array[DefId] = d match {
         case None => path.toArray
@@ -240,6 +239,9 @@ trait DB {
         r
       } toArray
     }
+
+    /** Turns the supplied sequence of defs into a mapping from id to def. */
+    def mapDefs (defs :Traversable[Def]) = defs map(m => (m.id -> m)) toMap
 
     /** Creates the JDBC URL to our database. */
     def dbUrl (root :File) =

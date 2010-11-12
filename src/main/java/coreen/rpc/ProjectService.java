@@ -19,13 +19,13 @@ public interface ProjectService extends RemoteService
     public static final String ENTRY_POINT = "project";
 
     /** Returned by {@link #getUses}. */
-    public static class UsesResult implements IsSerializable {
-        /** The path to the def in which these uses occur. */
-        public DefId[] path;
-        /** The sought for uses in question. */
+    public static class UsesResult extends DefDetail {
+        /** The sought for uses. */
         public Use[] uses;
         /** The lines on which the uses occur (corresponding by index to {@link #uses}). */
         public String[] lines;
+        /** The line numbers on which the uses occur (corresponding by index to {@link #uses}). */
+        public int[] lineNos;
     }
 
     /** Returns metadata for the specified project.
