@@ -26,7 +26,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 16;
+    val version = 17;
 
     /** Provides access to the projects table. */
     val projects = table[Project]
@@ -315,57 +315,13 @@ trait DBComponent extends Component with DB {
     }
 
     // if we have no version string, we need to initialize the database
-    if (overs < 1) {
+    if (overs < 17) {
       _log.info("Initializing schema. [vers=" + _db.version + "]")
       transaction { _db.reinitSchema }
       writeVersion(_db.version)
 
     } else { // otherwise do migration(s)
-      migrate(2, "Adding column Def.flavor...",
-              List("alter table Def add column flavor INTEGER(10) not null default 0"))
-      migrate(3, "Adding column Def.flags...",
-              List("alter table Def add column flags INTEGER(10) not null default 0"))
-      migrate(4, "Changing Def.parentId to Def.outerId...",
-              List("alter table Def alter column parentId rename to outerId"))
-      migrate(5, "Adding Super table...",
-              List("create table Super (defId bigint not null, superId bigint not null)",
-                   "create index superIdx on Super (superId)",
-                   "alter table Super add constraint SuperFK1 foreign key (defId)" +
-                   "  references Def(id) on delete cascade",
-                   "alter table Super add constraint SuperFK2 foreign key (superId)" +
-                   "  references Def(id) on delete cascade",
-                   "alter table Super add constraint SuperCPK unique(defId,superId)"))
-      migrate(6, "Adding column Def.superId...",
-              List("alter table Def add column superId BIGINT not null default 0"))
-      migrate(7, "Adding column Project.readerOpts...",
-              List("alter table Project add column readerOpts varchar(123)"))
-      migrate(8, "Changing Def.flavor to Def.kind...",
-              List("alter table Def alter column flavor rename to kind"))
-      migrate(9, "Changing Def.kind to Def.flavor and Def.typ to Def.kind...",
-              List("alter table Def alter column kind rename to flavor",
-                   "alter table Def alter column typ rename to kind"))
-      migrate(10, "Dropping Def.sig...",
-              List("alter table Def drop column sig"))
-      migrate(11, "Adding Use.kind...",
-              List("alter table Use add column kind INTEGER(10) not null default 0"))
-      migrate(12, "Creating Sig...",
-              List("create table Sig (data binary not null, " +
-                   "text varchar(1024) not null, defId bigint not null)",
-                   "create index idxSigDefId on Sig (defId)",
-                   "alter table Sig add constraint SigFK1 foreign key (defId)" +
-                   " references Def(id) on delete cascade"))
-      migrate(13, "Changing Sig.data to Sig.uses...",
-              List("alter table Sig alter column data rename to uses"))
-      migrate(14, "Adding column Sig.defs...",
-              List("alter table Sig add column defs binary not null default ''"))
-      migrate(15, "Dropping Def.doc...",
-              List("alter table Def drop column doc"))
-      migrate(16, "Creating Doc...",
-              List("create table Doc (uses binary not null, " +
-                   "text varchar(32768) not null, defId bigint not null)",
-                   "create index idxDocDefId on Doc (defId)",
-                   "alter table Doc add constraint DocFK1 foreign key (defId)" +
-                   " references Def(id) on delete cascade"))
+      // no migrations at the moment
     }
   }
 
