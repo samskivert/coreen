@@ -50,7 +50,7 @@ public class DefUsesPanel extends FlowPanel
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     FlowPanel bits = new FlowPanel();
-                    bits.add(new SourcePanel(result, defmap, UsePopup.TYPE));
+                    // bits.add(new SourcePanel(result, defmap, UsePopup.TYPE));
                     for (int ii = 0; ii < result.uses.length; ii++) {
                         // TODO: add line number
                         bits.add(new SourcePanel(result.lines[ii], result.uses[ii],
