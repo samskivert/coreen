@@ -68,7 +68,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     val srcroot = mainJavaSourcePath.asFile.getPath
     val destdir = mainCompilePath.asFile
     (mainJavaSourcePath ** "*.java").get map(_.asFile) foreach { src =>
-      if (!src.getPath.matches(".*coreen/(model|rpc).*")) {
+      if (!src.getPath.matches(".*coreen/(model|rpc|persist).*")) {
         val cldir = new File(destdir, src.getParent.substring(srcroot.length))
         FileUtilities.clean(
           (Path.fromFile(cldir) ** src.getName.replaceAll(".java", "*")).get, true, log)
@@ -106,7 +106,8 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     "-keep class coreen.** { *; }",
     "-keep class com.google.gwt.** { *; }",
     "-keep class org.squeryl.** { *; }",
-    "-keep class net.sf.cglib.** { *; }"
+    "-keep class net.sf.cglib.** { *; }",
+    "-keep class org.neo4j.kernel.** { *; }"
   )
 
   // copies the necessary files into place for our Getdown client
