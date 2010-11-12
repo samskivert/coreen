@@ -40,7 +40,7 @@ Add the following elisp to your .emacs file:
     (defun coreen-lookup-symbol (class)
       "Looks the symbol under the point up in Coreen."
       (interactive (list (read-from-minibuffer "Class: " (thing-at-point 'symbol))))
-      (browse-url (concat "http://localhost:8080/coreen/#LIBRARY~search~" class))
+      (browse-url (concat "http://localhost:8192/coreen/#LIBRARY~search~" class))
       )
     ;; this maps lookup in Java mode to Ctrl-c Ctrl-j, adjust and extrapolate as desired
     (defun coreen-java-mode-hook ()
@@ -53,7 +53,7 @@ Add the following elisp to your .emacs file:
 Add the following to your .vimrc file:
 
     " this allows you to enter :c to look up the symbol under the point
-    command -nargs=1 -complete=tag Coreen !xdg-open http://localhost:8080/coreen/\#LIBRARY~search~<args>
+    command -nargs=1 -complete=tag Coreen !xdg-open http://localhost:8192/coreen/\#LIBRARY~search~<args>
     nmap <leader>c :Coreen <cword><CR>
 
 On a Mac you'll want to change `xdg-open` to `open` and on Windows you'll want
