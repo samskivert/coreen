@@ -3,6 +3,7 @@
 
 package coreen.rpc;
 
+import java.util.Map;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import coreen.model.PendingProject;
 import coreen.model.Project;
@@ -31,4 +32,14 @@ public interface LibraryServiceAsync
      * The async version of {@link LibraryService#importProject}.
      */
     void importProject (String source, AsyncCallback<PendingProject> callback);
+
+    /**
+     * The async version of {@link LibraryService#getConfig}.
+     */
+    void getConfig (AsyncCallback<Map<String, String>> callback);
+
+    /**
+     * The async version of {@link LibraryService#updateConfig}.
+     */
+    void updateConfig (String key, String value, AsyncCallback<Void> callback);
 }

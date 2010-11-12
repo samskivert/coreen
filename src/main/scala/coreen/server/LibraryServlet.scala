@@ -15,13 +15,13 @@ import coreen.rpc.{LibraryService, ServiceException}
 
 /** Provides the library servlet. */
 trait LibraryServlet {
-  this :DB with Importer =>
+  this :DB with Config with Importer =>
 
   /** The implementation of library services provided by {@link LibraryService}. */
   class LibraryServlet extends RemoteServiceServlet with LibraryService
   {
     // from interface LibraryService
-    def getProjects :Array[JProject] = {
+    def getProjects = {
       transaction {
         from(_db.projects) { p =>
           select(p) orderBy(p.name)
@@ -30,10 +30,10 @@ trait LibraryServlet {
     }
 
     // from interface LibraryService
-    def getPendingProjects :Array[PendingProject] = _importer.getPendingProjects
+    def getPendingProjects = _importer.getPendingProjects
 
     // from interface LibraryService
-    def importProject (source :String) :PendingProject = _importer.importProject(source)
+    def importProject (source :String) = _importer.importProject(source)
 
     // from interface LibraryService
     def search (query :String) :Array[LibraryService.SearchResult] = transaction {
@@ -45,6 +45,20 @@ trait LibraryServlet {
       val projMap = from(_db.projects)(p => where(p.id in projIds) select(p.id, p.name)) toMap;
       res foreach { r => r.project = projMap(r.unit.projectId) }
       res
+    }
+
+    // from interface LibraryService
+    def getConfig () = {
+      val result = new java.util.HashMap[String,String]
+      for ((k, v) <- _config.getSnapshot) {
+        result.put(k, v)
+      }
+      result
+    }
+
+    // from interface LibraryService
+    def updateConfig (key :String, value :String) {
+      _config.update(key, value)
     }
 
     override protected def doUnexpectedFailure (e :Throwable) {

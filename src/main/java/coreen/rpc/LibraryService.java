@@ -3,6 +3,8 @@
 
 package coreen.rpc;
 
+import java.util.Map;
+
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
@@ -40,4 +42,10 @@ public interface LibraryService extends RemoteService
 
     /** Searches for defs that match the specified query. */
     SearchResult[] search (String query) throws ServiceException;
+
+    /** Returns a snapshot of the server configuration. */
+    Map<String, String> getConfig () throws ServiceException;
+
+    /** Updates a particular configuration setting. */
+    void updateConfig (String key, String value) throws ServiceException;
 }

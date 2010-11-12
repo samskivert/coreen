@@ -47,6 +47,9 @@ trait Config
 
     /** Updates a configuration value. */
     def update (key :String, value :String) :Unit
+
+    /** Returns a snapshot of all configuration settings. */
+    def getSnapshot :Map[String, String]
   }
 
   /** Provides server configuration. */
@@ -69,6 +72,7 @@ trait ConfigComponent extends Component with Config {
         }
       }
     }
+    def getSnapshot = Map() ++ _cdata
   }
 
   override protected def initComponents {
