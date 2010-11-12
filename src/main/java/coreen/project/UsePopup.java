@@ -25,6 +25,7 @@ import coreen.model.Kind;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.PopupGroup;
+import coreen.ui.UIResources;
 import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
@@ -212,7 +213,7 @@ public class UsePopup extends PopupPanel
     protected UsePopup (Popper popper, DefDetail deet, Linker linker, DefMap defmap)
     {
         super(true);
-        setStyleName(_rsrc.styles().usePopup());
+        setStyleName(_ursrc.styles().popup());
         _popper = popper;
 
         _link = linker.makeLink(deet); // we just use this for its history token...
@@ -231,4 +232,5 @@ public class UsePopup extends PopupPanel
 
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    protected static final UIResources _ursrc = GWT.create(UIResources.class);
 }

@@ -29,7 +29,6 @@ public interface ProjectResources extends ClientBundle
         String use ();
         String doc ();
         String borderTop ();
-        String usePopup ();
         String actionable ();
         String selected ();
         String openDef ();

@@ -57,7 +57,4 @@ public class UIUtil
     }
 
     protected static final UIResources _rsrc = GWT.create(UIResources.class);
-    static {
-        _rsrc.styles().ensureInjected();
-    }
 }

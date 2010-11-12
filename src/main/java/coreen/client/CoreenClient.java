@@ -4,11 +4,14 @@
 package coreen.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.RootPanel;
 
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+
+import coreen.ui.UIResources;
 
 /**
  * The main entry point for the Coreen GWT client.
@@ -42,4 +45,9 @@ public class CoreenClient implements EntryPoint, ValueChangeHandler<String>
     protected AbstractPage _page;
 
     protected static final String CLIENT_DIV = "client";
+
+    protected static final UIResources _uirsrc = GWT.create(UIResources.class);
+    static {
+        _uirsrc.styles().ensureInjected();
+    }
 }
