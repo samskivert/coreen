@@ -45,7 +45,7 @@
     <div class="{_styles.subtitle}" style="margin-top: 25px">Colophon:</div>
     <div style="margin-bottom: 15px">Coreen is a research product developed by
     <a href="http://samskivert.com/">Michael Bayne</a>, begun in August 2010.</div>
-    <div>It is made of giants:</div>
+    <div>It is built on the shoulders of giants:</div>
     <ul><li><a href="http://scala-lang.org/">Scala</a></li>
         <li><a href="http://code.google.com/webtoolkit/">Google Web Toolkit</a></li>
         <li><a href="http://squeryl.org/">Squeryl</a></li>
