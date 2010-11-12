@@ -237,7 +237,7 @@ trait ProjectServlet {
 
       // now fill in the enclosed uses and associated lines of source text
       for (res <- results) {
-        res.uses = byEncl.getOrElse(res.id, Seq()).map(Convert.toJava).toArray
+        res.uses = byEncl.getOrElse(res.id, Seq()).sortBy(_.useStart).map(Convert.toJava).toArray
         val src = unitSrc.getOrElseUpdate(res.unit.id, (
           for (u <- units.get(res.unit.id); p <- projs.get(u.projectId))
           yield loadSource(p, u.path)).headOption.getOrElse(
