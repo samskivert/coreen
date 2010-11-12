@@ -148,8 +148,7 @@ public class TypeSummaryPanel extends Composite
                     Label label = Widgets.newLabel(sup.name);
                     // toggle visibility when this label is clicked
                     Value<Boolean> viz = _superViz.get(sup.id);
-                    label.addClickHandler(Bindings.makeToggler(viz));
-                    label.addStyleName(_rsrc.styles().actionable());
+                    UIUtil.makeActionable(label, Bindings.makeToggler(viz));
                     Bindings.bindStateStyle(viz, null, _styles.superUp(), label);
                     // also note hoveredness when hovered
                     final Value<Boolean> hov = _outerHov.get(sup.id);

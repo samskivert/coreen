@@ -76,11 +76,6 @@
   border-top: 1px dashed;
 }
 
-.actionable {
-  cursor: pointer;
-  text-decoration: none;
-}
-
 .selected {
   font-weight: bold;
 }

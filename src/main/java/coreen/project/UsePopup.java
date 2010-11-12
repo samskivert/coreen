@@ -102,7 +102,7 @@ public class UsePopup extends PopupPanel
 
             if (addClick && target instanceof HasClickHandlers) {
                 ((HasClickHandlers)target).addClickHandler(this);
-                target.addStyleName(_rsrc.styles().actionable());
+                UIUtil.makeActionable(target);
             }
             if (target instanceof HasMouseOverHandlers) {
                 ((HasMouseOverHandlers)target).addMouseOverHandler(this);

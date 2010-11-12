@@ -26,6 +26,7 @@ import coreen.client.ClientMessages;
 import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
+import coreen.ui.UIUtil;
 import coreen.util.PanelCallback;
 import coreen.util.Shower;
 
@@ -167,8 +168,7 @@ public class ModulesPanel extends SummaryPanel
         for (final Def def : members) {
             Label label = DefUtil.addDef(panel, def, _defmap, _linker);
             Bindings.bindStateStyle(_showing.get(def.id), _rsrc.styles().selected(), null, label);
-            label.addStyleName(_rsrc.styles().actionable());
-            label.addClickHandler(new ClickHandler() {
+            UIUtil.makeActionable(label, new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_showing.get(def.id).get()) {
                         Link.go(Page.PROJECT, _projectId,

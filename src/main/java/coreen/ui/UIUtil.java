@@ -4,6 +4,9 @@
 package coreen.ui;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -54,6 +57,26 @@ public class UIUtil
     public static Widget newClear ()
     {
         return Widgets.newLabel(" ", _rsrc.styles().clear());
+    }
+
+    /**
+     * Adds a click handler and marks the supplied widget with the `actionable` style to let the
+     * user know it can be clicked or hovered.
+     */
+    public static <T extends Widget & HasClickHandlers> HandlerRegistration makeActionable (
+        T widget, ClickHandler handler)
+    {
+        makeActionable(widget);
+        return widget.addClickHandler(handler);
+    }
+
+    /**
+     * Marks the supplied widget with the `actionable` style to let the user know it can be clicked
+     * or hovered.
+     */
+    public static void makeActionable (Widget widget)
+    {
+        widget.addStyleName(_rsrc.styles().actionable());
     }
 
     protected static final UIResources _rsrc = GWT.create(UIResources.class);
