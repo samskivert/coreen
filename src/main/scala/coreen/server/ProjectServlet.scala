@@ -91,7 +91,7 @@ trait ProjectServlet {
         where(cu.projectId === projectId and cu.id === d.unitId and
               (d.kind === Decode.kindToCode(Kind.TYPE)))
         select(d)
-      ).toArray sorted(ByFlavorName) map(Convert.toJava)
+      ).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
