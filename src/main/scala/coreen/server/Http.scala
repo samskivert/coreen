@@ -130,6 +130,8 @@ trait HttpComponent extends Component with Http {
 
   override protected def startComponents {
     super.startComponents
+    // TODO: if we fail to bind to our port, pop up an AWT dialog allowing the port to be changed
+    // (and writing that back to the configuration probably)
     httpServer.start
   }
 
