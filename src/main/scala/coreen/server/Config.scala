@@ -7,7 +7,7 @@ import scala.collection.mutable.{Map => MMap}
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.config.ConfigKeys
+import coreen.config.ConfigData
 import coreen.persist.{DB, Setting}
 
 /** Provides server configuration. */
@@ -18,11 +18,11 @@ trait Config
   /** Defines the actions that can be taken on server configuration. */
   trait ConfigService {
     /** Returns the hostname to which the server should bind its HTTP socket. */
-    def getHttpHostname = get(ConfigKeys.HTTP_HOSTNAME, "localhost")
+    def getHttpHostname = get(ConfigData.HTTP_HOSTNAME, ConfigData.DEFAULT_HTTP_HOSTNAME)
 
     /** Returns the port to which the server should bind its HTTP socket. */
-    def getHttpPort = if (_appdir.isDefined) get(ConfigKeys.HTTP_PORT, 8192) else 8081
-    // if we're running in development mode, use 8081
+    def getHttpPort = if (!_appdir.isDefined) 8081 // if we're running in dev mode, use 8081
+                      else get(ConfigData.HTTP_PORT, ConfigData.DEFAULT_HTTP_PORT)
 
     /** Returns a boolean configuration value. */
     def get (key :String, defval :Boolean) :Boolean =

@@ -22,12 +22,13 @@
   <g:HTMLPanel>
     <table class="{style.header}" cellpadding="0" cellspacing="0">
     <tr><td valign="top" class="{style.title}">
-          <g:Hyperlink targetHistoryToken=""><ui:msg>Projects</ui:msg></g:Hyperlink></td>
+          <g:Hyperlink targetHistoryToken=""><ui:msg>Coreen</ui:msg></g:Hyperlink></td>
         <td><ui:msg>Search:</ui:msg>
             <g:TextBox ui:field="_search" visibleLength="30"/>
             <g:Button ui:field="_go"><ui:msg>Go</ui:msg></g:Button></td>
         <td align="right" valign="bottom">
-          <a href="#IMPORT"><ui:msg>Import...</ui:msg></a>
+          <a href="#IMPORT"><ui:msg>Import</ui:msg></a> &nbsp;&nbsp;&nbsp;&nbsp;
+          <a href="#CONFIG"><ui:msg>Config</ui:msg></a>
         </td>
     </tr>
     </table>

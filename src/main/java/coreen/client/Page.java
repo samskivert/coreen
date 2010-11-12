@@ -3,7 +3,7 @@
 
 package coreen.client;
 
-import coreen.client.ColophonPage;
+import coreen.config.ConfigPage;
 import coreen.config.EditProjectPage;
 import coreen.library.ImportPage;
 import coreen.library.LibraryPage;
@@ -34,9 +34,9 @@ public enum Page
         public AbstractPage create () { return new EditProjectPage(); }
     },
 
-    /** Displays information about Coreen. */
-    COLOPHON {
-        public AbstractPage create () { return new ColophonPage(); }
+    /** Displays configuration and colophon information about Coreen. */
+    CONFIG {
+        public AbstractPage create () { return new ConfigPage(); }
     };
 
     /** Create a blank instance of the page represented by this enum. */

@@ -29,7 +29,7 @@
 
   <g:HTMLPanel>
     <div class="{_styles.section} {_styles.title}">
-      <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">Projects</g:Hyperlink> - 
+      <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">Coreen</g:Hyperlink> - 
       <g:Hyperlink ui:field="_name" styleName="{_styles.inline}"/>
     </div>
     <g:SimplePanel ui:field="_contents"/>

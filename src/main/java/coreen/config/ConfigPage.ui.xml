@@ -1,0 +1,69 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style type="coreen.config.ConfigPage.Styles" field="_styles">
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    .header {
+      width: 100%;
+      border-bottom: 1px solid;
+      padding-bottom: 5px;
+      margin-bottom: 5px;
+    }
+    .title {
+      font-family: Trebuchet MS, serif;
+      font-size: 24px;
+    }
+    .subtitle {
+      width: 100%;
+      font-weight: bold;
+      border-bottom: 1px dashed;
+      margin-bottom: 5px;
+    }
+    .inline {
+      display: inline;
+    }
+    .tip {
+      font-size: small;
+      max-width: 450px;
+    }
+  </ui:style>
+
+  <g:HTMLPanel>
+    <div class="{_styles.header} {_styles.title}">
+      <g:Hyperlink targetHistoryToken="" styleName="{_styles.inline}">Coreen</g:Hyperlink> -
+      Configuration
+    </div>
+    <div class="{_styles.subtitle}">Adjust settings:</div>
+    <g:SimplePanel ui:field="_contents"/>
+    <div class="{_styles.subtitle}" style="margin-top: 25px">Colophon:</div>
+    <div style="margin-bottom: 15px">Coreen is a research product developed by
+    <a href="http://samskivert.com/">Michael Bayne</a>, begun in August 2010.</div>
+    <div>It is made of giants:</div>
+    <ul><li><a href="http://scala-lang.org/">Scala</a></li>
+        <li><a href="http://code.google.com/webtoolkit/">Google Web Toolkit</a></li>
+        <li><a href="http://squeryl.org/">Squeryl</a></li>
+        <li><a href="http://www.h2database.com/">H2</a></li>
+        <li><a href="http://neo4j.org/">Neo4j</a></li>
+        <li><a href="http://jetty.codehaus.org/jetty/">Jetty</a></li>
+        <li><a href="http://www.scalatest.org/">ScalaTest</a></li>
+    </ul>
+    <div>It is built with the hands of giants:</div>
+    <ul><li><a href="http://www.gnu.org/software/emacs/">Emacs</a></li>
+        <li><a href="http://www.ubuntu.com/">Ubuntu</a>
+            <a href="http://www.debian.org/">Debian</a>
+            <a href="http://www.gnu.org/">GNU</a>
+            <a href="http://www.linux.org/">Linux</a></li>
+        <li><a href="http://git-scm.com/">Git</a> and <a href="https://github.com/">Github</a></li>
+    </ul>
+
+    <div>Many thanks to the <a href="http://www.threerings.net/">Dread
+         Ringers</a> for early testing and feedback, and
+         to <a href="http://www.cs.washington.edu/homes/mernst/">Mike Ernst</a>
+         for fruitful discussion and advice.</div>
+  </g:HTMLPanel>
+</ui:UiBinder>
