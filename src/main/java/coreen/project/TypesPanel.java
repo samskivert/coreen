@@ -76,6 +76,7 @@ public class TypesPanel extends SummaryPanel
             }
 
             Label label = DefUtil.addDef(types, def, _defmap, UsePopup.BY_TYPES);
+            Bindings.bindStateStyle(_showing.get(def.id), _rsrc.styles().selected(), null, label);
             label.addClickHandler(new ClickHandler() {
                 public void onClick (ClickEvent event) {
                     if (_showing.get(def.id).get()) {
@@ -96,10 +97,15 @@ public class TypesPanel extends SummaryPanel
             });
 
             // create and add the detail panel (hidden) and bind its visibility to a value
-            TypeDetailPanel deets = new TypeDetailPanel(
-                def.id, _defmap, _showing, UsePopup.BY_TYPES);
-            Bindings.bindVisible(_showing.get(def.id), deets);
-            details.add(deets);
+            final FlowPanel parent = details;
+            Bindings.bindVisible(_showing.get(def.id), new Bindings.Thunk() {
+                public Widget createWidget () {
+                    TypeDetailPanel deets = new TypeDetailPanel(
+                        def.id, _defmap, _showing, UsePopup.BY_TYPES);
+                    parent.add(deets);
+                    return deets;
+                }
+            });
         }
         return table;
     }
@@ -114,4 +120,5 @@ public class TypesPanel extends SummaryPanel
 
     protected interface Binder extends UiBinder<Widget, TypesPanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
+    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }
