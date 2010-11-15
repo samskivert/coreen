@@ -28,6 +28,11 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   // depends for our auto-updating client
   val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"
 
+  // pass some useful arguments to javac
+  override def javaCompileOptions = List(
+    JavaCompileOption("-Xlint:all"), JavaCompileOption("-Xlint:-serial")
+  ) ++ super.javaCompileOptions
+
   // specify our main class
   override def mainClass = Some("coreen.server.Coreen")
 
