@@ -290,7 +290,7 @@ public class TypeSummaryPanel extends Composite
                     return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
                 } else {
                     return new SourcePanel(member.id, _defmap, _linker, true) {
-                        protected void didInit (FlowPanel contents) {
+                        protected void didInit () {
                             GWT.log("Scrolling to expanded member " + member.id);
                             WindowFX.scrollToPos(WindowUtil.getScrollIntoView(this));
                         }

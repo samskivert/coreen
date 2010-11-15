@@ -25,7 +25,6 @@ public interface ProjectResources extends ClientBundle
         String useTerm ();
         String useUnknown ();
 
-        String code ();
         String use ();
         String doc ();
         String borderTop ();

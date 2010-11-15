@@ -9,6 +9,7 @@ import java.util.List;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -18,6 +19,7 @@ import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
@@ -71,13 +73,11 @@ public class TypeLabel extends FlowPanel
             addSupers(supers, defmap, linker);
         }
 
-        // TODO: tidy this up
         Hyperlink src = UsePopup.SOURCE.makeLink(deet);
-        src.setText("src");
-        src.addStyleName(_rsrc.styles().code());
-        _header.add(Widgets.newLabel(" ["));
+        src.setHTML("<img border=0 title=\"View source\" src=\"" +
+                    new Image(_icons.view_code()).getUrl() + "\"/>");
+        _header.add(Widgets.newInlineLabel(" "));
         _header.add(src);
-        _header.add(Widgets.newLabel("]"));
 
         Label supHier = Widgets.newLabel(" ▲ ");
         supHier.setTitle("Show supertypes...");
@@ -105,7 +105,6 @@ public class TypeLabel extends FlowPanel
             }
         });
         _header.add(uses);
-        // END TODO
 
         if (deet.doc != null) {
             add(new DocLabel(deet.doc));
@@ -145,4 +144,5 @@ public class TypeLabel extends FlowPanel
     protected FlowPanel _header;
     protected int _supersIdx;
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    protected static final IconResources _icons = GWT.create(IconResources.class);
 }

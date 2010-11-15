@@ -37,11 +37,19 @@ public class UsePopup extends PopupPanel
 {
     public static class Linker {
         public Hyperlink makeLink (DefDetail deet) {
+            return Link.create(deet.sig, Page.PROJECT, prepArgs(deet));
+        }
+
+        public ClickHandler makeClick (DefDetail deet) {
+            return Link.createHandler(Page.PROJECT, prepArgs(deet));
+        }
+
+        protected Object[] prepArgs (DefDetail deet) {
             List<Object> args = new ArrayList<Object>();
             args.add(deet.unit.projectId);
             args.add(_detail);
             addDetailArgs(deet, args);
-            return Link.create(deet.sig, Page.PROJECT, args.toArray());
+            return args.toArray();
         }
 
         protected void addDetailArgs (DefDetail deet, List<Object> args) {

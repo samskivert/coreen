@@ -29,7 +29,7 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
     public static ToggleButton makeToggleButton (Value<Boolean> model)
     {
         ToggleButton toggle = new ToggleButton(
-            new Image(_icons.codeClosed()), new Image(_icons.codeOpen()));
+            new Image(_icons.closed_toggle()), new Image(_icons.open_toggle()));
         toggle.addStyleName(_rsrc.styles().toggle());
         Bindings.bindDown(model, toggle);
         return toggle;

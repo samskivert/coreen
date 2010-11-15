@@ -131,8 +131,8 @@ public class TypeDetailPanel extends Composite
         // show source first if we last expanded a source *and* this is not type
         final Value<Boolean> showSource = Value.create(
             _sourceFirst && (detail.kind != Kind.TYPE));
-        ToggleButton toggle = new ToggleButton(new Image(_icons.codeClosed()),
-                                               new Image(_icons.codeOpen()), new ClickHandler() {
+        ToggleButton toggle = new ToggleButton(new Image(_icons.closed_toggle()),
+                                               new Image(_icons.open_toggle()), new ClickHandler() {
             public void onClick (ClickEvent event) {
                 showSource.update(!showSource.get());
                 _sourceFirst = showSource.get();
@@ -142,20 +142,7 @@ public class TypeDetailPanel extends Composite
         toggle.addStyleName(_styles.toggle());
         contents.add(toggle);
 
-        Label sig = new Label(detail.sig) {
-            /* ctor */ {
-                addStyleName(_rsrc.styles().code());
-            }
-
-            @Override public void setVisible (boolean visible) {
-                super.setVisible(visible);
-                if (visible) {
-                    _defmap.map(detail.id, this);
-                } else {
-                    _defmap.unmap(detail.id, this);
-                }
-            }
-        };
+        SourcePanel sig = new SourcePanel(detail, _defmap, UsePopup.BY_TYPES);
         Bindings.bindVisible(showSource.map(Functions.NOT), sig);
         contents.add(sig);
 
@@ -167,7 +154,7 @@ public class TypeDetailPanel extends Composite
                     loadDef(detail.id, _linker, false);
                 }
             }
-            @Override protected void didInit (FlowPanel contents) {
+            @Override protected void didInit () {
                 recenterPanel();
             }
             protected boolean _loaded;

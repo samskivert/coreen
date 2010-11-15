@@ -10,6 +10,7 @@ import java.util.List;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
@@ -44,7 +45,8 @@ public class SourcePanel extends AbstractProjectPanel
     public SourcePanel (DefMap defmap)
     {
         initWidget(_binder.createAndBindUi(this));
-        _contents.setWidget(Widgets.newLabel("Loading..."));
+        addStyleName(_styles.codeMode());
+        _contents.add(Widgets.newLabel("Loading..."));
         _defmap = defmap;
         _local = new DefMap(_defmap);
     }
@@ -59,7 +61,7 @@ public class SourcePanel extends AbstractProjectPanel
     {
         this(defmap);
         init(def.sig, def.sigDefs, def.sigUses, -1L, linker, false);
-        // TODO: add a def icon
+        removeStyleName(_styles.codeMode()); // no white-space: pre
     }
 
     public SourcePanel (String text, Span use, DefMap defmap, UsePopup.Linker linker)
@@ -78,7 +80,7 @@ public class SourcePanel extends AbstractProjectPanel
                 Widget deficon = addDefIcon ? DefUtil.iconForDef(content) : null;
                 init(content.text, content.defs, content.uses, -1L, linker, false);
                 if (deficon != null) {
-                    ((FlowPanel)_contents.getWidget()).insert(deficon, 0);
+                    _contents.insert(deficon, 0);
                 }
             }
         });
@@ -122,6 +124,8 @@ public class SourcePanel extends AbstractProjectPanel
     protected void init (String text, Span[] defs, Span[] uses, long scrollToDefId,
                          final UsePopup.Linker linker, boolean disablePrefixTrim)
     {
+        _contents.clear();
+
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
         String first = expandTabs(lines.get(0));
@@ -163,7 +167,6 @@ public class SourcePanel extends AbstractProjectPanel
         Collections.sort(elems);
 
         int offset = 0;
-        FlowPanel code = Widgets.newFlowPanel(_rsrc.styles().code());
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
@@ -177,19 +180,19 @@ public class SourcePanel extends AbstractProjectPanel
                 if (offset == 0 && prefix > 0) {
                     seg = seg.substring(prefix);
                 }
-                code.add(Widgets.newInlineLabel(trimPrefix(seg, prefix)));
+                _contents.add(Widgets.newInlineLabel(trimPrefix(seg, prefix)));
             }
             if (elem.endPos > text.length()) {
                 GWT.log("Invalid element " + elem.startPos + ":" + elem.endPos + " exceeds " +
                         text.length());
             } else {
-                code.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
+                _contents.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
             }
             offset = elem.endPos;
         }
         if (offset < text.length()) {
-            code.add(Widgets.newInlineLabel(
-                         trimPrefix(expandTabs(text.substring(offset)), prefix)));
+            _contents.add(Widgets.newInlineLabel(
+                              trimPrefix(expandTabs(text.substring(offset)), prefix)));
         }
 
         final Widget scrollTo = _local.get(scrollToDefId);
@@ -202,12 +205,11 @@ public class SourcePanel extends AbstractProjectPanel
             });
         }
 
-        _contents.setWidget(code);
         _local.addTo(_defmap);
-        didInit(code);
+        didInit();
     }
 
-    protected void didInit (FlowPanel contents)
+    protected void didInit ()
     {
     }
 
@@ -254,7 +256,11 @@ public class SourcePanel extends AbstractProjectPanel
 
     protected DefMap _defmap, _local;
 
-    protected @UiField SimplePanel _contents;
+    protected interface Styles extends CssResource {
+        String codeMode ();
+    }
+    protected @UiField Styles _styles;
+    protected @UiField FlowPanel _contents;
 
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);

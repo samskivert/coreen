@@ -12,8 +12,9 @@ import com.google.gwt.resources.client.ImageResource;
 public interface IconResources extends ClientBundle
 {
     // basic ui stuff
-    ImageResource codeOpen ();
-    ImageResource codeClosed ();
+    ImageResource open_toggle ();
+    ImageResource closed_toggle ();
+    ImageResource view_code ();
 
     // member annotation icons
     ImageResource abstract_co ();

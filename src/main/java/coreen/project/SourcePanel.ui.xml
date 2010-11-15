@@ -4,10 +4,15 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style>
+  <ui:style type="coreen.project.SourcePanel.Styles" field="_styles">
     .contents {
+      font-family: monospace;
+      font-size: 12pt;
+    }
+    .codeMode {
+      white-space: pre;
     }
   </ui:style>
 
-  <g:SimplePanel styleName="{style.contents}" ui:field="_contents"/>
+  <g:FlowPanel styleName="{_styles.contents}" ui:field="_contents"/>
 </ui:UiBinder>
