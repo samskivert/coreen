@@ -67,6 +67,10 @@
   font-style: italic;
 }
 
+.doc dt:first-child {
+  clear: none;
+}
+
 .doc dd {
   margin: 0px 0px 0px 100px;
 }
@@ -143,4 +147,5 @@
   float: left;
   position: relative;
   top: 2px;
+  cursor: pointer;
 }
