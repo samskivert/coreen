@@ -101,6 +101,10 @@
   display: inline;
 }
 
+.typeLabelHeader div a {
+  text-decoration: none;
+}
+
 .typeLabel .Type {
   font-weight: bold;
 }

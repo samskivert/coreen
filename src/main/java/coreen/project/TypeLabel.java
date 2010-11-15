@@ -45,12 +45,15 @@ public class TypeLabel extends FlowPanel
         FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
         header.add(DefUtil.iconForDef(deet));
         for (DefId encl : deet.path) {
-            Widget plabel = Widgets.newLabel(encl.name);
+            ProjectPage.Detail detail = (encl.kind == Kind.MODULE) ?
+                ProjectPage.Detail.MDS : ProjectPage.Detail.TYP;
+            Widget plabel = Link.create(
+                encl.name, Page.PROJECT, deet.unit.projectId, detail, encl.id);
             if (encl.kind != Kind.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
             header.add(plabel);
-            header.add(Widgets.newLabel(".")); // TODO: customizable path separator?
+            header.add(Widgets.newLabel(" ")); // TODO: customizable path separator?
         }
         header.add(deflabel);
         return header;
