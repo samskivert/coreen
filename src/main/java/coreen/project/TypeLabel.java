@@ -64,23 +64,20 @@ public class TypeLabel extends FlowPanel
     {
         addStyleName(_rsrc.styles().typeLabel());
 
-        FlowPanel header = makeTypeHeader(deet, createDefLabel(deet), defmap, linker);
-        add(header);
+        add(_header = makeTypeHeader(deet, createDefLabel(deet), defmap, linker));
 
-        for (int ii = 0, ll = (supers == null) ? 0 : supers.length; ii < ll; ii++) {
-            header.add(Widgets.newLabel((ii == 0) ? " ← " : ", "));
-            Widget suplab = createSuperLabel(supers[ii]);
-            new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
-            header.add(suplab);
+        _supersIdx = _header.getWidgetCount();
+        if (supers != null) {
+            addSupers(supers, defmap, linker);
         }
 
         // TODO: tidy this up
         Hyperlink src = UsePopup.SOURCE.makeLink(deet);
         src.setText("src");
         src.addStyleName(_rsrc.styles().code());
-        header.add(Widgets.newLabel(" ["));
-        header.add(src);
-        header.add(Widgets.newLabel("]"));
+        _header.add(Widgets.newLabel(" ["));
+        _header.add(src);
+        _header.add(Widgets.newLabel("]"));
 
         Label supHier = Widgets.newLabel(" ▲ ");
         supHier.setTitle("Show supertypes...");
@@ -89,7 +86,7 @@ public class TypeLabel extends FlowPanel
                 return new SuperTypesPanel(deet, defmap, repos);
             }
         });
-        header.add(supHier);
+        _header.add(supHier);
 
         Label subs = Widgets.newLabel(" ▼ ");
         subs.setTitle("Show subtypes...");
@@ -98,7 +95,7 @@ public class TypeLabel extends FlowPanel
                 return new SubTypesPanel(deet, defmap, repos);
             }
         });
-        header.add(subs);
+        _header.add(subs);
 
         Label uses = Widgets.newLabel(" ▶ ");
         uses.setTitle("Show uses...");
@@ -107,11 +104,21 @@ public class TypeLabel extends FlowPanel
                 return new DefUsesPanel(deet, repos);
             }
         });
-        header.add(uses);
+        _header.add(uses);
         // END TODO
 
         if (deet.doc != null) {
             add(new DocLabel(deet.doc));
+        }
+    }
+
+    public void addSupers (Def[] supers, DefMap defmap, UsePopup.Linker linker)
+    {
+        for (int ii = 0, ll = supers.length; ii < ll; ii++) {
+            _header.insert(Widgets.newLabel((ii == 0) ? " ← " : ", "), _supersIdx++);
+            Widget suplab = createSuperLabel(supers[ii]);
+            new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
+            _header.insert(suplab, _supersIdx++);
         }
     }
 
@@ -135,5 +142,7 @@ public class TypeLabel extends FlowPanel
         return Widgets.newLabel(sup.name);
     }
 
+    protected FlowPanel _header;
+    protected int _supersIdx;
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

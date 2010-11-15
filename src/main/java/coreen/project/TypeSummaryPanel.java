@@ -128,16 +128,13 @@ public class TypeSummaryPanel extends Composite
 
     protected void initHeader (final DefDetail deets, Def[] supers)
     {
-        for (Def sup : supers) {
-            boolean showMembers = !sup.name.equals("Object"); // TODO
-            _superViz.put(sup.id, Value.create(showMembers));
-            _outerHov.put(sup.id, Value.create(false));
-        }
+        configSupers(supers);
 
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
+        final TypeLabel tlabel;
         if (deets.kind == Kind.TYPE) {
             _outerHov.put(deets.id, Value.create(false));
-            header.add(new TypeLabel(deets, supers, _defmap, _linker) {
+            header.add(tlabel = new TypeLabel(deets, supers, _defmap, _linker) {
                 protected Widget createDefLabel (DefDetail def) {
                     Widget label = super.createDefLabel(def);
                     FocusPanel focus = new FocusPanel(label);
@@ -156,8 +153,11 @@ public class TypeSummaryPanel extends Composite
                     return label;
                 }
             });
-        } else if (deets.doc != null) {
-            header.add(new DocLabel(deets.doc));
+        } else {
+            tlabel = null;
+            if (deets.doc != null) {
+                header.add(new DocLabel(deets.doc));
+            }
         }
 
         final FlowPanel body = Widgets.newFlowPanel(_rsrc.styles().belowTypeLabel());
@@ -184,7 +184,10 @@ public class TypeSummaryPanel extends Composite
                         public void onSuccess (TypeSummary sum) {
                             body.remove(loading);
                             Bindings.bindVisible(expanded, initBody(sum));
-                            // TODO: add super types to TypeLabel
+                            configSupers(sum.supers);
+                            if (tlabel != null) {
+                                tlabel.addSupers(sum.supers, _defmap, _linker);
+                            }
                         }
                     });
                 }
@@ -193,6 +196,15 @@ public class TypeSummaryPanel extends Composite
 
         _contents.add(header);
         _contents.add(body);
+    }
+
+    protected void configSupers (Def[] supers)
+    {
+        for (Def sup : supers) {
+            boolean showMembers = !sup.name.equals("Object"); // TODO
+            _superViz.put(sup.id, Value.create(showMembers));
+            _outerHov.put(sup.id, Value.create(false));
+        }
     }
 
     protected FlowPanel initBody (final TypeSummary sum)
