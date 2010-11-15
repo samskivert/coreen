@@ -80,7 +80,7 @@ public class ConfigPage extends AbstractPage
                 return true;
             }
             protected boolean gotResult (Void result) {
-                Popups.infoNear("Updated.", getPopupNear());
+                Popups.infoBelow("Updated.", getPopupNear());
                 config.put(setting.key, _value); // not presently necessary, but good form
                 return true;
             }
@@ -128,11 +128,11 @@ public class ConfigPage extends AbstractPage
         }
         public CheckBox createEditor (Boolean current) {
             CheckBox box = new CheckBox();
-            box.setChecked(current);
+            box.setValue(current);
             return box;
         }
         public Boolean getValue (CheckBox editor) {
-            return editor.isChecked();
+            return editor.getValue();
         }
         public Boolean parseValue (String value) {
             return Boolean.parseBoolean(value);

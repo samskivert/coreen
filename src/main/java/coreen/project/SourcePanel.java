@@ -9,10 +9,10 @@ import java.util.List;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -195,7 +195,7 @@ public class SourcePanel extends AbstractProjectPanel
         final Widget scrollTo = _local.get(scrollToDefId);
         if (scrollTo != null) {
             GWT.log("Scrolling to " + scrollToDefId);
-            DeferredCommand.addCommand(new Command() {
+            Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
                 public void execute () {
                     WindowFX.scrollTo(scrollTo);
                 }

@@ -144,7 +144,7 @@ public class PopupGroup
             if (_showAbove) {
                 UIUtil.showAbove(_popup, _target);
             } else {
-                Popups.showNear(_popup, _target);
+                Popups.showBelow(_popup, _target);
             }
         }
 

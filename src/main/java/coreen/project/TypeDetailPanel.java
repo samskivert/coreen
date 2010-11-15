@@ -4,13 +4,13 @@
 package coreen.project;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -93,7 +93,7 @@ public class TypeDetailPanel extends Composite
                 public void onSuccess (TypeDetail deets) {
                     init(deets);
                     // make sure we fit in the view
-                    DeferredCommand.addCommand(new Command() {
+                    Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
                         public void execute () {
                             recenterPanel();
                         }

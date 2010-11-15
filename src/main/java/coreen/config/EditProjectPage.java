@@ -117,7 +117,7 @@ public class EditProjectPage extends AbstractPage
             protected boolean gotResult (Void result) {
                 _proj.update(nproj.get());
                 nproj.update(copy(_proj.get()));
-                Popups.infoNear(_msgs.projectUpdated(), getPopupNear());
+                Popups.infoBelow(_msgs.projectUpdated(), getPopupNear());
                 return true;
             }
         };
@@ -132,7 +132,7 @@ public class EditProjectPage extends AbstractPage
                 return true;
             }
             protected boolean gotResult (Void result) {
-                Popups.infoNear(_msgs.projectDeleted(), getPopupNear());
+                Popups.infoBelow(_msgs.projectDeleted(), getPopupNear());
                 Link.go(Page.LIBRARY);
                 return false;
             }
@@ -150,7 +150,7 @@ public class EditProjectPage extends AbstractPage
                 return true;
             }
             protected boolean gotResult (Void result) {
-                Popups.infoNear(_msgs.rebuildInitiated(), getPopupNear());
+                Popups.infoBelow(_msgs.rebuildInitiated(), getPopupNear());
                 pcon.reset();
                 return true;
             }

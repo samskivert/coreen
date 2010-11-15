@@ -38,16 +38,14 @@ public class DefUtil
     public static Widget createDefSummary (final DefDetail deets, final DefMap defmap,
                                            final UsePopup.Linker linker)
     {
-        switch (deets.kind) {
-        case MODULE:
-        case TYPE:
+        if ((deets.kind == Kind.MODULE || deets.kind == Kind.TYPE) &&
             // this is a hack to handle Java anonymous classes; we should either have a CLOSURE
             // type or somehow identify explicitly that a type is anonymous; we want to treat such
             // types differently in the user interface
-            if (!StringUtil.isBlank(deets.name)) {
-                return TypeSummaryPanel.create(deets, defmap, linker);
-            } // else fall through and create source panel
-        default:
+            !StringUtil.isBlank(deets.name)) {
+            return TypeSummaryPanel.create(deets, defmap, linker);
+
+        } else {
             TogglePanel contents = new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     return new SourcePanel(deets, defmap, linker);

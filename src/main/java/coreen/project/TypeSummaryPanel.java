@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DeferredCommand;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
@@ -115,7 +115,7 @@ public class TypeSummaryPanel extends Composite
                     initHeader(sum, sum.supers);
                     initBody(sum);
                     // make sure we fit in the view
-                    DeferredCommand.addCommand(new Command() {
+                    Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
                         public void execute () {
                             WindowFX.scrollToPos(
                                 WindowUtil.getScrollIntoView(TypeSummaryPanel.this));
