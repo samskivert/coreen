@@ -25,6 +25,7 @@ import coreen.client.AbstractPage;
 import coreen.client.Args;
 import coreen.client.ClientMessages;
 import coreen.client.Page;
+import coreen.model.ConfigData;
 import coreen.rpc.LibraryService;
 import coreen.rpc.LibraryServiceAsync;
 import coreen.util.ClickCallback;

@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package coreen.config;
+package coreen.model;
 
 /**
  * Defines various configuration data.

@@ -7,7 +7,7 @@ import scala.collection.mutable.{Map => MMap}
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.config.ConfigData
+import coreen.model.ConfigData
 import coreen.persist.{DB, Setting}
 
 /** Provides server configuration. */
