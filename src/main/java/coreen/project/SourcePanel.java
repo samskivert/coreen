@@ -10,22 +10,33 @@ import java.util.List;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JsArrayString;
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.MenuBar;
+import com.google.gwt.user.client.ui.MenuItem;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
+import com.threerings.gwt.util.Value;
 
 import coreen.client.Args;
 import coreen.model.CompUnitDetail;
 import coreen.model.DefContent;
+import coreen.model.DefId;
 import coreen.model.DefInfo;
 import coreen.model.Project;
 import coreen.model.Span;
+import coreen.ui.PopupGroup;
+import coreen.ui.UIResources;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
@@ -145,13 +156,27 @@ public class SourcePanel extends AbstractProjectPanel
         List<Elementer> elems = new ArrayList<Elementer>();
         for (final Span def : defs) {
             elems.add(new Elementer(def.getStart(), def.getStart()+def.getLength()) {
-                public Widget createElement (String text) {
-                    Widget w = Widgets.newInlineLabel(text, DefUtil.getDefStyle(def.getKind()));
+                public Widget createElement (final String text) {
+                    final Label deflbl = Widgets.newInlineLabel(
+                        text, DefUtil.getDefStyle(def.getKind()));
                     if (def.getId() > 0) { // TODO: nix when we add ids to SigDefs
-                        w.setTitle(""+def.getId());
-                        _local.map(def.getId(), w);
+                        deflbl.addClickHandler(new ClickHandler() {
+                            public void onClick (ClickEvent event) {
+                                if (_menu == null) {
+                                    DefId did = new DefId();
+                                    did.id = def.getId();
+                                    did.name = text;
+                                    did.kind = def.getKind();
+                                    _menu = createDefPopup(did, deflbl);
+                                }
+                                Popups.show(_menu, Popups.Position.ABOVE, deflbl);
+                            }
+                            protected PopupPanel _menu;
+                        });
+                        deflbl.setTitle(""+def.getId());
+                        _local.map(def.getId(), deflbl);
                     }
-                    return w;
+                    return deflbl;
                 }
             });
         }
@@ -213,6 +238,57 @@ public class SourcePanel extends AbstractProjectPanel
     {
     }
 
+    protected PopupPanel createDefPopup (final DefId def, final Widget deflbl)
+    {
+        final PopupPanel mpopup = createPopupPanel();
+        MenuBar menu = new MenuBar(true);
+        menu.addItem(new MenuItem("Show uses...", new Command() {
+            public void execute () {
+                mpopup.hide();
+                PopupPanel spopup = createPopupPanel();
+                PopupGroup.Positioner repos = createPositioner(spopup, deflbl);
+                spopup.setWidget(new DefUsesPanel(def, _defmap, repos));
+                repos.sizeDidChange();
+            }
+        }));
+        menu.addItem(new MenuItem("Show supers...", new Command() {
+            public void execute () {
+                mpopup.hide();
+                PopupPanel spopup = createPopupPanel();
+                PopupGroup.Positioner repos = createPositioner(spopup, deflbl);
+                spopup.setWidget(new SuperTypesPanel(def.getId(), _defmap, repos));
+                repos.sizeDidChange();
+            }
+        }));
+        menu.addItem(new MenuItem("Show subs...", new Command() {
+            public void execute () {
+                mpopup.hide();
+                PopupPanel spopup = createPopupPanel();
+                PopupGroup.Positioner repos = createPositioner(spopup, deflbl);
+                spopup.setWidget(new SubTypesPanel(def.getId(), _defmap, repos));
+                repos.sizeDidChange();
+            }
+        }));
+        mpopup.setWidget(menu);
+        return mpopup;
+    }
+
+    protected PopupPanel createPopupPanel ()
+    {
+        PopupPanel panel = new PopupPanel(true);
+        panel.addStyleName(_uirsrc.styles().popup());
+        return panel;
+    }
+
+    protected PopupGroup.Positioner createPositioner (final PopupPanel popup, final Widget target)
+    {
+        return new PopupGroup.Positioner() {
+            public void sizeDidChange () {
+                Popups.show(popup, Popups.Position.ABOVE, target);
+            }
+        };
+    }
+
     protected abstract class Elementer implements Comparable<Elementer> {
         public final int startPos;
         public final int endPos;
@@ -265,4 +341,5 @@ public class SourcePanel extends AbstractProjectPanel
     protected interface Binder extends UiBinder<Widget, SourcePanel> {}
     protected static final Binder _binder = GWT.create(Binder.class);
     protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    protected static final UIResources _uirsrc = GWT.create(UIResources.class);
 }

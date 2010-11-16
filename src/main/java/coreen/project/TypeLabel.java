@@ -86,7 +86,7 @@ public class TypeLabel extends FlowPanel
         supHier.setTitle("Show supertypes...");
         new PopupGroup().bindClick(supHier, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
-                return new SuperTypesPanel(deet, defmap, repos);
+                return new SuperTypesPanel(deet.id, defmap, repos);
             }
         });
         _header.add(supHier);
@@ -95,7 +95,7 @@ public class TypeLabel extends FlowPanel
         subs.setTitle("Show subtypes...");
         new PopupGroup().showBelow().bindClick(subs, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
-                return new SubTypesPanel(deet, defmap, repos);
+                return new SubTypesPanel(deet.id, defmap, repos);
             }
         });
         _header.add(subs);
@@ -104,7 +104,7 @@ public class TypeLabel extends FlowPanel
         uses.setTitle("Show uses...");
         new PopupGroup().showBelow().bindClick(uses, new PopupGroup.Thunk() {
             public Widget create (PopupGroup.Positioner repos) {
-                return new DefUsesPanel(deet, repos);
+                return new DefUsesPanel(deet, defmap, repos);
             }
         });
         _header.add(uses);

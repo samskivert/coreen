@@ -1,6 +1,7 @@
 /** Shared project styles. */
 
-@external .actionLabel {
+@external .actionLabel;
+.actionLabel {
   /* override gwt-utils default */
   text-decoration: none;
 }

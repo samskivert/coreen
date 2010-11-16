@@ -27,3 +27,11 @@
   cursor: pointer;
   text-decoration: none;
 }
+
+@external .gwt-MenuBar, .gwt-MenuItem, .gwt-MenuItem-selected;
+.gwt-MenuBar .gwt-MenuItem {
+  cursor: pointer;
+}
+.gwt-MenuBar .gwt-MenuItem-selected {
+  background: #E0EDFE;
+}

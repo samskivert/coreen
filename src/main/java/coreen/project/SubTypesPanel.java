@@ -23,14 +23,14 @@ import coreen.util.PanelCallback;
  */
 public class SubTypesPanel extends TypeHierPanel
 {
-    public SubTypesPanel (Def def, DefMap defmap, PopupGroup.Positioner repos)
+    public SubTypesPanel (long defId, DefMap defmap, PopupGroup.Positioner repos)
     {
-        super(def, defmap, repos);
+        super(defId, defmap, repos);
     }
 
     protected void fetchTypes (AsyncCallback<Def[][]> callback)
     {
-        _projsvc.getSubTypes(_def.id, callback);
+        _projsvc.getSubTypes(_defId, callback);
     }
 
     protected void init (Def[][] defs)

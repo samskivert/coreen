@@ -11,10 +11,10 @@ import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
 import coreen.client.ClientMessages;
-import coreen.model.Def;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.PopupGroup;
+import coreen.model.DefId;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
 
@@ -23,11 +23,11 @@ import coreen.util.PanelCallback;
  */
 public class DefUsesPanel extends FlowPanel
 {
-    public DefUsesPanel (Def def, final PopupGroup.Positioner repos)
+    public DefUsesPanel (DefId def, DefMap defmap, final PopupGroup.Positioner repos)
     {
         add(Widgets.newLabel(_cmsgs.loading()));
         _def = def;
-        // _defmap = defmap;
+        _defmap = defmap;
 
         _projsvc.findUses(def.id, new PanelCallback<ProjectService.UsesResult[]>(this) {
             public void onSuccess (ProjectService.UsesResult[] results) {
@@ -40,33 +40,33 @@ public class DefUsesPanel extends FlowPanel
 
     protected void init (ProjectService.UsesResult[] results)
     {
-        final DefMap defmap = new DefMap();
-        add(Widgets.newInlineLabel((results.length == 0) ? "No uses of " : "Uses of "));
-        DefUtil.addDef(this, _def, defmap, UsePopup.TYPE);
+        String title = (results.length == 0) ? "No uses of " : "Uses of ";
+        add(Widgets.newLabel(title + _def.name));
+        // DefUtil.addDef(this, _def, _defmap, UsePopup.TYPE);
         for (final ProjectService.UsesResult result : results) {
-            FlowPanel header = TypeLabel.makeTypeHeader(result, defmap, UsePopup.TYPE);
+            FlowPanel header = TypeLabel.makeTypeHeader(result, _defmap, UsePopup.TYPE);
             header.addStyleName(_rsrc.styles().borderTop());
             add(header);
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     FlowPanel bits = new FlowPanel();
-                    // bits.add(new SourcePanel(result, defmap, UsePopup.TYPE));
+                    // bits.add(new SourcePanel(result, _defmap, UsePopup.TYPE));
                     for (int ii = 0; ii < result.uses.length; ii++) {
                         // TODO: add line number
                         bits.add(new SourcePanel(result.lines[ii], result.uses[ii],
-                                                 defmap, UsePopup.TYPE));
+                                                 _defmap, UsePopup.TYPE));
                     }
                     return bits;
                 }
                 protected Widget createExpanded () {
-                    return new SourcePanel(result.id, defmap, UsePopup.TYPE, false);
+                    return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
                 }
             });
         }
     }
 
-    protected Def _def;
-    // protected DefMap _defmap;
+    protected DefId _def;
+    protected DefMap _defmap;
     protected PopupGroup _pgroup = new PopupGroup();
 
     protected static final ClientMessages _cmsgs = GWT.create(ClientMessages.class);

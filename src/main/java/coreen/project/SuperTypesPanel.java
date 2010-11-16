@@ -17,14 +17,14 @@ import coreen.util.DefMap;
  */
 public class SuperTypesPanel extends TypeHierPanel
 {
-    public SuperTypesPanel (Def def, DefMap defmap, PopupGroup.Positioner repos)
+    public SuperTypesPanel (long defId, DefMap defmap, PopupGroup.Positioner repos)
     {
-        super(def, defmap, repos);
+        super(defId, defmap, repos);
     }
 
     protected void fetchTypes (AsyncCallback<Def[][]> callback)
     {
-        _projsvc.getSuperTypes(_def.id, callback);
+        _projsvc.getSuperTypes(_defId, callback);
     }
 
     protected void init (Def[][] defs)

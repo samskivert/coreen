@@ -24,10 +24,10 @@ import coreen.util.PanelCallback;
  */
 public abstract class TypeHierPanel extends FlowPanel
 {
-    protected TypeHierPanel (Def def, DefMap defmap, final PopupGroup.Positioner repos)
+    protected TypeHierPanel (long defId, DefMap defmap, final PopupGroup.Positioner repos)
     {
         add(Widgets.newLabel(_cmsgs.loading()));
-        _def = def;
+        _defId = defId;
         _defmap = defmap;
 
         fetchTypes(new PanelCallback<Def[][]>(this) {
@@ -49,13 +49,13 @@ public abstract class TypeHierPanel extends FlowPanel
             return Widgets.newInlineLabel("");
         }
         Widget label = Widgets.newInlineLabel(StringUtil.isBlank(def.name) ? "<anon>" : def.name);
-        if (def.id != _def.id) {
+        if (def.id != _defId) {
             new UsePopup.Popper(def.id, label, UsePopup.TYPE, _defmap, true).setGroup(_pgroup);
         }
         return DefUtil.adornDef(def, label);
     }
 
-    protected Def _def;
+    protected long _defId;
     protected DefMap _defmap;
     protected PopupGroup _pgroup = new PopupGroup();
 

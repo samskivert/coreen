@@ -27,12 +27,12 @@ public class PopupGroup
 {
     /** Allows the widget created by a {@link Thunk} to realign the popup if its size changes. */
     public interface Positioner {
-        public void sizeDidChange ();
+        void sizeDidChange ();
     }
 
     /** Used by {@link #bindPopup} to defer popup contents creation. */
     public interface Thunk {
-        public Widget create (Positioner pos);
+        Widget create (Positioner pos);
     }
 
     /**
