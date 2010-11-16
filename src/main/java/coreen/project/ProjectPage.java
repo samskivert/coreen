@@ -150,8 +150,9 @@ public class ProjectPage extends AbstractPage
         UIUtil.setWindowTitle(_proj.get().name);
 
         if (_panel == null || _panel.getId() != detail) {
-            _contents.setWidget(_panel = detail.create());
+            _panel = detail.create();
         }
+        _contents.setWidget(_panel);
         _panel.setArgs(_proj.get(), args);
     }
 

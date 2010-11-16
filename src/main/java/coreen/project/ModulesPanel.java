@@ -50,9 +50,13 @@ public class ModulesPanel extends SummaryPanel
     protected void updateContents (long projectId)
     {
         _linker = UsePopup.byModsInProject(_projectId);
+        _modules.clear();
+        _moddefs.clear();
+        _types.clear();
         _modules.add(Widgets.newLabel(_cmsgs.loading()));
         _projsvc.getModules(projectId, new PanelCallback<Def[]>(_modules) {
             public void onSuccess (Def[] modules) {
+                _modules.clear();
                 initContents(modules);
             }
         });
@@ -60,7 +64,6 @@ public class ModulesPanel extends SummaryPanel
 
     protected void initContents (Def[] modules)
     {
-        _modules.clear();
         if (modules.length == 0) {
             _modules.add(Widgets.newLabel("No modules in this project?"));
             return;
@@ -83,8 +86,7 @@ public class ModulesPanel extends SummaryPanel
         }
     }
 
-    protected void addModuleLabels (
-        ModuleNode root, String prefix, char modSep, int defthres)
+    protected void addModuleLabels (ModuleNode root, String prefix, char modSep, int defthres)
     {
         List<Deferral> deferred = new ArrayList<Deferral>();
         addModuleLabels(root, prefix, prefix, modSep, 0, deferred, defthres);
@@ -267,7 +269,6 @@ public class ModulesPanel extends SummaryPanel
     protected @UiField FlowPanel _moddefs;
     protected @UiField FlowPanel _types;
 
-    protected Map<Def, Widget> _modpans = new HashMap<Def, Widget>();
     protected UsePopup.Linker _linker;
 
     protected interface Binder extends UiBinder<Widget, ModulesPanel> {}
