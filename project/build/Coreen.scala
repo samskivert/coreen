@@ -1,6 +1,5 @@
 import java.io.{File, FileInputStream}
 import sbt._
-import net.ps.github.Uploader
 
 class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProject {
   // need our local repository for gwt-utils snapshot
@@ -143,15 +142,4 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   lazy val digest = runTask(Some("com.threerings.getdown.tools.Digester"),
                             compileClasspath, List(clientOutPath.asFile.getPath))
   lazy val client = packageAction && proguard && gwtjar && prepclient && digest
-
-  lazy val pubclient = task {
-    val creds = (Path.userHome / ".github" / "credentials").asFile
-    if (!creds.exists) Some("Missing " + creds)
-    else {
-      val List(login, token) = io.Source.fromFile(creds).getLines.map(_.trim).toList
-      val files = (clientOutPath * "*").get.map(_.asFile).toList
-      new Uploader(login, token, "coreen") upload(files :_*)
-      None
-    }
-  } dependsOn(client)
 }
