@@ -36,6 +36,19 @@
     .outerHovered {
       background: #FFCCCC;
     }
+    .filterLabel {
+      margin-left: 25px;
+    }
+    .filterLabel, .filterBox {
+      font-size: small;
+    }
+    .filterBox {
+      background: #FFFFFF;
+      border: none;
+      margin: none;
+      vertical-align: top;
+      margin-top: 3px;
+    }
   </ui:style>
 
   <g:FlowPanel styleName="{_styles.contents}" ui:field="_contents"/>

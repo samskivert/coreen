@@ -3,19 +3,25 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Bindings;
@@ -131,10 +137,9 @@ public class TypeSummaryPanel extends Composite
         configSupers(supers);
 
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
-        final TypeLabel tlabel;
         if (deets.kind == Kind.TYPE) {
             _outerHov.put(deets.id, Value.create(false));
-            header.add(tlabel = new TypeLabel(deets, supers, _defmap, _linker) {
+            header.add(_tlabel = new TypeLabel(deets, supers, _defmap, _linker) {
                 protected Widget createDefLabel (DefDetail def) {
                     Widget label = super.createDefLabel(def);
                     FocusPanel focus = new FocusPanel(label);
@@ -153,8 +158,8 @@ public class TypeSummaryPanel extends Composite
                     return label;
                 }
             });
+
         } else {
-            tlabel = null;
             if (deets.doc != null) {
                 header.add(new DocLabel(deets.doc));
             }
@@ -166,6 +171,7 @@ public class TypeSummaryPanel extends Composite
 
         if (deets instanceof TypeSummary) {
             body.add(sig);
+            addFilterControls();
 
         } else {
             final Value<Boolean> expanded = Value.create(false);
@@ -183,10 +189,11 @@ public class TypeSummaryPanel extends Composite
                     _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(body) {
                         public void onSuccess (TypeSummary sum) {
                             body.remove(loading);
-                            Bindings.bindVisible(expanded, initBody(sum));
                             configSupers(sum.supers);
-                            if (tlabel != null) {
-                                tlabel.addSupers(sum.supers, _defmap, _linker);
+                            Bindings.bindVisible(expanded, initBody(sum));
+                            if (_tlabel != null) {
+                                _tlabel.addSupers(sum.supers, _defmap, _linker);
+                                addFilterControls();
                             }
                         }
                     });
@@ -250,7 +257,8 @@ public class TypeSummaryPanel extends Composite
         int added = 0;
         for (DefInfo member : members) {
             if (member.isPublic() == access) {
-                Widget mpanel = createMemberWidget(member);
+                MemberPanel mpanel = createMemberWidget(member);
+                _mpanels.add(mpanel);
                 panel.add(mpanel);
                 Value<Boolean> isViz = _superViz.get(member.outerId);
                 if (isViz != null) {
@@ -266,9 +274,9 @@ public class TypeSummaryPanel extends Composite
         return added;
     }
 
-    protected Widget createMemberWidget (final DefInfo member)
+    protected MemberPanel createMemberWidget (final DefInfo member)
     {
-        FlowPanel panel = new FlowPanel();
+        MemberPanel panel = new MemberPanel(member);
         if (member.doc != null) {
             panel.add(new DocLabel(member.doc));
         }
@@ -301,6 +309,55 @@ public class TypeSummaryPanel extends Composite
         return panel;
     }
 
+    protected void addFilterControls ()
+    {
+        _tlabel.addToHeader(Widgets.newLabel("Filter: ", _styles.filterLabel()));
+        final TextBox filter = Widgets.newTextBox("", -1, 10);
+        filter.setTitle(_msgs.filterTip());
+        filter.addStyleName(_styles.filterBox());
+        filter.addKeyUpHandler(new KeyUpHandler() {
+            public void onKeyUp (KeyUpEvent event) {
+                _ftimer.cancel();
+                _ftimer.schedule(250);
+            }
+            protected Timer _ftimer = new Timer() {
+                public void run () {
+                    updateFilter(filter.getText().trim().toLowerCase());
+                }
+            };
+        });
+        _tlabel.addToHeader(filter);
+    }
+
+    protected void updateFilter (String filter)
+    {
+        for (MemberPanel mpanel : _mpanels) {
+            // don't cause already hidden members to show up
+            Value<Boolean> viz = _superViz.get(mpanel.member.outerId);
+            boolean defaultViz = (viz == null || viz.get());
+            mpanel.setVisible(defaultViz && (mpanel.filterText.indexOf(filter) != -1));
+        }
+    }
+
+    protected static class MemberPanel extends FlowPanel
+    {
+        public final DefInfo member;
+        public final String filterText;
+
+        public MemberPanel (DefInfo member) {
+            this.member = member;
+            String ftext = "";
+            if (member.sig != null) {
+                ftext += member.sig.toLowerCase();
+                ftext += "\n";
+            }
+            if (member.doc != null) {
+                ftext += member.doc.toLowerCase(); // TODO: strip out HTML tags
+            }
+            this.filterText = ftext;
+        }
+    }
+
     protected interface Styles extends CssResource
     {
         String topgap ();
@@ -311,15 +368,19 @@ public class TypeSummaryPanel extends Composite
         String sigPanelBare ();
         String superUp ();
         String outerHovered ();
+        String filterLabel ();
+        String filterBox ();
     }
     protected @UiField Styles _styles;
     protected @UiField FlowPanel _contents;
 
     protected boolean _loaded, _headerless;
+    protected TypeLabel _tlabel;
     protected DefMap _defmap;
     protected IdMap<Boolean> _expanded;
     protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
+    protected List<MemberPanel> _mpanels = new ArrayList<MemberPanel>();
 
     // these control the visibility of members defined by this supertype
     protected Map<Long, Value<Boolean>> _superViz = new HashMap<Long, Value<Boolean>>();
