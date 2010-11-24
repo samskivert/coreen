@@ -124,6 +124,11 @@ public class TypeLabel extends FlowPanel
         }
     }
 
+    public void addToHeader (Widget widget)
+    {
+        _header.add(widget);
+    }
+
     protected Widget createDefLabel (DefDetail def)
     {
         List<Object> args = new ArrayList<Object>();
