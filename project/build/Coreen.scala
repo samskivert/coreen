@@ -11,7 +11,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   // HTTP and GWT depends
   val gwtUser = "com.google.gwt" % "gwt-user" % "2.1.0"
-  val gwtUtils = "com.threerings" % "gwt-utils" % "1.2-SNAPSHOT"
+  val gwtUtils = "com.threerings" % "gwt-utils" % "1.3-SNAPSHOT"
   val jetty = "org.mortbay.jetty" % "jetty" % "6.1.25"
 
   // we don't want these on any of our classpaths, so we make them "system" deps
@@ -25,7 +25,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   val neo4jKernel = "org.neo4j" % "neo4j-kernel" % "1.2-1.2.M03"
 
   // depends for our auto-updating client
-  val getdown = "com.threerings" % "getdown" % "1.1-SNAPSHOT"
+  val getdown = "com.threerings" % "getdown" % "1.1"
 
   // pass some useful arguments to javac
   override def javaCompileOptions = List(
