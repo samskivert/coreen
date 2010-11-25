@@ -25,7 +25,8 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   val neo4jKernel = "org.neo4j" % "neo4j-kernel" % "1.2-1.2.M03"
 
   // depends for our auto-updating client
-  val getdown = "com.threerings" % "getdown" % "1.1"
+  val getdown = "com.threerings" % "getdown" % "1.2-SNAPSHOT"
+  val getdownPro = "com.threerings" % "getdown-pro" % "1.2-SNAPSHOT" % "system"
 
   // pass some useful arguments to javac
   override def javaCompileOptions = List(
@@ -127,7 +128,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     // copy all of the appropriate jars into the target directory
     FileUtilities.copyFlat(minJarPath.get, clientOutPath, log)
     FileUtilities.copyFlat(packageGwtJar.get, clientOutPath, log)
-    FileUtilities.copyFlat(depPath("getdown").get, clientOutPath, log)
+    FileUtilities.copyFlat(depPath("getdown-pro").get, clientOutPath, log)
     FileUtilities.copyFlat(javaReaderJarPath.get, clientOutPath, log)
 
     // sanitize our project jar files, version numbers will get in the way of patching

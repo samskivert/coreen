@@ -16,10 +16,12 @@ ui.status_text = 000000
 # Main jar files
 code = coreen.jar
 code = coreen-gwt.jar
-code = getdown.jar
 
 # Reader code (not in our main classpath)
 resource = coreen-java-reader.jar
+
+# Latest version of getdown (not in our main classpath)
+resource = getdown-pro.jar
 
 # Non-code resources
 resource = background.png
