@@ -18,7 +18,7 @@ import coreen.project.{Importer, Updater}
 object Coreen extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
   with ConfigComponent with TrayComponent with ConsoleComponent
-  with HttpComponent with ProjectServlet with LibraryServlet with ConsoleServlet
+  with HttpComponent with ProjectServlet with LibraryServlet with ConsoleServlet with ServiceServlet
   with Updater with Importer
 {
   def main (args :Array[String]) {

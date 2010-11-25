@@ -21,7 +21,7 @@ import coreen.rpc.{ConsoleService, LibraryService, ProjectService}
 /** Provides HTTP services. */
 trait Http {
   this :Log with Dirs with Console with Config
-            with LibraryServlet with ProjectServlet with ConsoleServlet =>
+            with LibraryServlet with ProjectServlet with ConsoleServlet with ServiceServlet =>
 
   /** Returns a URI that can be used to communicate with the Coreen server. */
   def getServerURL (path :String) =
@@ -57,6 +57,7 @@ trait Http {
       ctx.addServlet(new ServletHolder(new LibraryServlet), "/coreen/"+LibraryService.ENTRY_POINT)
       ctx.addServlet(new ServletHolder(new ProjectServlet), "/coreen/"+ProjectService.ENTRY_POINT)
       ctx.addServlet(new ServletHolder(new ConsoleServlet), "/coreen/"+ConsoleService.ENTRY_POINT)
+      ctx.addServlet(new ServletHolder(new ServiceServlet), "/coreen/service")
       ctx.addServlet(new ServletHolder(_shutdownServlet), "/coreen/shutdown")
       ctx.addServlet(new ServletHolder(new CoreenDefaultServlet), "/*")
       addHandler(ctx)
@@ -118,7 +119,7 @@ trait Http {
 /** A concrete implementation of {@link Http}. */
 trait HttpComponent extends Component with Http {
   this :Log with Dirs with Console with Config
-            with LibraryServlet with ProjectServlet with ConsoleServlet =>
+            with LibraryServlet with ProjectServlet with ConsoleServlet with ServiceServlet =>
 
   /** Handles HTTP service. */
   val httpServer = new HttpServer
