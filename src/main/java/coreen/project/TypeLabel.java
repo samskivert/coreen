@@ -3,9 +3,6 @@
 
 package coreen.project;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
@@ -45,10 +42,8 @@ public class TypeLabel extends FlowPanel
         FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
         header.add(DefUtil.iconForDef(deet));
         for (DefId encl : deet.path) {
-            ProjectPage.Detail detail = (encl.kind == Kind.MODULE) ?
-                ProjectPage.Detail.MDS : ProjectPage.Detail.TYP;
-            Widget plabel = Link.create(
-                encl.name, Page.PROJECT, deet.unit.projectId, detail, encl.id);
+            Widget plabel = Link.create(encl.name, Page.PROJECT, deet.unit.projectId,
+                                        ProjectPage.Detail.forKind(encl.kind), encl.id);
             if (encl.kind != Kind.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
@@ -131,17 +126,8 @@ public class TypeLabel extends FlowPanel
 
     protected Widget createDefLabel (DefDetail def)
     {
-        List<Object> args = new ArrayList<Object>();
-        args.add(def.unit.projectId);
-        args.add(ProjectPage.Detail.TYP);
-        for (DefId tid : def.path) {
-            if (tid.kind != Kind.MODULE) {
-                args.add(tid.id);
-            }
-        }
-        args.add(def.id);
-        return Link.create(def.name, Page.PROJECT, args.toArray());
-        // return Widgets.newLabel(def.name, _rsrc.styles().Type());
+        return Link.create(def.name, Page.PROJECT, def.unit.projectId,
+                           ProjectPage.Detail.forKind(def.kind), def.id);
     }
 
     protected Widget createSuperLabel (Def sup)

@@ -88,13 +88,20 @@ public class SourcePanel extends AbstractProjectPanel
     {
         _projsvc.getContent(defId, new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
-                Widget deficon = addDefIcon ? DefUtil.iconForDef(content) : null;
-                init(content.text, content.defs, content.uses, -1L, linker, false);
-                if (deficon != null) {
-                    _contents.insert(deficon, 0);
-                }
+                init(content, linker, addDefIcon);
             }
         });
+    }
+
+    /**
+     * Initializes this source panel with the supplied def content.
+     */
+    public void init (DefContent content, UsePopup.Linker linker, boolean addDefIcon)
+    {
+        init(content.text, content.defs, content.uses, -1L, linker, false);
+        if (addDefIcon) {
+            _contents.insert(DefUtil.iconForDef(content), 0);
+        }
     }
 
     @Override // from AbstractProjectPanel

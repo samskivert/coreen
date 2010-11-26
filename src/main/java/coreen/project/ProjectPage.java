@@ -31,6 +31,7 @@ import coreen.client.Args;
 import coreen.client.ClientMessages;
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.model.Kind;
 import coreen.model.Project;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
@@ -69,10 +70,27 @@ public class ProjectPage extends AbstractPage
             public AbstractProjectPanel create () { return new TypePanel(); }
         },
 
+        /** Viewing the source of an individual def. */
+        DEF(null) {
+            public AbstractProjectPanel create () { return new DefSourcePanel(); }
+        },
+
         /** Viewing an individual source file. */
         SRC(null) {
             public AbstractProjectPanel create () { return new SourcePanel.Full(); }
         };
+
+        /**
+         * Returns the appropriate detail page for displaying a def of the specified kind.
+         */
+        public static Detail forKind (Kind kind)
+        {
+            switch (kind) {
+            case MODULE: return MDS;
+            case TYPE: return TYP;
+            default: return DEF;
+            }
+        }
 
         public String title () {
             return _title;
