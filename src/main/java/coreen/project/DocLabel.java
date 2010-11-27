@@ -4,7 +4,9 @@
 package coreen.project;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
@@ -24,6 +26,16 @@ public class DocLabel extends FlowPanel
     public DocLabel (String docHTML, boolean alwaysFull)
     {
         addStyleName(_rsrc.styles().doc());
+
+        addAttachHandler(new AttachEvent.Handler() {
+            public void onAttachOrDetach (AttachEvent event) {
+                if (event.isAttached() && isInPopup(DocLabel.this)) {
+                    addStyleName(_rsrc.styles().popDoc());
+                } else {
+                    removeStyleName(_rsrc.styles().popDoc());
+                }
+            }
+        });
 
         // if we have no docs, display a message to that effect
         final String fullDoc = (docHTML == null) ? _msgs.pNoDocs() : docHTML;
@@ -63,6 +75,17 @@ public class DocLabel extends FlowPanel
                     return Widgets.newHTML(fullDoc);
                 }
             });
+        }
+    }
+
+    protected boolean isInPopup (Widget target)
+    {
+        if (target == null) {
+            return false;
+        } else if (target instanceof PopupPanel) {
+            return true;
+        } else {
+            return isInPopup(target.getParent());
         }
     }
 

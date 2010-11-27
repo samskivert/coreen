@@ -70,6 +70,10 @@
   margin: 0px 0px 0px 100px;
 }
 
+.popDoc {
+  max-width: 800px;
+}
+
 .borderTop {
   border-top: 1px dashed;
 }
