@@ -20,7 +20,11 @@ public class SearchPanel extends AbstractProjectPanel
 {
     public SearchPanel ()
     {
-        initWidget(_panel = new SearchResultsPanel<DefDetail>());
+        initWidget(_panel = new SearchResultsPanel<DefDetail>() {
+            protected String createNoResultsLabel (String query) {
+                return "No definitions of '" + query + "' found in project " + _pname + ".";
+            }
+        });
     }
 
     @Override // from AbstractProjectPanel
@@ -32,12 +36,14 @@ public class SearchPanel extends AbstractProjectPanel
     @Override // from AbstractProjectPanel
     public void setArgs (Project proj, Args args)
     {
+        _pname = proj.name;
         String query = args.get(2, "").trim();
         _panel.setQuery(query);
         UIUtil.setWindowTitle(proj.name, query);
         _projsvc.search(proj.id, query, _panel.createCallback());
     }
 
+    protected String _pname;
     protected SearchResultsPanel<DefDetail> _panel;
 
     protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);

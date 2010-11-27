@@ -72,7 +72,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
             }
         }
         if (results.length == 0) {
-            table.add().setText("No results for '" + _query + "'...");
+            table.add().setText(createNoResultsLabel(_query));
         }
 
         _contents.setWidget(table);
@@ -88,6 +88,11 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
     protected Widget createResultView (final R result)
     {
         return DefUtil.createDefSummary(result, _defmap, UsePopup.TYPE);
+    }
+
+    protected String createNoResultsLabel (String query)
+    {
+        return "No definitions of '" + query + "' were found.";
     }
 
     protected interface Styles extends CssResource
