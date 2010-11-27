@@ -48,7 +48,11 @@ import coreen.util.PanelCallback;
  */
 public class TypeSummaryPanel extends Composite
 {
+    /** Contains the id of the configured def. */
     public final long defId;
+
+    /** Contains the currently displayed def detail. */
+    public final Value<DefDetail> detail = Value.<DefDetail>create(null);
 
     /** Creates a totally standalone panel that fetches all of its own data. */
     public static TypeSummaryPanel create (long defId)
@@ -75,6 +79,12 @@ public class TypeSummaryPanel extends Composite
         return panel;
     }
 
+    /** Notes that the specified member def should be shown once it is loaded. */
+    public void showMember (long memberId)
+    {
+        _expanded.get(memberId).update(true);
+    }
+
     @Override // from Widget
     public void onLoad ()
     {
@@ -92,11 +102,6 @@ public class TypeSummaryPanel extends Composite
             ensureLoaded();
         }
         super.setVisible(visible);
-    }
-
-    public void showMember (long memberId)
-    {
-        _expanded.get(memberId).update(true);
     }
 
     /** Used when we're part of a type hierarchy. */
@@ -134,6 +139,7 @@ public class TypeSummaryPanel extends Composite
 
     protected void initHeader (final DefDetail deets, Def[] supers)
     {
+        detail.update(deets);
         configSupers(supers);
 
         FlowPanel header = Widgets.newFlowPanel(_styles.header());
