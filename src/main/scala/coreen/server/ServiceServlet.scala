@@ -8,6 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import org.squeryl.PrimitiveTypeMode._
 
+import coreen.model.Kind
 import coreen.persist.{DB, Decode, Project}
 
 /** Provides the service servlet. */
@@ -70,8 +71,12 @@ trait ServiceServlet {
               }
             } else {
               val (proj, unit, tgt) = matches.head
-              rsp.sendRedirect("/coreen/#PROJECT~" + proj.id + "~DEF~" +
-                               Decode.codeToKind(tgt.kind) + "~" + tgt.id)
+              val det = Decode.codeToKind(tgt.kind) match {
+                case Kind.MODULE => "MDS"
+                case Kind.TYPE => "TYP"
+                case _ => "DEF"
+              }
+              rsp.sendRedirect("/coreen/#PROJECT~" + proj.id + "~" + det + "~" + tgt.id)
             }
           }
 

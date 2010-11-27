@@ -80,6 +80,15 @@ public class ProjectPage extends AbstractPage
             public AbstractProjectPanel create () { return new SourcePanel.Full(); }
         };
 
+        /** Returns the detail page for the specified kind of def. */
+        public static Detail forKind (Kind kind) {
+            switch (kind) {
+            case MODULE: return MDS;
+            case TYPE: return TYP;
+            default: return DEF;
+            }
+        }
+
         public String title () {
             return _title;
         }

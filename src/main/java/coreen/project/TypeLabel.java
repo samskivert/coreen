@@ -43,7 +43,7 @@ public class TypeLabel extends FlowPanel
         header.add(DefUtil.iconForDef(deet));
         for (DefId encl : deet.path) {
             Widget plabel = Link.create(encl.name, Page.PROJECT, deet.unit.projectId,
-                                        ProjectPage.Detail.DEF, encl.kind, encl.id);
+                                        ProjectPage.Detail.forKind(encl.kind), encl.id);
             if (encl.kind != Kind.MODULE) {
                 new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
             }
