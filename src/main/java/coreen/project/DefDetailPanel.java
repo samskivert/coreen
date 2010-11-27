@@ -34,7 +34,7 @@ public class DefDetailPanel extends AbstractProjectPanel
         _contents.clear();
         _contents.add(source);
 
-        _projsvc.getContent(args.get(3, 0L), new PanelCallback<DefContent>(_contents) {
+        _projsvc.getContent(args.get(2, 0L), new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
                 _contents.insert(new TypeLabel(content, _defmap, UsePopup.TYPE), 0);
                 source.init(content, UsePopup.TYPE, false);
