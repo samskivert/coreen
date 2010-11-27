@@ -8,6 +8,7 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -78,6 +79,24 @@ public class UIUtil
     public static void makeActionable (Widget widget)
     {
         widget.addStyleName(_rsrc.styles().actionable());
+    }
+
+    /**
+     * Adds a float left style to the supplied target widget, then returns it.
+     */
+    public static <T extends Widget> T makeFloatLeft (T target)
+    {
+        target.addStyleName(_rsrc.styles().floatLeft());
+        return target;
+    }
+
+    /**
+     * Adds a float right style to the supplied target widget, then returns it.
+     */
+    public static <T extends Widget> T makeFloatRight (T target)
+    {
+        target.addStyleName(_rsrc.styles().floatRight());
+        return target;
     }
 
     protected static final UIResources _rsrc = GWT.create(UIResources.class);

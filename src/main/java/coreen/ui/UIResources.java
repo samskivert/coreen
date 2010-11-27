@@ -15,6 +15,8 @@ public interface UIResources extends ClientBundle
     public interface Styles extends CssResource {
         String console ();
         String popup ();
+        String floatLeft ();
+        String floatRight ();
         String clear ();
         String actionable ();
     }

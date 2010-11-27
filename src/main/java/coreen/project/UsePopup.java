@@ -11,9 +11,12 @@ import com.google.gwt.event.dom.client.*; // myriad Mouse bits
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Hyperlink;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Popups;
+import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.PopupCallback; // TODO: make a custom version that handles errors
 import com.threerings.gwt.util.WindowUtil;
 
@@ -225,7 +228,11 @@ public class UsePopup extends PopupPanel
         _popper = popper;
 
         _link = linker.makeLink(deet); // we just use this for its history token...
-        setWidget(DefUtil.createDefSummary(deet, defmap, linker));
+
+        Label dragger = UIUtil.makeFloatRight(new Label(" ✜ "));
+        dragger.setTitle("Click and drag to move popup.");
+        Popups.makeDraggable(dragger, this);
+        setWidget(Widgets.newFlowPanel(dragger, DefUtil.createDefSummary(deet, defmap, linker)));
     }
 
     @Override // from PopupPanel

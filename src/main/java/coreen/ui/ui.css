@@ -19,6 +19,14 @@
   box-shadow: 3px 3px 4px #000;
 }
 
+.floatLeft {
+  float: left;
+}
+
+.floatRight {
+  float: right;
+}
+
 .clear {
   clear: both;
 }
