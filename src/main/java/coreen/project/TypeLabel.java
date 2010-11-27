@@ -127,7 +127,7 @@ public class TypeLabel extends FlowPanel
     protected Widget createDefLabel (DefDetail def)
     {
         return Link.create(def.name, Page.PROJECT, def.unit.projectId,
-                           ProjectPage.Detail.DEF, def.kind, def.id);
+                           ProjectPage.Detail.forKind(def.kind), def.id);
     }
 
     protected Widget createSuperLabel (Def sup)
