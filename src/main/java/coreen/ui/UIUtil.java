@@ -41,7 +41,7 @@ public class UIUtil
      */
     public static void setWindowTitle (String... parts)
     {
-        StringBuilder buf = new StringBuilder("Coreen"); // TODO: maybe nix Coreen?
+        StringBuilder buf = new StringBuilder();
         for (String part : parts) {
             if (buf.length() > 0) {
                 buf.append(" - ");
