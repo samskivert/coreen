@@ -231,16 +231,13 @@ trait Updater {
         def allIds (ids :Set[String], defs :Seq[DefElem]) :Set[String] =
           (ids /: defs)((s, d) => allIds(s + d.id, d.defs))
         val unitIds = allIds(Set(), defs)
-        val oldDefs = MSet[String]()
+        val toUpdate = MSet[String]()
         val unknownDefs = MMap[Long, String]()
-        for (fqName <- unitIds) {
-          val ido = defMap.get(fqName)
-          if (ido.isDefined) {
-            defToUnit.get(ido.get) match {
-              case Some(defUnitId) => if (unitId == defUnitId) oldDefs += fqName
-                                      else dupDefs += fqName
-              case None => unknownDefs.update(ido.get, fqName)
-            }
+        for (fqName <- unitIds; oldId <- defMap.get(fqName)) {
+          defToUnit.get(oldId) match {
+            case Some(defUnitId) => if (unitId == defUnitId) toUpdate += fqName
+                                    else dupDefs += fqName
+            case None => unknownDefs.update(oldId, fqName)
           }
         }
         if (unknownDefs.size > 0) {
@@ -249,7 +246,7 @@ trait Updater {
             for ((defId, dUnitId) <- from(_db.defs)(
               d => where(d.id in unknownDefs.keySet) select(d.id, d.unitId))) {
                 if (dUnitId == unitId) {
-                  oldDefs += unknownDefs(defId)
+                  toUpdate += unknownDefs(defId)
                 } else {
                   dupDefs += unknownDefs(defId)
                 }
@@ -257,11 +254,8 @@ trait Updater {
           }
         }
 
-        // figure out which defs to add, which to update, and which to delete
-        val toDelete = oldDefs -- unitIds
-        val (toAdd, toUpdate) = (unitIds -- oldDefs -- dupDefs, oldDefs -- toDelete)
-
         // add the new defs to the defname map to assign them ids
+        val toAdd = unitIds -- toUpdate -- dupDefs
         time("insertNewNames") {
           defMap.assignIds(toAdd)
         }
@@ -279,25 +273,33 @@ trait Updater {
         }
         val ndefs = (Map[String,Def]() /: defs)(makeDefs(0L))
 
-        // insert, update, and delete
+        val validDefIds = MSet[Long]()
         if (!toAdd.isEmpty) {
           addedDefs ++= toAdd
           val added = toAdd map(ndefs)
           time("addNewDefs") { _db.defs.insert(added) }
           added foreach { d => defToUnit.update(d.id, d.unitId) }
-          // println("Inserted " + toAdd.size + " new defs")
+          validDefIds ++= added.map(_.id)
+          // _log.info("Inserted " + toAdd.size + " new defs")
         }
+
         if (!toUpdate.isEmpty) {
           val updated = toUpdate map(ndefs)
           _db.defs.update(updated)
           updated foreach { d => defToUnit.update(d.id, d.unitId) }
-          // println("Updated " + toUpdate.size + " defs")
+          validDefIds ++= updated.map(_.id)
+          // _log.info("Updated " + toUpdate.size + " defs")
         }
-        if (!toDelete.isEmpty) {
-          val toDelIds = toDelete map(defMap)
-          time("deleteOldDefs") { _db.defs.deleteWhere(d => d.id in toDelIds) }
-          toDelIds foreach { id => defToUnit.remove(id) }
-          // println("Deleted " + toDelete.size + " defs")
+
+        // prune stale defs by deleting all defs in this unit that were not just added or updated
+        time("deleteOldDefs") {
+          val allUnitIds = from(_db.defs)(d => where(d.unitId === unitId) select(d.id)).toSet
+          val toDelIds = allUnitIds -- validDefIds
+          if (!toDelIds.isEmpty) {
+            _db.defs.deleteWhere(d => d.id in toDelIds)
+            toDelIds foreach { id => defToUnit.remove(id) }
+            // _log.info("Deleted " + toDelIds.size + " defs")
+          }
         }
       }
     }
