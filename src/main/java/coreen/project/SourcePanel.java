@@ -191,7 +191,7 @@ public class SourcePanel extends AbstractProjectPanel
             elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
                     Widget span = Widgets.newInlineLabel(text, DefUtil.getUseStyle(use.getKind()));
-                    new UsePopup.Popper(use.getId(), span, linker, _local, true);
+                    new UsePopup.Popper(use.getId(), span, linker, _local, true).setGroup(_pgroup);
                     return span;
                 }
             });
@@ -338,6 +338,7 @@ public class SourcePanel extends AbstractProjectPanel
     }-*/;
 
     protected DefMap _defmap, _local;
+    protected PopupGroup _pgroup = new PopupGroup();
 
     protected interface Styles extends CssResource {
         String codeMode ();
