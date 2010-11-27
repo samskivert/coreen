@@ -8,9 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.client.{Args, Page}
 import coreen.persist.{DB, Decode, Project}
-import coreen.project.ProjectPage
 
 /** Provides the service servlet. */
 trait ServiceServlet {
@@ -72,9 +70,8 @@ trait ServiceServlet {
               }
             } else {
               val (proj, unit, tgt) = matches.head
-              val detail = ProjectPage.Detail.forKind(Decode.codeToKind(tgt.kind))
-              rsp.sendRedirect("/coreen/#" + Args.createToken(
-                Page.PROJECT, ""+proj.id, detail, ""+tgt.id))
+              rsp.sendRedirect("/coreen/#PROJECT~" + proj.id + "~DEF~" +
+                               Decode.codeToKind(tgt.kind) + "~" + tgt.id)
             }
           }
 

@@ -72,25 +72,13 @@ public class ProjectPage extends AbstractPage
 
         /** Viewing the source of an individual def. */
         DEF(null) {
-            public AbstractProjectPanel create () { return new DefSourcePanel(); }
+            public AbstractProjectPanel create () { return new DefDetailPanel(); }
         },
 
         /** Viewing an individual source file. */
         SRC(null) {
             public AbstractProjectPanel create () { return new SourcePanel.Full(); }
         };
-
-        /**
-         * Returns the appropriate detail page for displaying a def of the specified kind.
-         */
-        public static Detail forKind (Kind kind)
-        {
-            switch (kind) {
-            case MODULE: return MDS;
-            case TYPE: return TYP;
-            default: return DEF;
-            }
-        }
 
         public String title () {
             return _title;
