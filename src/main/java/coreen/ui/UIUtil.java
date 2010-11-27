@@ -25,7 +25,8 @@ public class UIUtil
     {
         popup.setVisible(false);
         popup.show();
-        int left = target.getAbsoluteLeft();
+        int left = Math.max(0, target.getAbsoluteLeft() + target.getOffsetWidth()/2 -
+                            popup.getOffsetWidth()/2);
         int top = Math.max(target.getAbsoluteTop() - popup.getOffsetHeight(), 0);
         if (left + popup.getOffsetWidth() > Window.getClientWidth()) {
             left = Math.max(0, Window.getClientWidth() - popup.getOffsetWidth());
