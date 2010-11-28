@@ -1,5 +1,17 @@
 ;;
 ;; Defines various functions for interacting with Coreen.
+;;
+;; You can wire these into your Java mode by adding the following to your
+;; .emacs file:
+;;
+;; (load "path/to/coreen")
+;; (defun coreen-java-mode-hook ()
+;;   (define-key java-mode-map "\C-c\C-j" 'coreen-find-symbol)
+;;   (define-key java-mode-map "\M-."     'coreen-open-symbol)
+;;   (define-key java-mode-map "\M-/"     'pop-coreen-mark)
+;;   (define-key java-mode-map "\M-?"     'coreen-view-symbol)
+;;   )
+;; (add-hook 'java-mode-hook 'coreen-java-mode-hook)
 
 (defconst coreen-url "http://localhost:8192/coreen"
   "The URL via which we communicate with Coreen.")
