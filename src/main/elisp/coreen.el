@@ -13,7 +13,7 @@
 ;;   )
 ;; (add-hook 'java-mode-hook 'coreen-java-mode-hook)
 
-(defconst coreen-url "http://localhost:8192/coreen"
+(defvar coreen-url "http://localhost:8192/coreen"
   "The URL via which we communicate with Coreen.")
 (defvar coreen-marker-ring (make-ring 16)
   "Ring of markers which are locations from which \\[coreen-open-symbol] was invoked.")
