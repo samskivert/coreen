@@ -37,6 +37,7 @@ import coreen.model.Project;
 import coreen.model.Span;
 import coreen.ui.PopupGroup;
 import coreen.ui.UIResources;
+import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
@@ -49,46 +50,47 @@ public class SourcePanel extends AbstractProjectPanel
     /** A source panel that displays an entire compilation unit. */
     public static class Full extends SourcePanel {
         public Full () {
-            super(new DefMap());
+            super(new DefMap(), UsePopup.SOURCE);
         }
     }
 
-    public SourcePanel (DefMap defmap)
+    public SourcePanel (DefMap defmap, UsePopup.Linker linker)
     {
         initWidget(_binder.createAndBindUi(this));
         addStyleName(_styles.codeMode());
         _contents.add(Widgets.newLabel("Loading..."));
         _defmap = defmap;
+        _linker = linker;
         _local = new DefMap(_defmap);
     }
 
-    public SourcePanel (long defId, DefMap defmap, UsePopup.Linker linker, boolean addDefIcon)
+    public SourcePanel (long defId, DefMap defmap, UsePopup.Linker linker)
     {
-        this(defmap);
-        loadDef(defId, linker, addDefIcon);
+        this(defmap, linker);
+        loadDef(defId);
     }
 
     public SourcePanel (DefInfo def, DefMap defmap, UsePopup.Linker linker)
     {
-        this(defmap);
-        init(def.sig, def.sigDefs, def.sigUses, -1L, linker, false);
+        this(defmap, linker);
+        init(def.sig, def.sigDefs, def.sigUses, -1L, false);
         removeStyleName(_styles.codeMode()); // no white-space: pre
     }
 
     public SourcePanel (String text, Span use, DefMap defmap, UsePopup.Linker linker)
     {
-        this(defmap);
-        init(text, new Span[0], new Span[] { use }, -1L, linker, true);
+        this(defmap, linker);
+        init(text, new Span[0], new Span[] { use }, -1L, true);
     }
 
     /**
      * Loads the source for the specified def into this panel.
      */
-    public void loadDef (long defId, final UsePopup.Linker linker, final boolean addDefIcon)
+    public void loadDef (long defId)
     {
         _projsvc.getContent(defId, new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
-                init(content, linker, addDefIcon);
+                init(content);
             }
         });
     }
@@ -96,12 +98,21 @@ public class SourcePanel extends AbstractProjectPanel
     /**
      * Initializes this source panel with the supplied def content.
      */
-    public void init (DefContent content, UsePopup.Linker linker, boolean addDefIcon)
+    public void init (DefContent content)
     {
-        init(content.text, content.defs, content.uses, -1L, linker, false);
-        if (addDefIcon) {
-            _contents.insert(DefUtil.iconForDef(content), 0);
-        }
+        init(content.text, content.defs, content.uses, -1L, false);
+        // if (addDefIcon) {
+        //     _contents.insert(DefUtil.iconForDef(content), 0);
+        // }
+    }
+
+    /**
+     * Adds the supplied icon to the beginning of the first line.
+     */
+    public void addFirstLineIcon (Widget icon)
+    {
+        FlowPanel firstLine = (FlowPanel)_contents.getWidget(0);
+        firstLine.insert(icon, 0);
     }
 
     @Override // from AbstractProjectPanel
@@ -116,7 +127,7 @@ public class SourcePanel extends AbstractProjectPanel
         final long scrollToDefId = args.get(3, 0L);
         _projsvc.getCompUnit(args.get(2, 0L), new PanelCallback<CompUnitDetail>(_contents) {
             public void onSuccess (CompUnitDetail detail) {
-                init(detail.text, detail.defs, detail.uses, scrollToDefId, UsePopup.SOURCE, false);
+                init(detail.text, detail.defs, detail.uses, scrollToDefId, false);
             }
         });
     }
@@ -140,7 +151,7 @@ public class SourcePanel extends AbstractProjectPanel
     }
 
     protected void init (String text, Span[] defs, Span[] uses, long scrollToDefId,
-                         final UsePopup.Linker linker, boolean disablePrefixTrim)
+                         boolean disablePrefixTrim)
     {
         _contents.clear();
 
@@ -190,8 +201,22 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Span use : uses) {
             elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
-                    Label span = Widgets.newInlineLabel(text, DefUtil.getUseStyle(use.getKind()));
-                    new UsePopup.Popper(use.getId(), span, linker, _local, false).setGroup(_pgroup);
+                    final Label span = Widgets.newInlineLabel(
+                        text, DefUtil.getUseStyle(use.getKind()));
+                    new UsePopup.Popper(use.getId(), span, _linker, _local, false).
+                        setGroup(_pgroup);
+                    UIUtil.makeActionable(span, new ClickHandler() {
+                        public void onClick (ClickEvent event) {
+                            if (_useSource == null) {
+                                _useSource = new SourcePanel(use.getId(), _defmap, _linker);
+                                _useSource.addStyleName(_styles.nested());
+                                addAfterLine((FlowPanel)span.getParent(), _useSource);
+                            } else {
+                                _useSource.setVisible(!_useSource.isVisible());
+                            }
+                        }
+                        protected SourcePanel _useSource;
+                    });
                     return span;
                 }
             });
@@ -261,6 +286,13 @@ public class SourcePanel extends AbstractProjectPanel
 
     protected void didInit ()
     {
+    }
+
+    protected void addAfterLine (FlowPanel line, Widget widget)
+    {
+        FlowPanel lines = (FlowPanel)line.getParent();
+        int lidx = lines.getWidgetIndex(line);
+        lines.insert(widget, lidx+1);
     }
 
     protected PopupPanel createDefPopup (final DefId def, final Widget deflbl)
@@ -356,10 +388,12 @@ public class SourcePanel extends AbstractProjectPanel
     }-*/;
 
     protected DefMap _defmap, _local;
+    protected UsePopup.Linker _linker;
     protected PopupGroup _pgroup = new PopupGroup();
 
     protected interface Styles extends CssResource {
         String codeMode ();
+        String nested ();
     }
     protected @UiField Styles _styles;
     protected @UiField FlowPanel _contents;

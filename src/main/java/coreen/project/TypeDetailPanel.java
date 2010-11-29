@@ -146,12 +146,12 @@ public class TypeDetailPanel extends Composite
         Bindings.bindVisible(showSource.map(Functions.NOT), sig);
         contents.add(sig);
 
-        SourcePanel source = new SourcePanel(_defmap) {
+        SourcePanel source = new SourcePanel(_defmap, _linker) {
             @Override public void setVisible (boolean visible) {
                 super.setVisible(visible);
                 if (visible && !_loaded) {
                     _loaded = true;
-                    loadDef(detail.id, _linker, false);
+                    loadDef(detail.id);
                 }
             }
             @Override protected void didInit () {

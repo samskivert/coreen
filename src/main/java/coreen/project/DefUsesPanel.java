@@ -59,7 +59,7 @@ public class DefUsesPanel extends FlowPanel
                     return bits;
                 }
                 protected Widget createExpanded () {
-                    return new SourcePanel(result.id, _defmap, UsePopup.TYPE, false);
+                    return new SourcePanel(result.id, _defmap, UsePopup.TYPE);
                 }
             });
         }

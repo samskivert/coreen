@@ -30,14 +30,14 @@ public class DefDetailPanel extends AbstractProjectPanel
     @Override // from AbstractProjectPanel
     public void setArgs (final Project proj, Args args)
     {
-        final SourcePanel source = new SourcePanel(_defmap);
+        final SourcePanel source = new SourcePanel(_defmap, UsePopup.TYPE);
         _contents.clear();
         _contents.add(source);
 
         _projsvc.getContent(args.get(2, 0L), new PanelCallback<DefContent>(_contents) {
             public void onSuccess (DefContent content) {
                 _contents.insert(new TypeLabel(content, _defmap, UsePopup.TYPE), 0);
-                source.init(content, UsePopup.TYPE, false);
+                source.init(content);
             }
         });
     }

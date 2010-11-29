@@ -51,7 +51,7 @@ public class DefUtil
                     return new SourcePanel(deets, defmap, linker);
                 }
                 protected Widget createExpanded () {
-                    return new SourcePanel(deets.id, defmap, linker, false);
+                    return new SourcePanel(deets.id, defmap, linker);
                 }
             };
             contents.addStyleName(_rsrc.styles().belowTypeLabel());
