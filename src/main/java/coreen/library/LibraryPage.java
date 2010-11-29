@@ -73,6 +73,7 @@ public class LibraryPage extends AbstractPage
                 }
             });
         } else {
+            UIUtil.setWindowTitle("Coreen");
             _contents.setWidget(_projects);
         }
     }
