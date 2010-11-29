@@ -6,23 +6,31 @@
              ui:generateLocales="default">
   <ui:style type="coreen.project.SourcePanel.Styles" field="_styles">
     .contents {
+    }
+    .codeMode .line {
+      white-space: pre;
+    }
+    .line {
       font-family: monospace;
       font-size: 12pt;
-    }
-    .contents div {
       clear: both;
     }
-    .contents div:first-child {
+    .line:first-child {
       clear: right;
-    }
-    .codeMode {
-      white-space: pre;
     }
     .nested {
       border: 1px dashed;
       border-right: none;
-      margin-left: 10px;
-      padding: 5px 0px 5px 5px;
+      margin: 5px 0px 5px 10px;
+    }
+    .nested>div:first-child {
+      padding-top: 5px;
+    }
+    .nested>div {
+      padding-left: 5px;
+    }
+    .nested>div:last-child {
+      padding-bottom: 5px;
     }
   </ui:style>
 

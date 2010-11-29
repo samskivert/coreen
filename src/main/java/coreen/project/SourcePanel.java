@@ -57,7 +57,7 @@ public class SourcePanel extends AbstractProjectPanel
     public SourcePanel (DefMap defmap, UsePopup.Linker linker)
     {
         initWidget(_binder.createAndBindUi(this));
-        addStyleName(_styles.codeMode());
+        _contents.addStyleName(_styles.codeMode());
         _contents.add(Widgets.newLabel("Loading..."));
         _defmap = defmap;
         _linker = linker;
@@ -101,9 +101,6 @@ public class SourcePanel extends AbstractProjectPanel
     public void init (DefContent content)
     {
         init(content.text, content.defs, content.uses, -1L, false);
-        // if (addDefIcon) {
-        //     _contents.insert(DefUtil.iconForDef(content), 0);
-        // }
     }
 
     /**
@@ -111,8 +108,7 @@ public class SourcePanel extends AbstractProjectPanel
      */
     public void addFirstLineIcon (Widget icon)
     {
-        FlowPanel firstLine = (FlowPanel)_contents.getWidget(0);
-        firstLine.insert(icon, 0);
+        ((FlowPanel)_contents.getWidget(0)).insert(icon, 0);
     }
 
     @Override // from AbstractProjectPanel
@@ -207,15 +203,15 @@ public class SourcePanel extends AbstractProjectPanel
                         setGroup(_pgroup);
                     UIUtil.makeActionable(span, new ClickHandler() {
                         public void onClick (ClickEvent event) {
-                            if (_useSource == null) {
-                                _useSource = new SourcePanel(use.getId(), _defmap, _linker);
-                                _useSource.addStyleName(_styles.nested());
-                                addAfterLine((FlowPanel)span.getParent(), _useSource);
+                            if (_usesrc == null) {
+                                _usesrc = new DefSourcePanel(use.getId(), _defmap, _linker);
+                                _usesrc.addStyleName(_styles.nested());
+                                addAfterLine((FlowPanel)span.getParent(), _usesrc);
                             } else {
-                                _useSource.setVisible(!_useSource.isVisible());
+                                _usesrc.setVisible(!_usesrc.isVisible());
                             }
                         }
-                        protected SourcePanel _useSource;
+                        protected DefSourcePanel _usesrc;
                     });
                     return span;
                 }
@@ -245,7 +241,7 @@ public class SourcePanel extends AbstractProjectPanel
                         text.length());
             } else {
                 if (curline == null) {
-                    _contents.add(curline = new FlowPanel());
+                    _contents.add(curline = Widgets.newFlowPanel(_styles.line()));
                 }
                 curline.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
             }
@@ -272,7 +268,7 @@ public class SourcePanel extends AbstractProjectPanel
     protected FlowPanel appendText (FlowPanel curline, String text)
     {
         if (curline == null) {
-            _contents.add(curline = new FlowPanel());
+            _contents.add(curline = Widgets.newFlowPanel(_styles.line()));
         }
         int eol = text.indexOf("\n");
         if (eol == -1) {
@@ -392,6 +388,7 @@ public class SourcePanel extends AbstractProjectPanel
     protected PopupGroup _pgroup = new PopupGroup();
 
     protected interface Styles extends CssResource {
+        String line ();
         String codeMode ();
         String nested ();
     }
