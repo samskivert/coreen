@@ -190,8 +190,8 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Span use : uses) {
             elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
-                    Widget span = Widgets.newInlineLabel(text, DefUtil.getUseStyle(use.getKind()));
-                    new UsePopup.Popper(use.getId(), span, linker, _local, true).setGroup(_pgroup);
+                    Label span = Widgets.newInlineLabel(text, DefUtil.getUseStyle(use.getKind()));
+                    new UsePopup.Popper(use.getId(), span, linker, _local, false).setGroup(_pgroup);
                     return span;
                 }
             });
@@ -199,6 +199,7 @@ public class SourcePanel extends AbstractProjectPanel
         Collections.sort(elems);
 
         int offset = 0;
+        FlowPanel curline = null;
         for (Elementer elem : elems) {
             if (elem.startPos < 0) continue; // filter undisplayable elems
             if (elem.startPos > offset) {
@@ -212,19 +213,21 @@ public class SourcePanel extends AbstractProjectPanel
                 if (offset == 0 && prefix > 0) {
                     seg = seg.substring(prefix);
                 }
-                _contents.add(Widgets.newInlineLabel(trimPrefix(seg, prefix)));
+                curline = appendText(curline, trimPrefix(seg, prefix));
             }
             if (elem.endPos > text.length()) {
                 GWT.log("Invalid element " + elem.startPos + ":" + elem.endPos + " exceeds " +
                         text.length());
             } else {
-                _contents.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
+                if (curline == null) {
+                    _contents.add(curline = new FlowPanel());
+                }
+                curline.add(elem.createElement(text.substring(elem.startPos, elem.endPos)));
             }
             offset = elem.endPos;
         }
         if (offset < text.length()) {
-            _contents.add(Widgets.newInlineLabel(
-                              trimPrefix(expandTabs(text.substring(offset)), prefix)));
+            curline = appendText(curline, trimPrefix(expandTabs(text.substring(offset)), prefix));
         }
 
         final Widget scrollTo = _local.get(scrollToDefId);
@@ -239,6 +242,21 @@ public class SourcePanel extends AbstractProjectPanel
 
         _local.addTo(_defmap);
         didInit();
+    }
+
+    protected FlowPanel appendText (FlowPanel curline, String text)
+    {
+        if (curline == null) {
+            _contents.add(curline = new FlowPanel());
+        }
+        int eol = text.indexOf("\n");
+        if (eol == -1) {
+            curline.add(Widgets.newInlineLabel(text));
+            return curline;
+        } else {
+            curline.add(Widgets.newInlineLabel(text.substring(0, eol)));
+            return appendText(null, text.substring(eol+1));
+        }
     }
 
     protected void didInit ()
