@@ -275,7 +275,13 @@ public class SourcePanel extends AbstractProjectPanel
             curline.add(Widgets.newInlineLabel(text));
             return curline;
         } else {
-            curline.add(Widgets.newInlineLabel(text.substring(0, eol)));
+            String line = text.substring(0, eol);
+            // if we're appending a completely blank line, we need to insert a space, otherwise the
+            // browser will collapse the line div completely
+            if (curline.getWidgetCount() == 0 && line.length() == 0) {
+                line = " ";
+            }
+            curline.add(Widgets.newInlineLabel(line));
             return appendText(null, text.substring(eol+1));
         }
     }
