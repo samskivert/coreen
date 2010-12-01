@@ -140,6 +140,13 @@ public class SourcePanel extends AbstractProjectPanel
     }
 
     @Override // from Widget
+    protected void onLoad ()
+    {
+        super.onLoad();
+        _local.addTo(_defmap);
+    }
+
+    @Override // from Widget
     protected void onUnload ()
     {
         super.onUnload();
@@ -173,23 +180,21 @@ public class SourcePanel extends AbstractProjectPanel
                 public Widget createElement (final String text) {
                     final Label deflbl = Widgets.newInlineLabel(
                         text, DefUtil.getDefStyle(def.getKind()));
-                    if (def.getId() > 0) { // TODO: nix when we add ids to SigDefs
-                        deflbl.addClickHandler(new ClickHandler() {
-                            public void onClick (ClickEvent event) {
-                                if (_menu == null) {
-                                    DefId did = new DefId();
-                                    did.id = def.getId();
-                                    did.name = text;
-                                    did.kind = def.getKind();
-                                    _menu = createDefPopup(did, deflbl);
-                                }
-                                Popups.show(_menu, Popups.Position.ABOVE, deflbl);
+                    deflbl.addClickHandler(new ClickHandler() {
+                        public void onClick (ClickEvent event) {
+                            if (_menu == null) {
+                                DefId did = new DefId();
+                                did.id = def.getId();
+                                did.name = text;
+                                did.kind = def.getKind();
+                                _menu = createDefPopup(did, deflbl);
                             }
-                            protected PopupPanel _menu;
-                        });
-                        deflbl.setTitle(""+def.getId());
-                        _local.map(def.getId(), deflbl);
-                    }
+                            Popups.show(_menu, Popups.Position.ABOVE, deflbl);
+                        }
+                        protected PopupPanel _menu;
+                    });
+                    deflbl.setTitle(""+def.getId());
+                    _local.map(def.getId(), deflbl);
                     return deflbl;
                 }
             });
