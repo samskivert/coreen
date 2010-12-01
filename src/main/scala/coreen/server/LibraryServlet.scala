@@ -37,14 +37,16 @@ trait LibraryServlet {
 
     // from interface LibraryService
     def search (query :String) :Array[LibraryService.SearchResult] = transaction {
-      val res = _db.resolveMatches(
-        _db.defs.where(d => d.name === query and d.kind.~ < Decode.kindToCode(Kind.TERM)).toSeq,
-        () => new LibraryService.SearchResult)
-      // resolve the names of the projects from whence these results come
-      val projIds = res map(_.unit.projectId) toSet
-      val projMap = from(_db.projects)(p => where(p.id in projIds) select(p.id, p.name)) toMap;
-      res foreach { r => r.project = projMap(r.unit.projectId) }
-      res
+      if (query.trim.length == 0)  Array() else {
+        val res = _db.resolveMatches(
+          _db.defs.where(d => d.name === query and d.kind.~ < Decode.kindToCode(Kind.TERM)).toSeq,
+          () => new LibraryService.SearchResult)
+        // resolve the names of the projects from whence these results come
+        val projIds = res map(_.unit.projectId) toSet
+        val projMap = from(_db.projects)(p => where(p.id in projIds) select(p.id, p.name)) toMap;
+        res foreach { r => r.project = projMap(r.unit.projectId) }
+        res
+      }
     }
 
     // from interface LibraryService

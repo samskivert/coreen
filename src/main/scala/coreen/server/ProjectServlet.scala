@@ -212,12 +212,14 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def search (projectId :Long, query :String) :Array[DefDetail] = transaction {
-      _db.resolveMatches(from(_db.compunits, _db.defs)((cu, d) =>
-        where(cu.projectId === projectId and
-              d.unitId === cu.id and
-              d.name === query and
-              d.kind.~ < Decode.kindToCode(Kind.TERM))
-        select(d)) toSeq, () => new DefDetail)
+      if (query.trim.length == 0)  Array() else {
+        _db.resolveMatches(from(_db.compunits, _db.defs)((cu, d) =>
+          where(cu.projectId === projectId and
+                d.unitId === cu.id and
+                d.name === query and
+                d.kind.~ < Decode.kindToCode(Kind.TERM))
+          select(d)) toSeq, () => new DefDetail)
+      }
     }
 
     // from interface ProjectService
