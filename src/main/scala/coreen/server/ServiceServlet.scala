@@ -50,9 +50,9 @@ trait ServiceServlet {
                                           (d.bodyStart lte pos) and (d.bodyEnd gt pos))
             } yield odef
 
+            // if any of the overlapping defs exactly matches the position...
             odefs.find(d => d.defStart <= pos && d.defEnd > pos) match {
-              // if any of the overlapping defs exactly matches the position, then yield that def
-              // rather than looking for an overlapping use
+              // ...yield that def rather than looking for an overlapping use
               case Some(edef) => resolveDef(edef).toList
               // otherwise yield the uses enclosed in the overlapping defs that themselves overlap
               // the source position
