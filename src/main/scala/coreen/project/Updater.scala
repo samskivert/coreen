@@ -339,7 +339,7 @@ trait Updater {
 
         // now that all of our referents are loaded, process the signatures and docs
         def parseSigDefs (defs :Seq[SigDefElem]) =
-          defs map(d => new SigDef(0, d.kind, d.start, d.name.length))
+          defs map(d => new SigDef(defMap.get(d.id).getOrElse(0L), d.kind, d.start, d.name.length))
         def parseUses (uses :Seq[UseElem]) = uses flatMap(u => try {
           defMap.get(u.target) map(refId => new JUse(refId, u.kind, u.start, u.name.length))
         } catch {

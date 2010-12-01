@@ -59,7 +59,7 @@ object SourceModel
   case class SigElem (text :String, defs :Seq[SigDefElem], uses :Seq[UseElem])
 
   /** Models limited information on a def for a signature. */
-  case class SigDefElem (name :String, kind :Kind, start :Int) extends Span {
+  case class SigDefElem (id :String, name :String, kind :Kind, start :Int) extends Span {
     override def toString = super.toString + ":" + kind
   }
 
@@ -86,7 +86,8 @@ object SourceModel
       case "def" => mkDef(e, parse0(e.child))
       case "use" => UseElem(
         (e \ "@name").text, (e \ "@target").text, parseKind(e), intAttr(e, "start"))
-      case "sigdef" => SigDefElem((e \ "@name").text, parseKind(e), intAttr(e, "start"))
+      case "sigdef" => SigDefElem(
+        (e \ "@id").text, (e \ "@name").text, parseKind(e), intAttr(e, "start"))
       case x => null // will be #PCDATA or <sig> or <doc> which are handled elsewhere
     })
   }
