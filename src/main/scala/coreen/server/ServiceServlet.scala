@@ -9,7 +9,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.model.Kind
-import coreen.persist.{DB, Decode, Project}
+import coreen.persist.{DB, Decode, Def, Project}
 
 /** Provides the service servlet. */
 trait ServiceServlet {
@@ -33,20 +33,36 @@ trait ServiceServlet {
           val spath = sfile.getCanonicalPath
 
           val matches = transaction {
-            for (p <- _db.projects; if (spath.startsWith(p.rootPath + File.separator));
-                 // find the project and compunit that match the supplied path
-                 val unitPath = spath.substring(p.rootPath.length+1);
-                 unit <- _db.compunits.where(cu => cu.path === unitPath);
-                 // find the defs in this unit that overlap the pos
-                 val odefs = _db.defs.where(d =>
-                   (d.unitId === unit.id) and (d.bodyStart lte pos) and (d.bodyEnd gt pos));
-                 // find the uses enclosed in any of the above defs that overlap the pos
-                 use <- _db.uses.where(u => (u.ownerId in odefs.map(_.id).toSet) and
-                                            (u.useStart lte pos) and (u.useEnd gt pos));
-                 // yield the target def, it's unit, and it's project
-                 tgt <- _db.defs.lookup(use.referentId);
-                 unit <- _db.compunits.lookup(tgt.unitId);
-                 proj <- _db.projects.lookup(unit.projectId)) yield (proj, unit, tgt)
+            // resolve a def into (project, compunit, def)
+            def resolveDef (tgt :Def) = for {
+              unit <- _db.compunits.lookup(tgt.unitId);
+              proj <- _db.projects.lookup(unit.projectId)
+            } yield (proj, unit, tgt)
+
+            // find the defs that overlap the supplied source position
+            val odefs = for {
+              p <- _db.projects; if (spath.startsWith(p.rootPath + File.separator));
+              // find the project and compunit that match the supplied path
+              val unitPath = spath.substring(p.rootPath.length+1);
+              unit <- _db.compunits.where(cu => cu.path === unitPath);
+              // find the defs in this unit that overlap the pos
+              odef <- _db.defs.where(d => (d.unitId === unit.id) and
+                                          (d.bodyStart lte pos) and (d.bodyEnd gt pos))
+            } yield odef
+
+            odefs.find(d => d.defStart <= pos && d.defEnd > pos) match {
+              // if any of the overlapping defs exactly matches the position, then yield that def
+              // rather than looking for an overlapping use
+              case Some(edef) => resolveDef(edef).toList
+              // otherwise yield the uses enclosed in the overlapping defs that themselves overlap
+              // the source position
+              case _ => for {
+                use <- _db.uses.where(u => (u.ownerId in odefs.map(_.id).toSet) and
+                                           (u.useStart lte pos) and (u.useEnd gt pos));
+                tgt <- _db.defs.lookup(use.referentId)
+                result <- resolveDef(tgt)
+              } yield result
+            }
           }
 
           if ("resolve" == action) {
