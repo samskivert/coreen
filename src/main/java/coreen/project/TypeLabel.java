@@ -31,9 +31,10 @@ public class TypeLabel extends FlowPanel
 {
     public static FlowPanel makeTypeHeader (DefDetail deet, DefMap defmap, UsePopup.Linker linker)
     {
-        Widget deflabel = Widgets.newLabel(deet.name, _rsrc.styles().Type());
-        new UsePopup.Popper(deet.id, deflabel, linker, defmap, true);
-        return makeTypeHeader(deet, deflabel, defmap, linker);
+        SpanWidget label = new SpanWidget.Plain(deet.name, deet);
+        label.addStyleName(_rsrc.styles().Type());
+        new UsePopup.Popper(deet.id, label, linker, defmap, true);
+        return makeTypeHeader(deet, label, defmap, linker);
     }
 
     public static FlowPanel makeTypeHeader (DefDetail deet, Widget deflabel, DefMap defmap,
@@ -42,12 +43,8 @@ public class TypeLabel extends FlowPanel
         FlowPanel header = Widgets.newFlowPanel(_rsrc.styles().typeLabelHeader());
         header.add(DefUtil.iconForDef(deet));
         for (DefId encl : deet.path) {
-            Widget plabel = Link.create(encl.name, Page.PROJECT, deet.unit.projectId,
-                                        ProjectPage.Detail.forKind(encl.kind), encl.id);
-            if (encl.kind != Kind.MODULE) {
-                new UsePopup.Popper(encl.id, plabel, linker, defmap, true);
-            }
-            header.add(plabel);
+            header.add(Link.create(encl.name, Page.PROJECT, deet.unit.projectId,
+                                   ProjectPage.Detail.forKind(encl.kind), encl.id));
             header.add(Widgets.newLabel(" ")); // TODO: customizable path separator?
         }
         header.add(deflabel);
@@ -113,7 +110,7 @@ public class TypeLabel extends FlowPanel
     {
         for (int ii = 0, ll = supers.length; ii < ll; ii++) {
             _header.insert(Widgets.newLabel((ii == 0) ? " ← " : ", "), _supersIdx++);
-            Widget suplab = createSuperLabel(supers[ii]);
+            SpanWidget suplab = createSuperLabel(supers[ii]);
             new UsePopup.Popper(supers[ii].id, suplab, linker, defmap, false);
             _header.insert(suplab, _supersIdx++);
         }
@@ -130,9 +127,9 @@ public class TypeLabel extends FlowPanel
                            ProjectPage.Detail.forKind(def.kind), def.id);
     }
 
-    protected Widget createSuperLabel (Def sup)
+    protected SpanWidget createSuperLabel (Def sup)
     {
-        return Widgets.newLabel(sup.name);
+        return new SpanWidget.Plain(sup.name, sup);
     }
 
     protected FlowPanel _header;

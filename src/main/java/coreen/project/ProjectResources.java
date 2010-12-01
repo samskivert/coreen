@@ -25,6 +25,12 @@ public interface ProjectResources extends ClientBundle
         String useTerm ();
         String useUnknown ();
 
+        String highModule ();
+        String highType ();
+        String highFunc ();
+        String highTerm ();
+        String highUnknown ();
+
         String use ();
         String doc ();
         String popDoc ();
@@ -44,6 +50,7 @@ public interface ProjectResources extends ClientBundle
         String typeIconLL ();
         String defLabel ();
         String toggle ();
+        String nested ();
     }
 
     @Source("project.css")

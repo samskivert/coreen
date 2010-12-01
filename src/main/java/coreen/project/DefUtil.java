@@ -65,7 +65,7 @@ public class DefUtil
     public static Label addDef (FlowPanel panel, final Def def, final DefMap defmap,
                                 UsePopup.Linker linker)
     {
-        InlineLabel label = new InlineLabel(def.name);
+        SpanWidget label = new SpanWidget.Plain(def.name, def);
         // new UsePopup.Popper(def.id, label, linker, defmap, false);
         UseHighlighter.bind(def.id, label, defmap);
         panel.add(adornDef(def, label));
@@ -97,7 +97,7 @@ public class DefUtil
     }
 
     /**
-     * Returns the appropriate style for a def of the specified kind.
+     * Returns the appropriate style for a use of the specified kind.
      */
     public static String getUseStyle (Kind kind)
     {
@@ -107,6 +107,20 @@ public class DefUtil
         case FUNC: return _rsrc.styles().useFunc();
         case TERM: return _rsrc.styles().useTerm();
         default: return _rsrc.styles().useUnknown();
+        }
+    }
+
+    /**
+     * Returns the appropriate highlight style for a def or use of the specified kind.
+     */
+    public static String getHighStyle (Kind kind)
+    {
+        switch (kind) {
+        case MODULE: return _rsrc.styles().highModule();
+        case TYPE: return _rsrc.styles().highType();
+        case FUNC: return _rsrc.styles().highFunc();
+        case TERM: return _rsrc.styles().highTerm();
+        default: return _rsrc.styles().highUnknown();
         }
     }
 

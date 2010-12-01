@@ -21,12 +21,13 @@ import coreen.util.DefMap;
  */
 public class UseHighlighter
 {
-    public static void bind (final long referentId, Widget target, final DefMap defmap)
+    public static void bind (final long referentId, final SpanWidget target,
+                             final DefMap defmap)
     {
         if (target instanceof HasMouseOverHandlers) {
             ((HasMouseOverHandlers)target).addMouseOverHandler(new MouseOverHandler() {
                 public void onMouseOver (MouseOverEvent event) {
-                    highlightTarget(defmap, referentId);
+                    highlightTarget(defmap, referentId, target, true);
                 }
             });
             ((HasMouseOutHandlers)target).addMouseOutHandler(new MouseOutHandler() {
@@ -37,25 +38,44 @@ public class UseHighlighter
         }
     }
 
-    public static boolean highlightTarget (DefMap defmap, long defId)
+    public static boolean highlightTarget (DefMap defmap, long defId, Widget except,
+                                           boolean evenIfNoDef)
     {
-        Widget def = defmap.get(defId);
-        if (def != null && WindowUtil.isScrolledIntoView(def)) {
-            def.addStyleName(_rsrc.styles().highlight());
-            return true;
+        boolean highedDef = highlightTarget(defmap.get(defId), except);
+        if (highedDef || evenIfNoDef) {
+            for (SpanWidget w : defmap.getUses(defId)) {
+                highlightTarget(w, except);
+            }
         }
-        return false;
+        return highedDef;
     }
 
     public static boolean clearTarget (DefMap defmap, long defId)
     {
-        Widget def = defmap.get(defId);
-        if (def != null) {
-            def.removeStyleName(_rsrc.styles().highlight());
+        boolean clearedDef = clearTarget(defmap.get(defId));
+        for (SpanWidget w : defmap.getUses(defId)) {
+            clearTarget(w);
+        }
+        return clearedDef;
+    }
+
+    protected static boolean highlightTarget (SpanWidget target, Widget except)
+    {
+        if (target != null && WindowUtil.isScrolledIntoView(target)) {
+            if (target != except) {
+                target.setHighlighted(true);
+            }
             return true;
         }
         return false;
     }
 
-    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
+    protected static boolean clearTarget (SpanWidget target)
+    {
+        if (target != null) {
+            target.setHighlighted(false);
+            return true;
+        }
+        return false;
+    }
 }

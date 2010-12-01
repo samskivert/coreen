@@ -57,7 +57,13 @@ public class TypeSummaryPanel extends Composite
     /** Creates a totally standalone panel that fetches all of its own data. */
     public static TypeSummaryPanel create (long defId)
     {
-        return new TypeSummaryPanel(defId, new DefMap(), IdMap.create(false), UsePopup.TYPE);
+        return create(defId, new DefMap(), UsePopup.TYPE);
+    }
+
+    /** Creates a totally standalone panel that fetches all of its own data. */
+    public static TypeSummaryPanel create (long defId, DefMap defmap, UsePopup.Linker linker)
+    {
+        return new TypeSummaryPanel(defId, defmap, IdMap.create(false), linker);
     }
 
     /** Creates a panel to be used as part of a type hierarchy. */
@@ -152,8 +158,8 @@ public class TypeSummaryPanel extends Composite
                     Bindings.bindHovered(_outerHov.get(def.id), focus);
                     return focus;
                 }
-                protected Widget createSuperLabel (Def sup) {
-                    Label label = Widgets.newLabel(sup.name);
+                protected SpanWidget createSuperLabel (Def sup) {
+                    SpanWidget label = super.createSuperLabel(sup);
                     // toggle visibility when this label is clicked
                     Value<Boolean> viz = _superViz.get(sup.id);
                     UIUtil.makeActionable(label, Bindings.makeToggler(viz));
@@ -289,15 +295,15 @@ public class TypeSummaryPanel extends Composite
         panel.add(new TogglePanel(_expanded.get(member.id)) {
             protected Widget createCollapsed () {
                 final SourcePanel sig = new SourcePanel(member, _defmap, _linker);
-                Widget panel = Widgets.newFlowPanel(
-                    _styles.sigPanel(), DefUtil.iconForDef(member), sig);
+                sig.addFirstLineIcon(DefUtil.iconForDef(member));
+                sig.addStyleName(_styles.sigPanel());
                 // if we lack doc label to put a dashed line above our sig, we add one manually
                 if (member.doc == null) {
                     // add this to the toggle panel so that it is used by both the siglabel and the
                     // source panel regardless of which is showing
                     addStyleName(_styles.sigPanelBare());
                 }
-                return panel;
+                return sig;
             }
             protected Widget createExpanded () {
                 if (member.kind == Kind.TYPE) {

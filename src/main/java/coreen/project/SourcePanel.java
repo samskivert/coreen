@@ -33,6 +33,7 @@ import coreen.model.CompUnitDetail;
 import coreen.model.DefContent;
 import coreen.model.DefId;
 import coreen.model.DefInfo;
+import coreen.model.Kind;
 import coreen.model.Project;
 import coreen.model.Span;
 import coreen.ui.PopupGroup;
@@ -61,7 +62,7 @@ public class SourcePanel extends AbstractProjectPanel
         _contents.add(Widgets.newLabel("Loading..."));
         _defmap = defmap;
         _linker = linker;
-        _local = new DefMap(_defmap);
+        _local = new DefMap();
     }
 
     public SourcePanel (long defId, DefMap defmap, UsePopup.Linker linker)
@@ -154,14 +155,14 @@ public class SourcePanel extends AbstractProjectPanel
     }
 
     protected void init (String text, Span[] defs, Span[] uses, long scrollToDefId,
-                         boolean disablePrefixTrim)
+                         boolean singleLineMode)
     {
         _contents.clear();
 
         // TODO: make sure this doesn't freak out when source uses CRLF
         JsArrayString lines = splitString(text, "\n");
         String first = expandTabs(lines.get(0));
-        int prefix = disablePrefixTrim ? 0 : first.indexOf(first.trim());
+        int prefix = singleLineMode ? 0 : first.indexOf(first.trim());
         if (prefix > 0) {
             // scan through another ten lines to ensure that the first line wasn't anomalous in
             // establishing our indentation prefix
@@ -178,46 +179,17 @@ public class SourcePanel extends AbstractProjectPanel
         for (final Span def : defs) {
             elems.add(new Elementer(def.getStart(), def.getStart()+def.getLength()) {
                 public Widget createElement (final String text) {
-                    final Label deflbl = Widgets.newInlineLabel(
-                        text, DefUtil.getDefStyle(def.getKind()));
-                    deflbl.addClickHandler(new ClickHandler() {
-                        public void onClick (ClickEvent event) {
-                            if (_menu == null) {
-                                DefId did = new DefId();
-                                did.id = def.getId();
-                                did.name = text;
-                                did.kind = def.getKind();
-                                _menu = createDefPopup(did, deflbl);
-                            }
-                            Popups.show(_menu, Popups.Position.ABOVE, deflbl);
-                        }
-                        protected PopupPanel _menu;
-                    });
-                    deflbl.setTitle(""+def.getId());
-                    _local.map(def.getId(), deflbl);
-                    return deflbl;
+                    SpanWidget span = new DefSpanWidget(text, def);
+                    _local.map(def.getId(), span);
+                    return span;
                 }
             });
         }
         for (final Span use : uses) {
             elems.add(new Elementer(use.getStart(), use.getStart()+use.getLength()) {
                 public Widget createElement (String text) {
-                    final Label span = Widgets.newInlineLabel(
-                        text, DefUtil.getUseStyle(use.getKind()));
-                    new UsePopup.Popper(use.getId(), span, _linker, _local, false).
-                        setGroup(_pgroup);
-                    UIUtil.makeActionable(span, new ClickHandler() {
-                        public void onClick (ClickEvent event) {
-                            if (_usesrc == null) {
-                                _usesrc = new DefSourcePanel(use.getId(), _defmap, _linker);
-                                _usesrc.addStyleName(_styles.nested());
-                                addAfterLine((FlowPanel)span.getParent(), _usesrc);
-                            } else {
-                                _usesrc.setVisible(!_usesrc.isVisible());
-                            }
-                        }
-                        protected DefSourcePanel _usesrc;
-                    });
+                    SpanWidget span = new UseSpanWidget(text, use);
+                    _local.mapUse(use.getId(), span);
                     return span;
                 }
             });
@@ -239,7 +211,7 @@ public class SourcePanel extends AbstractProjectPanel
                 if (offset == 0 && prefix > 0) {
                     seg = seg.substring(prefix);
                 }
-                curline = appendText(curline, trimPrefix(seg, prefix));
+                curline = appendText(curline, trimPrefix(seg, prefix), singleLineMode);
             }
             if (elem.endPos > text.length()) {
                 GWT.log("Invalid element " + elem.startPos + ":" + elem.endPos + " exceeds " +
@@ -253,7 +225,8 @@ public class SourcePanel extends AbstractProjectPanel
             offset = elem.endPos;
         }
         if (offset < text.length()) {
-            curline = appendText(curline, trimPrefix(expandTabs(text.substring(offset)), prefix));
+            curline = appendText(curline, trimPrefix(expandTabs(text.substring(offset)), prefix),
+                                 singleLineMode);
         }
 
         final Widget scrollTo = _local.get(scrollToDefId);
@@ -270,13 +243,13 @@ public class SourcePanel extends AbstractProjectPanel
         didInit();
     }
 
-    protected FlowPanel appendText (FlowPanel curline, String text)
+    protected FlowPanel appendText (FlowPanel curline, String text, boolean singleLineMode)
     {
         if (curline == null) {
             _contents.add(curline = Widgets.newFlowPanel(_styles.line()));
         }
         int eol = text.indexOf("\n");
-        if (eol == -1) {
+        if (singleLineMode || eol == -1) {
             curline.add(Widgets.newInlineLabel(text));
             return curline;
         } else {
@@ -287,7 +260,7 @@ public class SourcePanel extends AbstractProjectPanel
                 line = " ";
             }
             curline.add(Widgets.newInlineLabel(line));
-            return appendText(null, text.substring(eol+1));
+            return appendText(null, text.substring(eol+1), singleLineMode);
         }
     }
 
@@ -297,9 +270,8 @@ public class SourcePanel extends AbstractProjectPanel
 
     protected void addAfterLine (FlowPanel line, Widget widget)
     {
-        FlowPanel lines = (FlowPanel)line.getParent();
-        int lidx = lines.getWidgetIndex(line);
-        lines.insert(widget, lidx+1);
+        int lidx = _contents.getWidgetIndex(line);
+        _contents.insert(widget, lidx+1);
     }
 
     protected PopupPanel createDefPopup (final DefId def, final Widget deflbl)
@@ -394,6 +366,69 @@ public class SourcePanel extends AbstractProjectPanel
          return lines.join("\n");
     }-*/;
 
+    protected class DefSpanWidget extends SpanWidget.Def
+        implements ClickHandler
+    {
+        public DefSpanWidget (final String text, Span def) {
+            super(text, def);
+            UIUtil.makeActionable(this, this);
+            setTitle(""+def.getId());
+            UseHighlighter.bind(def.getId(), this, _defmap);
+        }
+
+        public void onClick (ClickEvent event) {
+            if (_menu == null) {
+                DefId did = new DefId();
+                did.id = _span.getId();
+                did.name = getText();
+                did.kind = _span.getKind();
+                _menu = createDefPopup(did, this);
+            }
+            Popups.show(_menu, Popups.Position.ABOVE, this);
+        }
+
+        protected PopupPanel _menu;
+    }
+
+    protected class UseSpanWidget extends SpanWidget.Use
+        implements ClickHandler
+    {
+        public UseSpanWidget (String text, Span use) {
+            super(text, use);
+
+            // provide a use popup for types, modules and funcs, but not terms
+            if (use.getKind() == Kind.TERM) {
+                UseHighlighter.bind(use.getId(), this, _defmap);
+            } else {
+                new UsePopup.Popper(use.getId(), this, _linker, _defmap, false).setGroup(_pgroup);
+            }
+
+            UIUtil.makeActionable(this, this);
+        }
+
+        public void onClick (ClickEvent event) {
+            // avoid creating an inline def view for this use if the def is already visible on
+            // screen, but don't avoid closing an existing inline view
+            boolean defViz = UseHighlighter.highlightTarget(_defmap, _span.getId(), this, false);
+            if (_usesrc != null) {
+                boolean inlineViz = _usesrc.isVisible();
+                if (inlineViz || !defViz) {
+                    _usesrc.setVisible(!inlineViz);
+                }
+            } else if (!defViz) {
+                if (_span.getKind() == Kind.TYPE) {
+                    _usesrc = TypeSummaryPanel.create(_span.getId(), _defmap, _linker);
+                } else {
+                    _usesrc = new DefSourcePanel(_span.getId(), _defmap, _linker);
+                }
+                _usesrc.addStyleName(_rsrc.styles().nested());
+                addAfterLine((FlowPanel)getParent(), _usesrc);
+            }
+        }
+
+        protected Widget _usesrc;
+    }
+
     protected DefMap _defmap, _local;
     protected UsePopup.Linker _linker;
     protected PopupGroup _pgroup = new PopupGroup();
@@ -401,7 +436,6 @@ public class SourcePanel extends AbstractProjectPanel
     protected interface Styles extends CssResource {
         String line ();
         String codeMode ();
-        String nested ();
     }
     protected @UiField Styles _styles;
     protected @UiField FlowPanel _contents;

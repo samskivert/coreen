@@ -17,7 +17,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.PopupCallback; // TODO: make a custom version that handles errors
+import com.threerings.gwt.util.PopupCallback;
 import com.threerings.gwt.util.WindowUtil;
 
 import coreen.client.Link;
@@ -132,7 +132,7 @@ public class UsePopup extends PopupPanel
         }
 
         public void onClick (ClickEvent event) {
-            Widget def = _defmap.get(_referentId);
+            SpanWidget def = _defmap.get(_referentId);
             if (def != null) {
                 WindowFX.scrollToPos(WindowUtil.getScrollIntoView(def));
             } else if (_popup != null) {
@@ -147,7 +147,8 @@ public class UsePopup extends PopupPanel
         }
 
         public void onMouseOver (MouseOverEvent event) {
-            if (_highlight && UseHighlighter.highlightTarget(_defmap, _referentId)) {
+            if (_highlight && UseHighlighter.highlightTarget(
+                    _defmap, _referentId, _target, false)) {
                 return;
             }
             if ((_popup == null || !_popup.isShowing())) {
@@ -171,7 +172,8 @@ public class UsePopup extends PopupPanel
             }
 
             // if the def came into view while we were waiting, just highlight it
-            if (_highlight && UseHighlighter.highlightTarget(_defmap, _referentId)) {
+            if (_highlight && UseHighlighter.highlightTarget(
+                    _defmap, _referentId, _target, true)) {
                 return;
             }
 
