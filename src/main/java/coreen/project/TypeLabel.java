@@ -10,9 +10,7 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
-import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Value;
 
 import coreen.client.Link;
 import coreen.client.Page;
@@ -20,7 +18,6 @@ import coreen.icons.IconResources;
 import coreen.model.Def;
 import coreen.model.DefDetail;
 import coreen.model.DefId;
-import coreen.model.Kind;
 import coreen.ui.PopupGroup;
 import coreen.util.DefMap;
 

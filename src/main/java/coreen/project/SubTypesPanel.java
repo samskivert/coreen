@@ -3,20 +3,14 @@
 
 package coreen.project;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
 
-import coreen.client.ClientMessages;
 import coreen.model.Def;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.PopupGroup;
 import coreen.util.DefMap;
-import coreen.util.PanelCallback;
 
 /**
  * Displays the subtypes of a def.

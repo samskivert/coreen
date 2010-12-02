@@ -3,7 +3,6 @@
 
 package coreen.project;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.HasMouseOutHandlers;
 import com.google.gwt.event.dom.client.HasMouseOverHandlers;
 import com.google.gwt.event.dom.client.MouseOutEvent;
