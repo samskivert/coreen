@@ -5,8 +5,6 @@ package coreen.project;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -183,7 +181,7 @@ public class ModulesPanel extends SummaryPanel
             });
             new Shower(_showing.get(def.id), _types) {
                 protected Widget createWidget () {
-                    return TypeSummaryPanel.create(def.id, _defmap, _showing, _linker);
+                    return TypeSummaryPanel.create(def.id, _defmap, _linker, _showing);
                 }
             };
         }

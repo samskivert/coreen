@@ -4,23 +4,14 @@
 package coreen.project;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.resources.client.CssResource;
-import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.FocusPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -34,9 +25,6 @@ import coreen.model.DefDetail;
 import coreen.model.DefInfo;
 import coreen.model.Kind;
 import coreen.model.TypeSummary;
-import coreen.rpc.ProjectService;
-import coreen.rpc.ProjectServiceAsync;
-import coreen.ui.PopupGroup;
 import coreen.ui.UIUtil;
 import coreen.ui.WindowFX;
 import coreen.util.DefMap;
@@ -46,14 +34,8 @@ import coreen.util.PanelCallback;
 /**
  * Displays a summary for a type.
  */
-public class TypeSummaryPanel extends Composite
+public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
 {
-    /** Contains the id of the configured def. */
-    public final long defId;
-
-    /** Contains the currently displayed def detail. */
-    public final Value<DefDetail> detail = Value.<DefDetail>create(null);
-
     /** Creates a totally standalone panel that fetches all of its own data. */
     public static TypeSummaryPanel create (long defId)
     {
@@ -63,24 +45,23 @@ public class TypeSummaryPanel extends Composite
     /** Creates a totally standalone panel that fetches all of its own data. */
     public static TypeSummaryPanel create (long defId, DefMap defmap, UsePopup.Linker linker)
     {
-        return new TypeSummaryPanel(defId, defmap, IdMap.create(false), linker);
+        return new TypeSummaryPanel(defId, defmap, linker, IdMap.create(false));
     }
 
     /** Creates a panel to be used as part of a type hierarchy. */
-    public static TypeSummaryPanel create (long defId, DefMap defmap, IdMap<Boolean> expanded,
-                                           UsePopup.Linker linker)
+    public static TypeSummaryPanel create (long defId, DefMap defmap, UsePopup.Linker linker,
+                                           IdMap<Boolean> expanded)
     {
-        TypeSummaryPanel panel = new TypeSummaryPanel(defId, defmap, expanded, linker);
+        TypeSummaryPanel panel = new TypeSummaryPanel(defId, defmap, linker, expanded);
         panel.addStyleName(panel._styles.topgap());
         return panel;
     }
 
     /** Creates a panel that acts like a type label and allows deferred expansion of members. */
-    public static TypeSummaryPanel create (DefDetail deets, DefMap defmap, UsePopup.Linker linker)
+    public static TypeSummaryPanel create (DefDetail dd, DefMap defmap, UsePopup.Linker linker)
     {
-        TypeSummaryPanel panel = new TypeSummaryPanel(
-            deets.id, defmap, IdMap.create(false), linker);
-        panel.initHeader(deets, new Def[0]);
+        TypeSummaryPanel panel = new TypeSummaryPanel(dd.id, defmap, linker, IdMap.create(false));
+        panel.init(dd, new Def[0], null);
         panel._loaded = true;
         return panel;
     }
@@ -110,80 +91,34 @@ public class TypeSummaryPanel extends Composite
         super.setVisible(visible);
     }
 
-    /** Used when we're part of a type hierarchy. */
-    protected TypeSummaryPanel (
-        long defId, DefMap defmap, IdMap<Boolean> expanded, UsePopup.Linker linker)
+    protected TypeSummaryPanel (long defId, DefMap defmap, UsePopup.Linker linker,
+                                IdMap<Boolean> expanded)
     {
-        initWidget(_binder.createAndBindUi(this));
-        this.defId = defId;
-        _defmap = defmap;
-        _expanded = expanded;
-        _linker = linker;
+        super(defId, defmap, linker, expanded);
     }
 
-    protected void ensureLoaded ()
+    protected void loadData ()
     {
-        if (!_loaded) {
-            _loaded = true;
-            _contents.add(Widgets.newLabel("Loading..."));
-            _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
-                public void onSuccess (TypeSummary sum) {
-                    _contents.clear();
-                    initHeader(sum, sum.supers);
-                    initBody(sum);
-                    // make sure we fit in the view
-                    Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
-                        public void execute () {
-                            WindowFX.scrollToPos(
-                                WindowUtil.getScrollIntoView(TypeSummaryPanel.this));
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    protected void initHeader (final DefDetail deets, Def[] supers)
-    {
-        detail.update(deets);
-        configSupers(supers);
-
-        FlowPanel header = Widgets.newFlowPanel(_styles.header());
-        if (deets.kind == Kind.TYPE) {
-            _outerHov.put(deets.id, Value.create(false));
-            header.add(_tlabel = new TypeLabel(deets, supers, _defmap, _linker) {
-                protected Widget createDefLabel (DefDetail def) {
-                    Widget label = super.createDefLabel(def);
-                    FocusPanel focus = new FocusPanel(label);
-                    Bindings.bindHovered(_outerHov.get(def.id), focus);
-                    return focus;
-                }
-                protected SpanWidget createSuperLabel (Def sup) {
-                    SpanWidget label = super.createSuperLabel(sup);
-                    // toggle visibility when this label is clicked
-                    Value<Boolean> viz = _superViz.get(sup.id);
-                    UIUtil.makeActionable(label, Bindings.makeToggler(viz));
-                    Bindings.bindStateStyle(viz, null, _styles.superUp(), label);
-                    // also note hoveredness when hovered
-                    final Value<Boolean> hov = _outerHov.get(sup.id);
-                    Bindings.bindHovered(hov, label);
-                    return label;
-                }
-            });
-
-        } else {
-            if (deets.doc != null) {
-                header.add(new DocLabel(deets.doc));
+        _projsvc.getSummary(defId, new PanelCallback<TypeSummary>(_contents) {
+            public void onSuccess (TypeSummary sum) {
+                _contents.clear();
+                init(sum, sum.supers, sum);
+                // make sure we fit in the view
+                Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
+                    public void execute () {
+                        recenterPanel();
+                    }
+                });
             }
-        }
+        });
+    }
 
-        final FlowPanel body = Widgets.newFlowPanel(_rsrc.styles().belowTypeLabel());
-        SourcePanel sig = new SourcePanel(deets, _defmap, _linker);
-        sig.addStyleName(_styles.sigPanel());
-
-        if (deets instanceof TypeSummary) {
+    protected void initBody (final FlowPanel body, SourcePanel sig, TypeSummary bodyData)
+    {
+        if (bodyData != null) {
             body.add(sig);
             addFilterControls();
+            initBody(bodyData);
 
         } else {
             final Value<Boolean> expanded = Value.create(false);
@@ -210,11 +145,8 @@ public class TypeSummaryPanel extends Composite
                         }
                     });
                 }
-                });
+            });
         }
-
-        _contents.add(header);
-        _contents.add(body);
     }
 
     protected void configSupers (Def[] supers)
@@ -228,7 +160,7 @@ public class TypeSummaryPanel extends Composite
 
     protected FlowPanel initBody (final TypeSummary sum)
     {
-        FlowPanel members = Widgets.newFlowPanel(_styles.members());
+        FlowPanel members = Widgets.newFlowPanel(_styles.summaryMembers());
         int added = addMembers(members, true, sum.members);
         if (added < sum.members.length) {
             FlowPanel nonpubs = new FlowPanel() {
@@ -307,7 +239,7 @@ public class TypeSummaryPanel extends Composite
             }
             protected Widget createExpanded () {
                 if (member.kind == Kind.TYPE) {
-                    return new TypeSummaryPanel(member.id, _defmap, _expanded, _linker);
+                    return create(member.id, _defmap, _linker, _expanded);
                 } else {
                     return new SourcePanel(member.id, _defmap, _linker) {
                         protected void didInit () {
@@ -371,37 +303,6 @@ public class TypeSummaryPanel extends Composite
         }
     }
 
-    protected interface Styles extends CssResource
-    {
-        String topgap ();
-        String header ();
-        String members ();
-        String nonPublic ();
-        String sigPanel ();
-        String sigPanelBare ();
-        String superUp ();
-        String outerHovered ();
-        String filterLabel ();
-        String filterBox ();
-    }
-    protected @UiField Styles _styles;
-    protected @UiField FlowPanel _contents;
-
-    protected boolean _loaded, _headerless;
-    protected TypeLabel _tlabel;
-    protected DefMap _defmap;
-    protected IdMap<Boolean> _expanded;
-    protected UsePopup.Linker _linker;
     protected Value<Boolean> _npshowing = Value.create(false);
     protected List<MemberPanel> _mpanels = new ArrayList<MemberPanel>();
-
-    // these control the visibility of members defined by this supertype
-    protected Map<Long, Value<Boolean>> _superViz = new HashMap<Long, Value<Boolean>>();
-    protected Map<Long, Value<Boolean>> _outerHov = new HashMap<Long, Value<Boolean>>();
-
-    protected interface Binder extends UiBinder<Widget, TypeSummaryPanel> {}
-    protected static final Binder _binder = GWT.create(Binder.class);
-    protected static final ProjectServiceAsync _projsvc = GWT.create(ProjectService.class);
-    protected static final ProjectMessages _msgs = GWT.create(ProjectMessages.class);
-    protected static final ProjectResources _rsrc = GWT.create(ProjectResources.class);
 }

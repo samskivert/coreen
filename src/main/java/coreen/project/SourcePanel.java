@@ -17,16 +17,13 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
-import com.threerings.gwt.util.Value;
 
 import coreen.client.Args;
 import coreen.model.CompUnitDetail;
@@ -417,7 +414,7 @@ public class SourcePanel extends AbstractProjectPanel
                 }
             } else if (!defViz) {
                 if (_span.getKind() == Kind.TYPE) {
-                    _usesrc = TypeSummaryPanel.create(_span.getId(), _defmap, _linker);
+                    _usesrc = new TypeDetailPanel(_span.getId(), _defmap, _linker);
                 } else {
                     _usesrc = new DefSourcePanel(_span.getId(), _defmap, _linker);
                 }

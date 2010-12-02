@@ -4,7 +4,7 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style type="coreen.project.TypeSummaryPanel.Styles" field="_styles">
+  <ui:style type="coreen.project.TypeAndMembersPanel.Styles" field="_styles">
     .contents {
     }
     .topgap {
@@ -13,8 +13,12 @@
     }
     .header {
     }
-    .members {
+    .summaryMembers {
       margin-left: 20px;
+    }
+    .detailMembers {
+      border-top: 1px dashed;
+      border-bottom: 1px dashed;
     }
     .nonPublic {
       font-size: small;

@@ -101,7 +101,7 @@ public class TypesPanel extends SummaryPanel
             Bindings.bindVisible(_showing.get(def.id), new Bindings.Thunk() {
                 public Widget createWidget () {
                     TypeDetailPanel deets = new TypeDetailPanel(
-                        def.id, _defmap, _showing, UsePopup.BY_TYPES);
+                        def.id, _defmap, UsePopup.BY_TYPES, _showing);
                     parent.add(deets);
                     return deets;
                 }
