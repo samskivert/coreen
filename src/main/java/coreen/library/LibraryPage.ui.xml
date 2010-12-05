@@ -4,7 +4,7 @@
              ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
-  <ui:style>
+  <ui:style type="coreen.library.LibraryPage.Styles" field="_styles">
     body {
       font-family: Helvetica, Arial, sans-serif;
     }
@@ -17,11 +17,16 @@
       font-family: Trebuchet MS, serif;
       font-size: 24px;
     }
+    .listTitle {
+      font-size: small;
+      font-style: italic;
+      border-bottom: 1px dashed;
+    }
   </ui:style>
 
   <g:HTMLPanel>
-    <table class="{style.header}" cellpadding="0" cellspacing="0">
-    <tr><td valign="top" class="{style.title}">
+    <table class="{_styles.header}" cellpadding="0" cellspacing="0">
+    <tr><td valign="top" class="{_styles.title}">
           <g:Hyperlink targetHistoryToken=""><ui:msg>Coreen</ui:msg></g:Hyperlink></td>
         <td><ui:msg>Search:</ui:msg>
             <g:TextBox ui:field="_search" visibleLength="30"/>

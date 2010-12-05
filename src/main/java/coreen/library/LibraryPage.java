@@ -4,6 +4,7 @@
 package coreen.library;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -15,13 +16,16 @@ import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.EnterClickAdapter;
 import com.threerings.gwt.ui.FluentTable;
+import com.threerings.gwt.util.DateUtil;
 
 import coreen.client.AbstractPage;
 import coreen.client.Args;
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.model.Project;
 import coreen.rpc.LibraryService;
 import coreen.rpc.LibraryServiceAsync;
+import coreen.ui.DataPanel;
 import coreen.ui.SearchResultsPanel;
 import coreen.ui.UIUtil;
 
@@ -77,6 +81,37 @@ public class LibraryPage extends AbstractPage
             _contents.setWidget(_projects);
         }
     }
+
+    protected class ProjectsPanel extends DataPanel<Project[]>
+    {
+        public ProjectsPanel () {
+            super("projects");
+            _libsvc.getProjects(createCallback());
+        }
+
+        @Override // from DataPanel
+            protected void init (Project[] data) {
+            FluentTable table = new FluentTable(5, 0);
+            table.add().setText("Project", _styles.listTitle()).
+                right().setText("Path", _styles.listTitle()).
+                right().setText("Last updated", _styles.listTitle());
+            for (Project p : data) {
+                table.add().setWidget(Link.create(p.name, Page.PROJECT, p.id)).
+                    right().setText(p.rootPath).
+                    right().setText(DateUtil.formatDateTime(p.lastUpdated));
+            }
+            if (data.length == 0) {
+                table.add().setText("You have no projects. You should import some.");
+            }
+            add(table);
+        }
+    }
+
+    protected interface Styles extends CssResource
+    {
+        String listTitle ();
+    }
+    protected @UiField Styles _styles;
 
     protected @UiField TextBox _search;
     protected @UiField Button _go;
