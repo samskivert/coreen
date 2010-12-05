@@ -17,9 +17,11 @@
       font-family: Trebuchet MS, serif;
       font-size: 24px;
     }
-    .listTitle {
+    .listHeader {
       font-size: small;
       font-style: italic;
+    }
+    .listHeader td {
       border-bottom: 1px dashed;
     }
   </ui:style>

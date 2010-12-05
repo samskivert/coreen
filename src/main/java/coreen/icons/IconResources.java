@@ -15,6 +15,7 @@ public interface IconResources extends ClientBundle
     ImageResource open_toggle ();
     ImageResource closed_toggle ();
     ImageResource view_code ();
+    ImageResource edit ();
 
     // member annotation icons
     ImageResource abstract_co ();

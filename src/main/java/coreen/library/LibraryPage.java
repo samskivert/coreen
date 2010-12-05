@@ -10,18 +10,21 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.EnterClickAdapter;
 import com.threerings.gwt.ui.FluentTable;
+import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.DateUtil;
 
 import coreen.client.AbstractPage;
 import coreen.client.Args;
 import coreen.client.Link;
 import coreen.client.Page;
+import coreen.icons.IconResources;
 import coreen.model.Project;
 import coreen.rpc.LibraryService;
 import coreen.rpc.LibraryServiceAsync;
@@ -92,11 +95,16 @@ public class LibraryPage extends AbstractPage
         @Override // from DataPanel
             protected void init (Project[] data) {
             FluentTable table = new FluentTable(5, 0);
-            table.add().setText("Project", _styles.listTitle()).
-                right().setText("Path", _styles.listTitle()).
-                right().setText("Last updated", _styles.listTitle());
+            table.add().setText("").
+                right().setText("Project").
+                right().setText("Path").
+                right().setText("Last updated");
+            table.getRowFormatter().addStyleName(0, _styles.listHeader());
             for (Project p : data) {
-                table.add().setWidget(Link.create(p.name, Page.PROJECT, p.id)).
+                table.add().setWidget(Widgets.makeActionImage(
+                                          new Image(_icons.edit()), "Config...",
+                                          Link.createHandler(Page.EDIT, p.id))).
+                    right().setWidget(Link.create(p.name, Page.PROJECT, p.id)).
                     right().setText(p.rootPath).
                     right().setText(DateUtil.formatDateTime(p.lastUpdated));
             }
@@ -109,7 +117,7 @@ public class LibraryPage extends AbstractPage
 
     protected interface Styles extends CssResource
     {
-        String listTitle ();
+        String listHeader ();
     }
     protected @UiField Styles _styles;
 
@@ -125,4 +133,5 @@ public class LibraryPage extends AbstractPage
     protected static final String SEARCH = "search";
 
     protected static final LibraryServiceAsync _libsvc = GWT.create(LibraryService.class);
+    protected static final IconResources _icons = GWT.create(IconResources.class);
 }
