@@ -66,7 +66,7 @@ trait Updater {
 
         // read stderr on a separate thread so that we can ensure that stdout and stderr are both
         // actively drained, preventing the process from blocking
-        val errLines = _exec.submit(new Callable[Array[String]] {
+        val errLines = _exec.svc.submit(new Callable[Array[String]] {
           def call = Source.fromInputStream(proc.getErrorStream).getLines.toArray
         })
 
@@ -112,13 +112,12 @@ trait Updater {
               // add the id of the newly inserted unit to our (path -> id) mapping
               cuIds += (cu.path -> cu.id)
             }
-            ulog.append("Added " + toAdd.size + " new compunits.")
+            ulog.append("Adding " + toAdd.size + " new compunits.")
           }
           if (!toUpdate.isEmpty) {
-            _db.compunits.update(cu => where(cu.id in toUpdate) set(cu.lastUpdated := now))
             // add the ids of the updated units to our (path -> id) mapping
             oldCUs filter(cu => toUpdate(cu.id)) foreach { cu => cuIds += (cu.path -> cu.id) }
-            ulog.append("Updated " + toUpdate.size + " compunits.")
+            ulog.append("Updating " + toUpdate.size + " compunits.")
           }
         }
 
@@ -166,18 +165,30 @@ trait Updater {
           // out code from modules that have already been claimed by some other project
           processDefs(cuIds(cu.src), defMap, newDefs, dupDefs, defToUnit,
                       cu.defs filter(d => defMap.contains(d.id)))
+          checkAbort() // possibly terminate early
         }
 
         // then process all of the uses (which may reference the newly added defs)...
         for (cu <- cus) {
           ulog.append("Processing uses in " + cu.src + "...")
           processUses(cuIds(cu.src), defMap, newDefs, dupDefs, cu.defs)
+          checkAbort() // possibly terminate early
         }
 
         // finally record supertype relationships (which may also reference newly added defs)...
         for (cu <- cus) {
           ulog.append("Processing supers in " + cu.src + "...")
           processSupers(ulog, cuIds(cu.src), defMap, cu.defs)
+          checkAbort() // possibly terminate early
+        }
+
+        // note that the compunits and project were updated
+        transaction {
+          if (!toUpdate.isEmpty) {
+            _db.compunits.update(cu => where(cu.id in toUpdate) set(cu.lastUpdated := now))
+          }
+          _db.projects.update(up => where(up.id === p.id) set(
+            up.lastUpdated := System.currentTimeMillis))
         }
 
         ulog.append("Processing complete!")
@@ -453,6 +464,10 @@ trait Updater {
           classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) :: extraOpts
         jvm ++ (classname :: javaArgs) ++ (rootPath :: srcDirs)
       }
+    }
+
+    def checkAbort () {
+      if (_exec.svc.isShutdown) throw new Exception("Aborted due to shutdown.")
     }
 
     // TEMP: profiling helper

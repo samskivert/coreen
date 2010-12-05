@@ -36,15 +36,13 @@ trait Importer {
       val now = System.currentTimeMillis
       val pp = new PendingProject(source, "Starting...", now, now, 0L)
       _projects += (source -> pp)
-      _exec.execute(new Runnable {
-        override def run = {
+      _exec.executeJob("Import project: " + source, () => {
           try {
             processImport(source)
           } catch {
             case ie :ImportException => updatePending(source, ie.getMessage, -1L)
             case t => t.printStackTrace; updatePending(source, "Error: " + t.getMessage, -1L)
           }
-        }
       })
       pp
     }

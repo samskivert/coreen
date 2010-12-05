@@ -9,6 +9,8 @@ import java.net.URI
 
 import sun.misc.{Signal, SignalHandler}
 
+import org.squeryl.PrimitiveTypeMode._
+
 import coreen.persist.{DB, DBComponent}
 import coreen.project.{Importer, Updater}
 
@@ -70,6 +72,20 @@ object Coreen extends AnyRef
 
     _log.info("Coreen running. Ctrl-c to exit.")
 
+    // queue any projects that have not been updated in this epoch
+    if (_config.get("epoch", 0) != _epoch) {
+      _config.update("epoch", _epoch)
+      _config.update("epochStamp", System.currentTimeMillis())
+    }
+    val epochStamp = _config.get("epochStamp", 0L)
+    transaction {
+      for (p <- _db.projects) {
+        if (p.lastUpdated < epochStamp) {
+          _exec.queueJob("Epoch triggered rebuild: " + p.name, () => _updater.update(p))
+        }
+      }
+    }
+
     // block the main thread until our signal is received
     _sigint.synchronized { _sigint.wait }
 
@@ -86,4 +102,8 @@ object Coreen extends AnyRef
   // override protected def dblogger = (s :String) => println(s)
 
   private val _sigint = new Signal("INT")
+
+  /** Increment this value to trigger a (one at a time) rebuild of all projects the next time
+   * Coreen is started on a client's machine. */
+  private val _epoch = 1
 }

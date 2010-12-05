@@ -48,15 +48,7 @@ trait ProjectServlet {
     // from interface ProjectService
     def rebuildProject (id :Long) {
       val p = requireProject(id)
-      _exec.execute(new Runnable {
-        override def run = {
-          try {
-            _updater.update(p)
-          } catch {
-            case t => _log.warning("Update failed", "proj", p, t)
-          }
-        }
-      })
+      _exec.executeJob("User triggered rebuild: " + p.name, () => _updater.update(p))
     }
 
     // from interface ProjectService
