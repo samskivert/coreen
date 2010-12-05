@@ -26,26 +26,25 @@ trait Config
 
     /** Returns a boolean configuration value. */
     def get (key :String, defval :Boolean) :Boolean =
-      java.lang.Boolean.parseBoolean(get(key, String.valueOf(defval)))
-
-    /** Updates a configuration value. */
-    def update (key :String, value :Boolean) {
-      update(key, String.valueOf(value))
-    }
+      get(key, String.valueOf(defval)).toBoolean
 
     /** Returns an integer configuration value. */
     def get (key :String, defval :Int) :Int =
-      Integer.parseInt(get(key, String.valueOf(defval)))
+      get(key, String.valueOf(defval)).toInt
 
-    /** Updates a configuration value. */
-    def update (key :String, value :Int) {
-      update(key, String.valueOf(value))
-    }
+    /** Returns a long configuration value. */
+    def get (key :String, defval :Long) :Long =
+      get(key, String.valueOf(defval)).toLong
 
     /** Returns a string configuration value. */
     def get (key :String, defval :String) :String
 
-    /** Updates a configuration value. */
+    /** Updates a primitive configuration value. */
+    def update[T <: AnyVal] (key :String, value :T) {
+      update(key, String.valueOf(value))
+    }
+
+    /** Updates a string configuration value. */
     def update (key :String, value :String) :Unit
 
     /** Returns a snapshot of all configuration settings. */
