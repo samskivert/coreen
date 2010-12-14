@@ -18,19 +18,26 @@
 (defvar coreen-marker-ring (make-ring 16)
   "Ring of markers which are locations from which \\[coreen-open-symbol] was invoked.")
 
+(defun coreen-browse-url (url)
+  "The function called by the Coreen bindings to display a URL. The default
+  implementation simply calls (browse-url url) but this can be redefined to
+  provide custom behavior."
+  (browse-url url)
+  )
+
 (defun coreen-find-symbol (class)
   "Searches Coreen for the symbol under the point. Only the text
 of the symbol is used for searching, the current buffer need not
 contain a compilation unit known to Coreen."
   (interactive (list (read-from-minibuffer "Symbol: " (thing-at-point 'symbol))))
-  (browse-url (concat coreen-url "/#LIBRARY~search~" class))
+  (coreen-browse-url (concat coreen-url "/#LIBRARY~search~" class))
   )
 
 (defun coreen-view-symbol ()
   "Views the symbol under the point in Coreen. The current buffer
 must contain a compilation that has been processed by Coreen."
   (interactive)
-  (browse-url (concat coreen-url "/service?action=view"
+  (coreen-browse-url (concat coreen-url "/service?action=view"
                       "&src=" (buffer-file-name)
                       "&pos=" (number-to-string (point))
                       "&sym=" (thing-at-point 'symbol)))
