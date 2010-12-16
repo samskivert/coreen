@@ -126,7 +126,8 @@ object SourceModel
     var flags = 0
     if (access.equalsIgnoreCase("public")) flags |= JDef.PUBLIC
     if (!access.equalsIgnoreCase("private") &&
-        flavor != Flavor.CONSTRUCTOR)      flags |= JDef.INHERITED
+        flavor != Flavor.CONSTRUCTOR &&
+        flavor != Flavor.TYPE_PARAM)       flags |= JDef.INHERITED
     flags
   }
 
