@@ -59,7 +59,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
     {
         // if we have only one result, or the first result is a type and the rest are its public
         // constructors, simply redirect to the type panel for that result
-        if (justTypeAndCtors(results)) {
+        if (results.length > 0 && justTypeAndCtors(results)) {
             goToResult(results[0]);
             return;
         }
