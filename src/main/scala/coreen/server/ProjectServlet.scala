@@ -324,20 +324,21 @@ trait ProjectServlet {
       Source.fromURI(new File(p.rootPath).toURI.resolve(path)).mkString("")
 
     // defines the sort ordering of def flavors
-    private val FlavorPriority = List(Flavor.ENUM,
-                                    Flavor.INTERFACE,
-                                    Flavor.ABSTRACT_CLASS,
-                                    Flavor.CLASS,
-                                    Flavor.ANNOTATION,
-                                    Flavor.OBJECT,
-                                    Flavor.ABSTRACT_OBJECT,
-                                    Flavor.STATIC_FIELD,
-                                    Flavor.STATIC_METHOD,
-                                    Flavor.FIELD,
-                                    Flavor.CONSTRUCTOR,
-                                    Flavor.ABSTRACT_METHOD,
-                                    Flavor.METHOD
-                                  ).map(Decode.flavorToCode).zipWithIndex.toMap
+    private val FlavorPriority = List(Flavor.TYPE_PARAM,
+                                      Flavor.ENUM,
+                                      Flavor.INTERFACE,
+                                      Flavor.ABSTRACT_CLASS,
+                                      Flavor.CLASS,
+                                      Flavor.ANNOTATION,
+                                      Flavor.OBJECT,
+                                      Flavor.ABSTRACT_OBJECT,
+                                      Flavor.STATIC_FIELD,
+                                      Flavor.STATIC_METHOD,
+                                      Flavor.FIELD,
+                                      Flavor.CONSTRUCTOR,
+                                      Flavor.ABSTRACT_METHOD,
+                                      Flavor.METHOD
+                                    ).map(Decode.flavorToCode).zipWithIndex.toMap
 
     private val ByFlavorName = new Ordering[Def] {
       def compare (a :Def, b :Def) = {

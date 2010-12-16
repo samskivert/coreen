@@ -24,6 +24,8 @@ public enum Flavor
     OBJECT,
     /** An abstract singleton object (Scala). */
     ABSTRACT_OBJECT,
+    /** A type parameter. */
+    TYPE_PARAM,
 
     // func flavors
 
@@ -46,8 +48,6 @@ public enum Flavor
     PARAM,
     /** A local variable (Java, etc.). */
     LOCAL,
-    /** A type parameter. */
-    TYPE_PARAM,
 
     /** A flavorless def. */
     NONE;

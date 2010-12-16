@@ -31,6 +31,7 @@ object Decode {
     Flavor.ANNOTATION -> 14,
     Flavor.OBJECT -> 15,
     Flavor.ABSTRACT_OBJECT -> 16,
+    Flavor.TYPE_PARAM -> 17,
 
     // func flavors
     Flavor.METHOD -> 30,
@@ -43,7 +44,6 @@ object Decode {
     Flavor.PARAM -> 51,
     Flavor.LOCAL -> 52,
     Flavor.STATIC_FIELD -> 53,
-    Flavor.TYPE_PARAM -> 54,
 
     // universal flavors
     Flavor.NONE -> 0
