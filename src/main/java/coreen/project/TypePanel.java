@@ -3,6 +3,7 @@
 
 package coreen.project;
 
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.user.client.ui.SimplePanel;
 
 import com.threerings.gwt.util.Value;
@@ -37,6 +38,16 @@ public class TypePanel extends AbstractProjectPanel
             _panel.detail.addListener(new Value.Listener<DefDetail>() {
                 public void valueChanged (DefDetail deets) {
                     UIUtil.setWindowTitle(proj.name, deets.name);
+                    // the def detail is posted before the UI is created, so we have to delay the
+                    // expansion of the docs until the next event loop pass
+                    Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
+                        public void execute () {
+                            DocLabel doc = _panel.getTypeLabel().doc;
+                            if (doc != null) {
+                                doc.expanded.update(true);
+                            }
+                        }
+                    });
                 }
             });
         }

@@ -48,6 +48,8 @@ public class TypeLabel extends FlowPanel
         return header;
     }
 
+    public final DocLabel doc;
+
     public TypeLabel (DefDetail deet, DefMap defmap, UsePopup.Linker linker)
     {
         this(deet, null, defmap, linker);
@@ -99,7 +101,9 @@ public class TypeLabel extends FlowPanel
         _header.add(uses);
 
         if (deet.doc != null) {
-            add(new DocLabel(deet.doc));
+            add(doc = new DocLabel(deet.doc));
+        } else {
+            doc = null;
         }
     }
 

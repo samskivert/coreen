@@ -18,6 +18,9 @@ import com.threerings.gwt.util.Value;
  */
 public class DocLabel extends FlowPanel
 {
+    /** A value that controls the expanded state of this label. */
+    public final Value<Boolean> expanded = Value.create(false);
+
     public DocLabel (String docHTML)
     {
         this(docHTML, false);
@@ -67,7 +70,7 @@ public class DocLabel extends FlowPanel
             add(Widgets.newHTML(fullDoc));
         } else {
             final String shortDoc = fullDoc.substring(0, didx+1);
-            add(new TogglePanel(Value.create(false)) {
+            add(new TogglePanel(expanded) {
                 protected Widget createCollapsed () {
                     return Widgets.newHTML(shortDoc, _rsrc.styles().shortDoc());
                 }
