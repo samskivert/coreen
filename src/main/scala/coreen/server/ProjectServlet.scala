@@ -79,11 +79,11 @@ trait ProjectServlet {
 
     // from interface ProjectService
     def getTypes (projectId :Long) :Array[JDef] = transaction {
-      from(_db.compunits, _db.defs)((cu, d) =>
-        where(cu.projectId === projectId and cu.id === d.unitId and
-              (d.kind === Decode.kindToCode(Kind.TYPE)))
-        select(d)
-      ).toArray sortBy(_.name) map(Convert.toJava)
+      // load all types whose parent are the project's modules (all top-level types)
+      val modIds = _db.loadModules(projectId).map(_.id)
+      _db.defs.where(d => (d.outerId in modIds) and
+                          (d.kind === Decode.kindToCode(Kind.TYPE))
+                    ).toArray sortBy(_.name) map(Convert.toJava)
     }
 
     // from interface ProjectService
