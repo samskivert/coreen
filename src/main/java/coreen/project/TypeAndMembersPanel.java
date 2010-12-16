@@ -47,6 +47,12 @@ public abstract class TypeAndMembersPanel<C extends DefDetail> extends Composite
         _expanded.get(memberId).update(true);
     }
 
+    /** Returns the type label used by this panel. */
+    public TypeLabel getTypeLabel ()
+    {
+        return _tlabel;
+    }
+
     @Override // from Widget
     public void onLoad ()
     {

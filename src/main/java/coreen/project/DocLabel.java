@@ -69,7 +69,7 @@ public class DocLabel extends FlowPanel
             final String shortDoc = fullDoc.substring(0, didx+1);
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
-                    return Widgets.newHTML(shortDoc);
+                    return Widgets.newHTML(shortDoc, _rsrc.styles().shortDoc());
                 }
                 protected Widget createExpanded () {
                     return Widgets.newHTML(fullDoc);

@@ -231,10 +231,10 @@ public class UsePopup extends PopupPanel
 
         _link = linker.makeLink(deet); // we just use this for its history token...
 
-        Label dragger = UIUtil.makeFloatRight(new Label(" ▤ "));
+        Label dragger = UIUtil.makeFloatRight(new Label("▤"));
         dragger.setTitle("Click and drag to move popup.");
         Popups.makeDraggable(dragger, this);
-        setWidget(Widgets.newFlowPanel(dragger, DefUtil.createDefSummary(deet, defmap, linker)));
+        setWidget(DefUtil.createDefSummary(deet, defmap, linker, dragger));
     }
 
     @Override // from PopupPanel

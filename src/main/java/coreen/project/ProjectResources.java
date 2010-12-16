@@ -33,6 +33,7 @@ public interface ProjectResources extends ClientBundle
 
         String use ();
         String doc ();
+        String shortDoc ();
         String popDoc ();
         String borderTop ();
         String selected ();

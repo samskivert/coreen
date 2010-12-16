@@ -30,14 +30,16 @@ public class DefUtil
      * Creates a summary view for the supplied def details.
      */
     public static Widget createDefSummary (final DefDetail deets, final DefMap defmap,
-                                           final UsePopup.Linker linker)
+                                           final UsePopup.Linker linker, final Widget extra)
     {
         if ((deets.kind == Kind.MODULE || deets.kind == Kind.TYPE) &&
             // this is a hack to handle Java anonymous classes; we should either have a CLOSURE
             // type or somehow identify explicitly that a type is anonymous; we want to treat such
             // types differently in the user interface
             !StringUtil.isBlank(deets.name)) {
-            return TypeSummaryPanel.create(deets, defmap, linker);
+            TypeSummaryPanel tsp = TypeSummaryPanel.create(deets, defmap, linker);
+            tsp.getTypeLabel().addToHeader(extra);
+            return tsp;
 
         } else {
             TogglePanel contents = new TogglePanel(Value.create(false)) {
@@ -49,7 +51,9 @@ public class DefUtil
                 }
             };
             contents.addStyleName(_rsrc.styles().belowTypeLabel());
-            return Widgets.newFlowPanel(new TypeLabel(deets, defmap, linker), contents);
+            TypeLabel tlabel = new TypeLabel(deets, defmap, linker);
+            tlabel.addToHeader(extra);
+            return Widgets.newFlowPanel(tlabel, contents);
         }
     }
 

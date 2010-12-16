@@ -87,7 +87,7 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected Widget createResultView (final R result)
     {
-        return DefUtil.createDefSummary(result, _defmap, UsePopup.TYPE);
+        return DefUtil.createDefSummary(result, _defmap, UsePopup.TYPE, null);
     }
 
     protected String createNoResultsLabel (String query)
