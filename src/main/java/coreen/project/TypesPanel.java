@@ -64,8 +64,9 @@ public class TypesPanel extends SummaryPanel
         FlowPanel types = null, details = null;
         char c = 0;
         for (final Def def : defs) {
-            if (def.name.length() == 0) {
-                continue; // skip blank types; TODO: better anonymous inner class handling
+            if (def.name.length() == 0 || !def.isPublic()) {
+                // TODO: better anonymous inner class handling
+                continue; // skip blank and non-public types
             }
             if (def.name.charAt(0) != c) {
                 types = Widgets.newFlowPanel();

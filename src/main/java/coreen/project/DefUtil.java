@@ -38,7 +38,9 @@ public class DefUtil
             // types differently in the user interface
             !StringUtil.isBlank(deets.name)) {
             TypeSummaryPanel tsp = TypeSummaryPanel.create(deets, defmap, linker);
-            tsp.getTypeLabel().addToHeader(extra);
+            if (extra != null) {
+                tsp.getTypeLabel().addToHeader(extra);
+            }
             return tsp;
 
         } else {
@@ -52,7 +54,9 @@ public class DefUtil
             };
             contents.addStyleName(_rsrc.styles().belowTypeLabel());
             TypeLabel tlabel = new TypeLabel(deets, defmap, linker);
-            tlabel.addToHeader(extra);
+            if (extra != null) {
+                tlabel.addToHeader(extra);
+            }
             return Widgets.newFlowPanel(tlabel, contents);
         }
     }

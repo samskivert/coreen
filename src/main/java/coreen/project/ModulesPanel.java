@@ -152,39 +152,59 @@ public class ModulesPanel extends SummaryPanel
         final FlowPanel defs = Widgets.newFlowPanel();
         defs.add(Widgets.newLabel("Loading..."));
         _projsvc.getMembers(mod.id, new PanelCallback<Def[]>(defs) {
-            public void onSuccess (Def[] members) {
+            public void onSuccess (final Def[] members) {
                 defs.clear();
                 Widget title = Widgets.newLabel(mod.name, _styles.modtitle());
                 title.setTitle(""+mod.id);
                 defs.add(title);
-                addMembers(defs, mod, members);
+
+                int added = addMembers(defs, mod, true, members);
+                if (added < members.length) {
+                    NonPublicPanel nonpubs = new NonPublicPanel() {
+                        protected void populate () {
+                            addMembers(this, mod, false, members);
+                        }
+                    };
+                    defs.add(nonpubs.makeToggle("Non-public members"));
+                    defs.add(nonpubs);
+                }
             }
         });
         return defs;
     }
 
-    protected void addMembers (FlowPanel panel, final Def mod, Def[] members)
+    protected int addMembers (FlowPanel panel, Def mod, boolean access, Def[] members)
     {
-        for (final Def def : members) {
-            Label label = DefUtil.addDef(panel, def, _defmap, _linker);
-            Bindings.bindStateStyle(_showing.get(def.id), _rsrc.styles().selected(), null, label);
-            UIUtil.makeActionable(label, new ClickHandler() {
-                public void onClick (ClickEvent event) {
-                    if (_showing.get(def.id).get()) {
-                        Link.go(Page.PROJECT, _projectId,
-                                ProjectPage.Detail.MDS, mod.id, -def.id);
-                    } else {
-                        Link.go(Page.PROJECT, _projectId,
-                                ProjectPage.Detail.MDS, mod.id, def.id);
-                    }
-                }
-            });
-            new Shower(_showing.get(def.id), _types) {
-                protected Widget createWidget () {
-                    return TypeSummaryPanel.create(def.id, _defmap, _linker, _showing);
-                }
-            };
+        int added = 0;
+        for (Def member : members) {
+            if (member.isPublic() == access) {
+                addMember(panel, mod, member);
+                added += 1;
+            }
         }
+        return added;
+    }
+
+    protected void addMember (FlowPanel panel, final Def mod, final Def member)
+    {
+        Label label = DefUtil.addDef(panel, member, _defmap, _linker);
+        Bindings.bindStateStyle(_showing.get(member.id), _rsrc.styles().selected(), null, label);
+        UIUtil.makeActionable(label, new ClickHandler() {
+            public void onClick (ClickEvent event) {
+                if (_showing.get(member.id).get()) {
+                    Link.go(Page.PROJECT, _projectId,
+                            ProjectPage.Detail.MDS, mod.id, -member.id);
+                } else {
+                    Link.go(Page.PROJECT, _projectId,
+                            ProjectPage.Detail.MDS, mod.id, member.id);
+                }
+            }
+        });
+        new Shower(_showing.get(member.id), _types) {
+            protected Widget createWidget () {
+                return TypeSummaryPanel.create(member.id, _defmap, _linker, _showing);
+            }
+        };
     }
 
     protected static class ModuleNode implements Comparable<ModuleNode>

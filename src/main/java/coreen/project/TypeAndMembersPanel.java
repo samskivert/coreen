@@ -158,7 +158,6 @@ public abstract class TypeAndMembersPanel<C extends DefDetail> extends Composite
         String header ();
         String summaryMembers ();
         String detailMembers ();
-        String nonPublic ();
         String sigPanel ();
         String sigPanelBare ();
         String superUp ();

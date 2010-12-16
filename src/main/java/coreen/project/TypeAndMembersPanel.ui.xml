@@ -20,10 +20,6 @@
       border-top: 1px dashed;
       border-bottom: 1px dashed;
     }
-    .nonPublic {
-      font-size: small;
-      background: #D3D3F3;
-    }
     .sigPanel {
       padding-bottom: 2px;
     }

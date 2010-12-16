@@ -52,6 +52,7 @@ public interface ProjectResources extends ClientBundle
         String defLabel ();
         String toggle ();
         String nested ();
+        String nonPublic ();
     }
 
     @Source("project.css")

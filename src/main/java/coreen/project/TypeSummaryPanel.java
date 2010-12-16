@@ -163,35 +163,20 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
         FlowPanel members = Widgets.newFlowPanel(_styles.summaryMembers());
         int added = addMembers(members, true, sum.members);
         if (added < sum.members.length) {
-            FlowPanel nonpubs = new FlowPanel() {
-                public void setVisible (boolean visible) {
-                    if (visible && getWidgetCount() == 0) {
-                        addMembers(this, false, sum.members);
-                    }
-                    super.setVisible(visible);
+            NonPublicPanel nonpubs = new NonPublicPanel() {
+                protected void populate () {
+                    addMembers(this, false, sum.members);
                 }
             };
-            Bindings.bindVisible(_npshowing, nonpubs);
-            members.add(TogglePanel.makeTogglePanel(_styles.nonPublic(), _npshowing,
-                                                    Widgets.newLabel("Non-public members")));
+            members.add(nonpubs.makeToggle("Non-public members"));
             members.add(nonpubs);
-        }
-        _contents.add(members);
-
-        // add a listener to all non-public members that shows the non-public members section
-        // whenever any of them are marked as showing
-        Value.Listener<Boolean> syncer = new Value.Listener<Boolean>() {
-            public void valueChanged (Boolean value) {
-                if (value) {
-                    _npshowing.update(true);
+            for (DefInfo member : sum.members) {
+                if (!member.isPublic()) {
+                    _expanded.get(member.id).addListenerAndTrigger(nonpubs.syncer);
                 }
             }
-        };
-        for (DefInfo member : sum.members) {
-            if (!member.isPublic()) {
-                _expanded.get(member.id).addListenerAndTrigger(syncer);
-            }
         }
+        _contents.add(members);
 
         return members;
     }
@@ -303,6 +288,5 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
         }
     }
 
-    protected Value<Boolean> _npshowing = Value.create(false);
     protected List<MemberPanel> _mpanels = new ArrayList<MemberPanel>();
 }

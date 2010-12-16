@@ -187,3 +187,8 @@
 .nested>div:last-child {
   padding-bottom: 5px;
 }
+
+.nonPublic {
+  font-size: small;
+  background: #D3D3F3;
+}
