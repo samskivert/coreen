@@ -108,7 +108,8 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected void goToResult (R result)
     {
-        Link.go(Page.PROJECT, result.unit.projectId, ProjectPage.Detail.TYP, result.id);
+        Link.go(Page.PROJECT, result.unit.projectId,
+                ProjectPage.Detail.forKind(result.kind), result.id);
     }
 
     protected boolean justTypeAndCtors (R[] results)
