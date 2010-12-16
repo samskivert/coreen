@@ -43,6 +43,7 @@ object Decode {
     Flavor.PARAM -> 51,
     Flavor.LOCAL -> 52,
     Flavor.STATIC_FIELD -> 53,
+    Flavor.TYPE_PARAM -> 54,
 
     // universal flavors
     Flavor.NONE -> 0

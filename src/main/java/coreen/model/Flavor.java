@@ -46,6 +46,8 @@ public enum Flavor
     PARAM,
     /** A local variable (Java, etc.). */
     LOCAL,
+    /** A type parameter. */
+    TYPE_PARAM,
 
     /** A flavorless def. */
     NONE;
