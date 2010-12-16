@@ -19,9 +19,13 @@ import com.google.gwt.user.client.ui.Widget;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
 
+import coreen.client.Link;
+import coreen.client.Page;
 import coreen.model.DefDetail;
+import coreen.model.Flavor;
 import coreen.model.Kind;
 import coreen.project.DefUtil;
+import coreen.project.ProjectPage;
 import coreen.project.ProjectResources;
 import coreen.project.UsePopup;
 import coreen.util.DefMap;
@@ -53,6 +57,13 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
 
     protected void init (R[] results)
     {
+        // if we have only one result, or the first result is a type and the rest are its public
+        // constructors, simply redirect to the type panel for that result
+        if (justTypeAndCtors(results)) {
+            goToResult(results[0]);
+            return;
+        }
+
         // partition the results by kind (TODO: rewrite with Guava Multimap)
         Map<Kind, List<R>> bykind = new HashMap<Kind, List<R>>();
         for (R result : results) {
@@ -93,6 +104,23 @@ public class SearchResultsPanel<R extends DefDetail> extends Composite
     protected String createNoResultsLabel (String query)
     {
         return "No definitions of '" + query + "' were found.";
+    }
+
+    protected void goToResult (R result)
+    {
+        Link.go(Page.PROJECT, result.unit.projectId, ProjectPage.Detail.TYP, result.id);
+    }
+
+    protected boolean justTypeAndCtors (R[] results)
+    {
+        R type = results[0];
+        for (int ii = 1; ii < results.length; ii++) {
+            R result = results[ii];
+            if (result.outerId != type.id || result.flavor != Flavor.CONSTRUCTOR) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected interface Styles extends CssResource
