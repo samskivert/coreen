@@ -27,7 +27,9 @@ public class Errors
      */
     public static String xlate (String errcode)
     {
-        if (errcode.startsWith("e.")) {
+        if (errcode == null) {
+            return "<null>";
+        } else if (errcode.startsWith("e.")) {
             try {
                 return _dmsgs.xlate(errcode.substring(2));
             } catch (MissingResourceException mre) {
