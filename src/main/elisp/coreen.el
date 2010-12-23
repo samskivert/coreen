@@ -46,20 +46,28 @@ must contain a compilation that has been processed by Coreen."
 (defun coreen-open-symbol ()
   "Navigates to the symbol under the point."
   (interactive)
-  ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
-  (let* ((command (concat "GET '" coreen-url "/service?action=resolve"
-                          "&src=" (buffer-file-name)
-                          "&pos=" (number-to-string (point))
-                          ;; TODO: append &sym=cursym?
-                          "'"))
-         (output (split-string (shell-command-to-string command))))
-    (if (string= (car output) "nomatch")
-        (message "Could not locate symbol: %s." (thing-at-point 'symbol))
-      (ring-insert coreen-marker-ring (point-marker)) ;; Record whence we came.
-      (find-file (car (cdr output)))
-      (goto-char (string-to-number (car (cdr (cdr output)))))
-      )
-    ))
+  (if (not (thing-at-point 'symbol))
+      (message "There is no symbol at this point")
+    ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
+    (let* ((command (concat "GET '" coreen-url "/service?action=resolve"
+			    "&src=" (buffer-file-name)
+			    "&pos=" (number-to-string (point))
+			    ;; TODO: append &sym=cursym?
+			    "'"))
+	   (result (shell-command-to-string command))
+	   (result-words (split-string result)))
+      (cond ((string= result "500 Can't connect to localhost:8192 (connect: Connection refused)\n")
+	     (message (substring result 0 -1)))
+	    ((string= (car result-words) "nomatch")
+	     (if (thing-at-point 'symbol)
+		 (message "Could not locate symbol: %s" (thing-at-point 'symbol))
+	       (message "There is no symbol at this point")))
+	    (t
+	     (ring-insert coreen-marker-ring (point-marker)) ;; Record whence we came.
+	     (find-file (car (cdr result-words)))
+	     (goto-char (string-to-number (car (cdr (cdr result-words)))))
+	     )
+	    ))))
 
 (defun pop-coreen-mark ()
   "Pop back to where \\[coreen-open-symbol] was last invoked."
