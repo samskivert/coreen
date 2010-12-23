@@ -39,7 +39,7 @@ must contain a compilation that has been processed by Coreen."
   (interactive)
   (coreen-browse-url (concat coreen-url "/service?action=view"
                       "&src=" (buffer-file-name)
-                      "&pos=" (number-to-string (point))
+                      "&pos=" (number-to-string (- (point) 1))
                       "&sym=" (thing-at-point 'symbol)))
   )
 
@@ -51,7 +51,7 @@ must contain a compilation that has been processed by Coreen."
     ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
     (let* ((command (concat "GET '" coreen-url "/service?action=resolve"
 			    "&src=" (buffer-file-name)
-			    "&pos=" (number-to-string (point))
+			    "&pos=" (number-to-string (- (point) 1))
 			    ;; TODO: append &sym=cursym?
 			    "'"))
 	   (result (shell-command-to-string command))
