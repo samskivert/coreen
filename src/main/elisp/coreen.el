@@ -61,7 +61,7 @@ must contain a compilation that has been processed by Coreen."
             ((string= (car result-words) "match")
 	     (ring-insert coreen-marker-ring (point-marker)) ;; Record whence we came.
 	     (find-file (car (cdr result-words)))
-	     (goto-char (string-to-number (car (cdr (cdr result-words)))))
+	     (goto-char (+ (string-to-number (car (cdr (cdr result-words)))) 1))
 	     )
             (t (message (substring result 0 -1))) ;; strip newline
             ))))
