@@ -36,8 +36,11 @@ trait Updater {
      *  <li>loading the name-resolved metadata into the database</li>
      * </ul>
      * This is very disk and compute intensive and should be done on a background thread.
+     *
+     * @param full if true, the entire project will be updated; if false, only compilation units
+     * modified since the last time the project was updated will be updated.
      */
-    def update (p :Project) {
+    def update (p :Project, full :Boolean = true) {
       val ulog = _console.start("project:" + p.id)
       ulog.append("Finding compilation units...")
 
@@ -48,7 +51,7 @@ trait Updater {
         // fire up readers to handle all types of files we find in the project
         val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
         ulog.append("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
-        readers.values map(_.invoke(p, ulog))
+        readers.values map(_.invoke(p, full, ulog))
       } catch {
         case t => ulog.append("Update failed.", t)
       }
@@ -57,10 +60,11 @@ trait Updater {
     }
 
     abstract class Reader {
-      def invoke (p :Project, ulog :Writer) {
+      def invoke (p :Project, full :Boolean, ulog :Writer) {
         val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
         val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
-        val argList = args(p.rootPath, extraOpts, dirList)
+        val lastMod = if (full) 0L else p.lastUpdated
+        val argList = args(p.rootPath, extraOpts,  lastMod.toString :: dirList)
         ulog.append("Invoking reader: " + argList.mkString(" "))
         val proc = Runtime.getRuntime.exec(argList.toArray)
 
@@ -95,12 +99,18 @@ trait Updater {
         }
 
         // update compunit data, and construct a mapping from compunit path to id
-        val newPaths = Set("") ++ (cus map(_.src))
-        val toDelete = oldCUs filterNot(cu => newPaths(cu.path)) map(_.id) toSet
-        val toAdd = newPaths -- (oldCUs map(_.path))
-        val toUpdate = oldCUs filterNot(cu => toDelete(cu.id)) map(_.id) toSet
+        val parsedPaths = Set("") ++ (cus map(_.src))
+        val missing = oldCUs filterNot(cu => parsedPaths(cu.path))
+        val toAdd = parsedPaths -- (oldCUs map(_.path))
+        val toUpdate = oldCUs filter(cu => parsedPaths(cu.path) && !toAdd(cu.path)) map(_.id) toSet
         val cuIds = MMap[String,Long]()
         val now = System.currentTimeMillis
+
+        // determine which, if any, of the compunits in the missing set no longer exist; schedule
+        // those for deletion (the others may not exist because we're doing an incremental update)
+        val proot = new File(p.rootPath)
+        val toDelete = missing filterNot(cu => new File(proot, cu.path).exists) map(_.id) toSet
+
         transaction {
           if (!toDelete.isEmpty) {
             _db.compunits.deleteWhere(cu => cu.id in toDelete)
@@ -149,14 +159,15 @@ trait Updater {
           }
         }
 
-        // We extract all of the module definitions, map them by id, and then select (arbitrarily)
+        // we extract all of the module definitions, map them by id, and then select (arbitrarily)
         // the first occurance of a definition for the specified module id to represent that
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
         val byId = cus.flatMap(cu => allDefs(cu.defs)) filter(_.kind == Kind.MODULE) groupBy(_.id)
         processDefs(cuDef.id, defMap, newDefs, dupDefs, defToUnit,
-                    byId.values map(_.head) map(_.copy(defs = Nil)) toSeq)
+                    // only prune old module defs if we're doing a full rebuild
+                    byId.values map(_.head) map(_.copy(defs = Nil)) toSeq, full)
 
         // first process all of the definitions in all of the compunits...
         for (cu <- cus) {
@@ -164,7 +175,7 @@ trait Updater {
           // we want to filter out any defs for which we have no module id mapping; this filters
           // out code from modules that have already been claimed by some other project
           processDefs(cuIds(cu.src), defMap, newDefs, dupDefs, defToUnit,
-                      cu.defs filter(d => defMap.contains(d.id)))
+                      cu.defs filter(d => defMap.contains(d.id)), true)
           checkAbort() // possibly terminate early
         }
 
@@ -232,7 +243,7 @@ trait Updater {
     }
 
     def processDefs (unitId :Long, defMap :DefMap, addedDefs :MSet[String], dupDefs :MSet[String],
-                     defToUnit :MMap[Long, Long], defs :Seq[DefElem]) {
+                     defToUnit :MMap[Long, Long], defs :Seq[DefElem], pruneOld :Boolean) {
       transaction {
         // resolve (fqName -> id) for all defs in this unit (and all their children)
         time("loadDefIds") { defMap.resolveIds(defs map(_.id), true) }
@@ -302,14 +313,17 @@ trait Updater {
           // _log.info("Updated " + toUpdate.size + " defs")
         }
 
-        // prune stale defs by deleting all defs in this unit that were not just added or updated
-        time("deleteOldDefs") {
-          val allUnitIds = from(_db.defs)(d => where(d.unitId === unitId) select(d.id)).toSet
-          val toDelIds = allUnitIds -- validDefIds
-          if (!toDelIds.isEmpty) {
-            _db.defs.deleteWhere(d => d.id in toDelIds)
-            toDelIds foreach { id => defToUnit.remove(id) }
-            // _log.info("Deleted " + toDelIds.size + " defs")
+        // if requested, prune stale defs by deleting all defs in this unit that were not just
+        // added or updated
+        if (pruneOld) {
+          time("deleteOldDefs") {
+            val allUnitIds = from(_db.defs)(d => where(d.unitId === unitId) select(d.id)).toSet
+            val toDelIds = allUnitIds -- validDefIds
+            if (!toDelIds.isEmpty) {
+              _db.defs.deleteWhere(d => d.id in toDelIds)
+              toDelIds foreach { id => defToUnit.remove(id) }
+              // _log.info("Deleted " + toDelIds.size + " defs")
+            }
           }
         }
       }
