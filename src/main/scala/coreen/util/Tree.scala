@@ -24,7 +24,7 @@ class Tree[T] (var value :Option[T], val children :MMap[String, Tree[T]])
 
   /** Adds a value to the tree at the supplied path. Intermediate nodes are created as needed with
    * None values.
-   * @exception IllegalArgumentException thrown if a value is already contained in the tree at the
+   * @throws IllegalArgumentException thrown if a value is already contained in the tree at the
    * specified path. */
   def add (path :Seq[String], value :T) {
     path.length match {
