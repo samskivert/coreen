@@ -174,7 +174,7 @@
 }
 
 .nested {
-  border: 1px dashed;
+  border: 1px solid;
   border-right: none;
   margin: 5px 0px 5px 10px;
 }
