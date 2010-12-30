@@ -12,14 +12,14 @@ import sun.misc.{Signal, SignalHandler}
 import org.squeryl.PrimitiveTypeMode._
 
 import coreen.persist.{DB, DBComponent}
-import coreen.project.{Importer, Updater}
+import coreen.project.{Importer, Updater, WatcherComponent}
 
 /**
  * The main entry point for the Coreen server.
  */
 object Coreen extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
-  with ConfigComponent with TrayComponent with ConsoleComponent
+  with ConfigComponent with TrayComponent with ConsoleComponent with WatcherComponent
   with HttpComponent with ProjectServlet with LibraryServlet with ConsoleServlet with ServiceServlet
   with Updater with Importer
 {

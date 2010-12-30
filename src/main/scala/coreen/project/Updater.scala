@@ -26,6 +26,9 @@ trait Updater {
 
   /** Handles updating projects. */
   object _updater {
+    /** Returns true if the specified project is currently updating, false if not. */
+    def isUpdating (p :Project) = _console.isOpen("project:" + p.id)
+
     /**
      * (Re)imports the contents of the specified project. This includes:
      * <ul>
