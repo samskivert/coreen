@@ -17,6 +17,13 @@ ui.status_text = 000000
 code = coreen.jar
 code = coreen-gwt.jar
 
+# Native libraries for file notification
+resource = [linux-i386] native/libjnotify.so
+resource = [linux-amd64] native/libjnotify_64bit.so
+resource = [mac os x] native/libjnotify.dylib
+resource = [windows-i386] native/jnotify.dll
+resource = [windows-amd64] native/jnotify_64bit.dll
+
 # Reader code (not in our main classpath)
 resource = coreen-java-reader.jar
 
@@ -29,6 +36,7 @@ resource = background.png
 # Parameters passed to the JVM
 jvmarg = -mx1024M
 jvmarg = -Dappdir=%APPDIR%
+jvmarg = -Djava.library.path=%APPDIR%/native
 
 # Main entry point
 class = coreen.server.Coreen

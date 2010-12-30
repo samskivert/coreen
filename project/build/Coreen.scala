@@ -120,6 +120,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
 
   // copies the necessary files into place for our Getdown client
   def clientOutPath = outputPath / "client"
+  def clientNativePath = clientOutPath / "native"
   def javaReaderJarPath = "java-reader" / "target" / "scala_2.8.0" ** "coreen-java-reader_*.min.jar"
   lazy val prepclient = task {
     // clean out any previous bits
@@ -133,6 +134,11 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     FileUtilities.copyFlat(packageGwtJar.get, clientOutPath, log)
     FileUtilities.copyFlat(depPath("getdown-pro").get, clientOutPath, log)
     FileUtilities.copyFlat(javaReaderJarPath.get, clientOutPath, log)
+
+    // copy our native library bits into the native directory
+    FileUtilities.copyFlat((dependencyPath * "*jnotify*.dll").get, clientNativePath, log)
+    FileUtilities.copyFlat((dependencyPath * "*jnotify*.dylib").get, clientNativePath, log)
+    FileUtilities.copyFlat((dependencyPath * "*jnotify*.so").get, clientNativePath, log)
 
     // sanitize our project jar files, version numbers will get in the way of patching
     def sanitize (jar :File) = {
