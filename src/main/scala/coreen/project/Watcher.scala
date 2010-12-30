@@ -51,19 +51,28 @@ trait WatcherComponent extends Component with Watcher {
     handler.start
   }
 
+  override protected def shutdownComponents {
+    super.shutdownComponents
+    // shutdown the handler
+    handler ! Shutdown()
+  }
+
   case class AddWatch (p :Project)
   case class RemoveWatch (p :Project)
-  // TODO: UpdateWatch (opath :String, p :Project) // for when rootPath changes
+  // TODO: UpdateWatch (opath :String, p :Project) for when rootPath changes
+  case class Shutdown ()
 
   // we handle all watcher activities on a single thread for safety
   val handler :Actor = new Actor with JNotifyListener {
-    def act () { loop { react {
+    def act () { loopWhile(_running) { react {
       case AddWatch(p) => addWatch(p.rootPath) map(id => _watches += (p.rootPath -> id))
 
       case RemoveWatch(p) => _watches.remove(p.rootPath) match {
         case Some(id) => removeWatch(id)
         case None => _log.warning("Requested to remove unknown watch", "proj", p)
       }
+
+      case Shutdown => _running = false
     }}}
 
     // from interface JNotifyListener
@@ -121,5 +130,6 @@ trait WatcherComponent extends Component with Watcher {
     }
 
     val _watches = MMap[String,Int]()
+    var _running = true
   }
 }

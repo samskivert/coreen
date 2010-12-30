@@ -92,6 +92,7 @@ object Coreen extends AnyRef
     _log.info("Coreen exiting...")
     Signal.handle(_sigint, ohandler) // restore old signal handler
     shutdownComponents // shutdown our components
+    actors.Scheduler.shutdown // shutdown the actors scheduler
   }
 
   def shutdown {
