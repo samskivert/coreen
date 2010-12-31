@@ -45,7 +45,7 @@ trait Updater {
      */
     def update (p :Project, full :Boolean = true) {
       val ulog = _console.start("project:" + p.id)
-      ulog.append("Finding compilation units...")
+      ulog.append("Finding compilation units (incremental=" + !full + ")...")
 
       try {
         // first figure out what sort of source files we see in the project

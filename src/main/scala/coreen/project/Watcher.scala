@@ -6,6 +6,9 @@ package coreen.project
 import scala.collection.mutable.{Map => MMap}
 import scala.actors.Actor
 
+import java.io.File
+import java.util.regex.Pattern
+
 import org.squeryl.PrimitiveTypeMode._
 
 import net.contentobjects.jnotify.{JNotify, JNotifyException, JNotifyListener}
@@ -63,47 +66,63 @@ trait WatcherComponent extends Component with Watcher {
   case class Shutdown ()
 
   // we handle all watcher activities on a single thread for safety
-  val handler :Actor = new Actor with JNotifyListener {
+  val handler :Actor = new Actor {
     def act () { loopWhile(_running) { react {
-      case AddWatch(p) => addWatch(p.rootPath) map(id => _watches += (p.rootPath -> id))
+      case AddWatch(p) => {
+        _watches += (p.id -> new Watcher(p))
+        // println("Watching " + dirs.size + " paths for " + p.name)
+      }
 
-      case RemoveWatch(p) => _watches.remove(p.rootPath) match {
-        case Some(id) => removeWatch(id)
+      case RemoveWatch(p) => _watches remove(p.id) match {
+        case Some(w) => w.shutdown
         case None => _log.warning("Requested to remove unknown watch", "proj", p)
       }
 
       case Shutdown => _running = false
     }}}
 
+    val _watches = MMap[Long,Watcher]()
+    var _running = true
+  }
+
+  class Watcher (p :Project) extends JNotifyListener {
+    // compute the set of directories that contain compilation units for this project and add
+    // watches on each such directory individually (because recursive watches don't seem to work on
+    // linux at least); TODO: use recursive watches on Windows?
+    val ids :Set[Int] = transaction {
+      val paths = from(_db.compunits)(cu => where(cu.projectId === p.id) select(cu.path))
+      // we filter out the module comp unit which has empty path
+      Set() ++ paths filterNot(_ == "") map(p => FilePart.matcher(p).replaceAll(""))
+    } flatMap addWatch
+
+    /** Removes the watches handled by this watcher. */
+    def shutdown {
+      ids map removeWatch
+    }
+
     // from interface JNotifyListener
     def fileCreated (id :Int, rootPath :String, name :String) {
       // TODO: if this is not a temporary file (by what criteria?) we should queue a rebuild
-      // _log.info("File created", "id", id, "rootPath", rootPath, "name", name)
+      _log.info("File created", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileDeleted (id :Int, rootPath :String, name :String) {
       // TODO: if the file is a compunit, we really need to rebuild the whole thing...
-      // _log.info("File deleted", "id", id, "rootPath", rootPath, "name", name)
+      _log.info("File deleted", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileModified (id :Int, rootPath :String, name :String) {
-      // if this is a compilation unit in a project, queue it for update
-      val abspath = new java.io.File(new java.io.File(rootPath), name).getCanonicalPath
-      transaction {
-        _db.projects.where(p => p.rootPath === rootPath).map { p =>
-          val relpath = abspath.substring(p.rootPath.length+1)
-          if (!_db.compunits.where(cu => cu.path === relpath).isEmpty) {
-            queueUpdate(p)
-          }
-        }
-      }
       // _log.info("File modified", "id", id, "rootPath", rootPath, "name", name)
+      maybeQueueUpdate(rootPath, name)
     }
     def fileRenamed (id :Int, rootPath :String, oname :String, nname :String) {
       // TODO: if the old file is a compunit, we really need to rebuild the whole thing...
-      // _log.info("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
+      _log.info("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
+      // svn (at least) updates projects by renaming temporary files over the top of existing
+      // project files, so we catch that rename and trigger an update
+      maybeQueueUpdate(rootPath, nname)
     }
 
     private def addWatch (path :String) = try {
-      Some(JNotify.addWatch(path, JNotify.FILE_ANY, true, this))
+      Some(JNotify.addWatch(p.rootPath + FS + path, JNotify.FILE_ANY, false, this))
     } catch {
       case e :JNotifyException =>
         _log.warning("Error adding watch", "path", path, "msg", e.getMessage,
@@ -121,6 +140,20 @@ trait WatcherComponent extends Component with Watcher {
                      "code", e.getErrorCode, "syscode", e.getSystemError)
     }
 
+    // if this is a compilation unit in a project, queue it for update
+    private def maybeQueueUpdate (rootPath :String, name :String) {
+      val abspath = new java.io.File(new java.io.File(rootPath), name).getCanonicalPath
+      if (!abspath.startsWith(p.rootPath)) {
+        _log.warning("Notified of update outside project directory?", "proj", p.name,
+                     "proot", p.rootPath, "upath", rootPath, "uname", name)
+      } else {
+        val relpath = abspath.substring(p.rootPath.length+1)
+        val cus = transaction { _db.compunits.where(cu => cu.path === relpath).toSet }
+        if (!cus.isEmpty) queueUpdate(p)
+        else _log.info("Ignoring updated file", "proj", p.name, "path", relpath)
+      }
+    }
+
     private def queueUpdate (p :Project) {
       // TODO: be smarter about ensuring that a project isn't repeatedly queued for update
       if (!_updater.isUpdating(p)) {
@@ -128,8 +161,8 @@ trait WatcherComponent extends Component with Watcher {
                          () => _updater.update(p, false))
       }
     }
-
-    val _watches = MMap[String,Int]()
-    var _running = true
   }
+
+  val FS = File.separator
+  val FilePart = Pattern.compile(FS + "[^" + FS + "]*$") // /[^/]*$
 }
