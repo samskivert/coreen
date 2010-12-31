@@ -19,8 +19,8 @@ import coreen.server.{Log, Exec, Component}
 /** Provides watcher services. */
 trait Watcher {
   trait WatcherService {
-    /** Notifies the watcher that a new project has been created. */
-    def projectCreated (p :Project)
+    /** Notifies the watcher that a new project has been updated (or created). */
+    def projectUpdated (p :Project)
 
     /** Notifies the watcher that a project was deleted. */
     def projectDeleted (p :Project)
@@ -35,8 +35,8 @@ trait WatcherComponent extends Component with Watcher {
   this :Log with Exec with DB with Updater =>
 
   val _watcher = new WatcherService {
-    def projectCreated (p :Project) {
-      handler ! AddWatch(p)
+    def projectUpdated (p :Project) {
+      handler ! UpdateWatch(p)
     }
 
     def projectDeleted (p :Project) {
@@ -61,8 +61,8 @@ trait WatcherComponent extends Component with Watcher {
   }
 
   case class AddWatch (p :Project)
+  case class UpdateWatch (p :Project)
   case class RemoveWatch (p :Project)
-  // TODO: UpdateWatch (opath :String, p :Project) for when rootPath changes
   case class Shutdown ()
 
   // we handle all watcher activities on a single thread for safety
@@ -70,7 +70,12 @@ trait WatcherComponent extends Component with Watcher {
     def act () { loopWhile(_running) { react {
       case AddWatch(p) => {
         _watches += (p.id -> new Watcher(p))
-        // println("Watching " + dirs.size + " paths for " + p.name)
+      }
+
+      case UpdateWatch(p) => {
+        // remove any old watcher (clearing out its watches) and add a new watcher
+        _watches remove(p.id) map(_.shutdown)
+        _watches += (p.id -> new Watcher(p))
       }
 
       case RemoveWatch(p) => _watches remove(p.id) match {
@@ -94,6 +99,7 @@ trait WatcherComponent extends Component with Watcher {
       // we filter out the module comp unit which has empty path
       Set() ++ paths filterNot(_ == "") map(p => FilePart.matcher(p).replaceAll(""))
     } flatMap addWatch
+    println("Watching " + ids.size + " paths for " + p.name)
 
     /** Removes the watches handled by this watcher. */
     def shutdown {
@@ -103,22 +109,22 @@ trait WatcherComponent extends Component with Watcher {
     // from interface JNotifyListener
     def fileCreated (id :Int, rootPath :String, name :String) {
       // TODO: if this is not a temporary file (by what criteria?) we should queue a rebuild
-      _log.info("File created", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File created", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileDeleted (id :Int, rootPath :String, name :String) {
       // TODO: if the file is a compunit, we really need to rebuild the whole thing...
-      _log.info("File deleted", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File deleted", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileModified (id :Int, rootPath :String, name :String) {
-      // _log.info("File modified", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File modified", "id", id, "rootPath", rootPath, "name", name)
       maybeQueueUpdate(rootPath, name)
     }
     def fileRenamed (id :Int, rootPath :String, oname :String, nname :String) {
-      // TODO: if the old file is a compunit, we really need to rebuild the whole thing...
-      _log.info("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
+      _log.debug("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
       // svn (at least) updates projects by renaming temporary files over the top of existing
       // project files, so we catch that rename and trigger an update
       maybeQueueUpdate(rootPath, nname)
+      // TODO: if the old file is a compunit, we may need to rebuild the whole thing...
     }
 
     private def addWatch (path :String) = try {
@@ -165,4 +171,11 @@ trait WatcherComponent extends Component with Watcher {
 
   val FS = File.separator
   val FilePart = Pattern.compile(FS + "[^" + FS + "]*$") // /[^/]*$
+}
+
+trait NoopWatcherComponent extends Component with Watcher {
+  val _watcher = new WatcherService {
+    def projectUpdated (p :Project) { /* nada! */ }
+    def projectDeleted (p :Project) { /* nada! */ }
+  }
 }

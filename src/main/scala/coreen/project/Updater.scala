@@ -22,7 +22,7 @@ import coreen.server.{Log, Exec, Dirs, Console}
 
 /** Provides project updating services. */
 trait Updater {
-  this :Log with Exec with DB with Dirs with Console =>
+  this :Log with Exec with DB with Dirs with Console with Watcher =>
 
   /** Handles updating projects. */
   object _updater {
@@ -208,6 +208,9 @@ trait Updater {
         ulog.append("Processing complete!")
         _timings.toList sortBy(_._2) foreach(t => println(t._1 + " " + t._2))
         println("Total " + _timings.map(_._2).sum)
+
+        // if this was a full update, let the watcher know to rescan our directories
+        if (full) _watcher.projectUpdated(p)
       }
 
       def parseCompUnits (p :Project, ulog :Writer, lines :Iterator[String]) = {

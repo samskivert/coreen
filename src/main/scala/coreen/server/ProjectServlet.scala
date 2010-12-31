@@ -16,7 +16,7 @@ import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def =>
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
 import coreen.model.{Kind, Flavor}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def}
-import coreen.project.Updater
+import coreen.project.{Updater, Watcher}
 import coreen.rpc.{ProjectService, ServiceException}
 
 /** Provides the project servlet. */
@@ -43,6 +43,7 @@ trait ProjectServlet {
             p.readerOpts := strToOpt(proj.readerOpts))
         }
       }
+      // TODO: if the root path or source dirs changed, trigger a full rebuild
     }
 
     // from interface ProjectService

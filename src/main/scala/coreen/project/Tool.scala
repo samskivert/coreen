@@ -14,7 +14,7 @@ import coreen.server.{DirsComponent, ExecComponent, LogComponent, StdoutConsoleC
  */
 object Tool extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
-  with StdoutConsoleComponent
+  with StdoutConsoleComponent with NoopWatcherComponent
   with Updater with Importer
 {
   def main (args :Array[String]) :Unit = try {
