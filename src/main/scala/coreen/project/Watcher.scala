@@ -110,18 +110,18 @@ trait WatcherComponent extends Component with Watcher {
     // from interface JNotifyListener
     def fileCreated (id :Int, rootPath :String, name :String) {
       // TODO: if this is not a temporary file (by what criteria?) we should queue a rebuild
-      // _log.debug("File created", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File created", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileDeleted (id :Int, rootPath :String, name :String) {
       // TODO: if the file is a compunit, we really need to rebuild the whole thing...
-      // _log.debug("File deleted", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File deleted", "id", id, "rootPath", rootPath, "name", name)
     }
     def fileModified (id :Int, rootPath :String, name :String) {
-      // _log.debug("File modified", "id", id, "rootPath", rootPath, "name", name)
+      _log.debug("File modified", "id", id, "rootPath", rootPath, "name", name)
       maybeQueueUpdate(rootPath, name)
     }
     def fileRenamed (id :Int, rootPath :String, oname :String, nname :String) {
-      // _log.debug("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
+      _log.debug("File renamed", "id", id, "rootPath", rootPath, "oname", oname, "nname", nname)
       // svn (at least) updates projects by renaming temporary files over the top of existing
       // project files, so we catch that rename and trigger an update
       maybeQueueUpdate(rootPath, nname)
@@ -157,7 +157,7 @@ trait WatcherComponent extends Component with Watcher {
         val relpath = abspath.substring(p.rootPath.length+1)
         val cus = transaction { _db.compunits.where(cu => cu.path === relpath).toSet }
         if (!cus.isEmpty) queueUpdate(p)
-        // else _log.debug("Ignoring updated file", "proj", p.name, "path", relpath)
+        else _log.debug("Ignoring updated file", "proj", p.name, "path", relpath)
       }
     }
 

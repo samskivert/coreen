@@ -27,6 +27,10 @@ trait Log {
      * @param args key/value pairs, (e.g. "age", someAge, "size", someSize) which will be appended
      * to the log message as [age=someAge, size=someSize]. */
     def format (message :Any, args :Any*) :String
+
+    /** Activates log messages at or above the specified level.
+     * @param level 0 for debug+, 1 for info+, 2 for warning+, 3 for error. */
+    def setLogLevel (level :Int)
   }
 
   /** For great logging. */
@@ -37,10 +41,19 @@ trait Log {
 trait LogComponent extends Component with Log {
   /** For great logging. */
   val _log = new Logger {
-    def debug (msg :Any, args :Any*) = doLog(0, format(msg, args :_*), getError(args :_*))
-    def info (msg :Any, args :Any*) = doLog(1, format(msg, args :_*), getError(args :_*))
-    def warning (msg :Any, args :Any*) = doLog(2, format(msg, args :_*), getError(args :_*))
-    def error (msg :Any, args :Any*) = doLog(3, format(msg, args :_*), getError(args :_*))
+    def debug (msg :Any, args :Any*) =
+      if (_level <= 0) doLog(0, format(msg, args :_*), getError(args :_*))
+    def info (msg :Any, args :Any*) =
+      if (_level <= 1) doLog(1, format(msg, args :_*), getError(args :_*))
+    def warning (msg :Any, args :Any*) =
+      if (_level <= 2) doLog(2, format(msg, args :_*), getError(args :_*))
+    def error (msg :Any, args :Any*) =
+      if (_level <= 3) doLog(3, format(msg, args :_*), getError(args :_*))
+
+    def setLogLevel (level :Int) {
+      require(0 <= _level && _level <= 3, "Log level must be: 0 <= level <= 3")
+      _level = level
+    }
 
     def format (message :Any, args :Any*) = {
       val sb = new StringBuilder().append(message)
@@ -71,10 +84,12 @@ trait LogComponent extends Component with Log {
       _date.setTime(System.currentTimeMillis)
       _format.format(_date, sb, _fpos)
       sb.append(" ").append(LevelNames(level)).append(" ").append(fmsg)
-      System.err.println(sb)
-      error foreach { _.printStackTrace(System.err) }
+      val out = if (level > 1) System.err else System.out
+      out.println(sb)
+      error foreach { _.printStackTrace(out) }
     }
 
+    private var _level = 1
     private val _date = new java.util.Date
     private val _format = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss:SSS")
     private val _fpos = new java.text.FieldPosition(java.text.DateFormat.DATE_FIELD)
