@@ -115,7 +115,8 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     "-keep class com.google.gwt.** { *; }",
     "-keep class org.squeryl.** { *; }",
     "-keep class net.sf.cglib.** { *; }",
-    "-keep class org.neo4j.kernel.** { *; }"
+    "-keep class org.neo4j.kernel.** { *; }",
+    "-keep class net.contentobjects.jnotify.** { *; }"
   )
 
   // copies the necessary files into place for our Getdown client
