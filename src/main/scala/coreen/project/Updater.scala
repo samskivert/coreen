@@ -201,8 +201,7 @@ trait Updater {
           if (!toUpdate.isEmpty) {
             _db.compunits.update(cu => where(cu.id in toUpdate) set(cu.lastUpdated := now))
           }
-          _db.projects.update(up => where(up.id === p.id) set(
-            up.lastUpdated := System.currentTimeMillis))
+          _db.projects.update(up => where(up.id === p.id) set(up.lastUpdated := now))
         }
 
         ulog.append("Processing complete!")

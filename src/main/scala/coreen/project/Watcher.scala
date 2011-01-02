@@ -99,7 +99,8 @@ trait WatcherComponent extends Component with Watcher {
       // we filter out the module comp unit which has empty path
       Set() ++ paths filterNot(_ == "") map(p => FilePart.matcher(p).replaceAll(""))
     } flatMap addWatch
-    println("Watching " + ids.size + " paths for " + p.name)
+
+    _log.info("Watching " + ids.size + " paths for " + p.name)
 
     /** Removes the watches handled by this watcher. */
     def shutdown {
@@ -163,8 +164,11 @@ trait WatcherComponent extends Component with Watcher {
     private def queueUpdate (p :Project) {
       // TODO: be smarter about ensuring that a project isn't repeatedly queued for update
       if (!_updater.isUpdating(p)) {
-        _exec.executeJob("File modification triggered rebuild: " + p.name,
-                         () => _updater.update(p, false))
+        // load a fresh copy of the project from the database before sending it to the updater,
+        // because we may be holding on to a stale copy
+        val lp = transaction { _db.projects.lookup(p.id).get }
+        _exec.executeJob("File modification triggered rebuild: " + lp.name,
+                         () => _updater.update(lp, false))
       }
     }
   }
