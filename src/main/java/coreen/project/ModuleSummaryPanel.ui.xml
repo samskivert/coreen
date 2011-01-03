@@ -1,0 +1,16 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style type="coreen.project.ModuleSummaryPanel.Styles" field="_styles">
+    .modules {
+      margin: 5px 0px;
+    }
+  </ui:style>
+
+  <g:HTMLPanel>
+    <g:FlowPanel styleName="{_styles.modules}" ui:field="_modules"/>
+  </g:HTMLPanel>
+</ui:UiBinder>
