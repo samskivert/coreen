@@ -45,9 +45,9 @@ public class ProjectPage extends AbstractPage
 {
     /** Enumerates the different project detail pages. */
     public static enum Detail {
-        /** Modules, sorted alphabetically. */
+        /** Modules, summarized (one or more). */
         MDS(_msgs.pByMod()) {
-            public AbstractProjectPanel create () { return new ModulesPanel(); }
+            public AbstractProjectPanel create () { return new ModuleSummaryPanel(); }
         },
 
         /** Types, grouped alphabetically. */
@@ -63,6 +63,11 @@ public class ProjectPage extends AbstractPage
         /** Viewing a search. */
         SEARCH(null) {
             public AbstractProjectPanel create () { return new SearchPanel(); }
+        },
+
+        /** Modules, compactly arranged. */
+        CMD(null) {
+            public AbstractProjectPanel create () { return new ModulesPanel(); }
         },
 
         /** Viewing an individual type. */

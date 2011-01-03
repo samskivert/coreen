@@ -74,6 +74,11 @@ public interface ProjectServiceAsync
     void getTypes (long projectId, AsyncCallback<Def[]> callback);
 
     /**
+     * The async version of {@link ProjectService#getModsMembers}.
+     */
+    void getModsMembers (Iterable<Long> modIds, AsyncCallback<Def[]> callback);
+
+    /**
      * The async version of {@link ProjectService#getMembers}.
      */
     void getMembers (long defId, AsyncCallback<Def[]> callback);

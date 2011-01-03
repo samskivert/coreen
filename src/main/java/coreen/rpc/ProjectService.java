@@ -56,6 +56,9 @@ public interface ProjectService extends RemoteService
     /** Returns all of the types defined by this project. */
     Def[] getTypes (long projectId) throws ServiceException;
 
+    /** Returns all defs that are members of the supplied set of modules. */
+    Def[] getModsMembers (Iterable<Long> modIds) throws ServiceException;
+
     /** Returns all defs that are immediate children of the specified def. They are returned
      * sorted by name. */
     Def[] getMembers (long defId) throws ServiceException;

@@ -3,14 +3,17 @@
 
 package coreen.server
 
+import java.{lang => jl}
 import java.io.File
 import javax.servlet.http.HttpServletResponse
 
 import scala.io.Source
 import scala.collection.mutable.{ArrayBuffer, Map => MMap}
 
-import com.google.gwt.user.server.rpc.RemoteServiceServlet
 import org.squeryl.PrimitiveTypeMode._
+import scalaj.collection.Imports._
+
+import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef, Use => JUse}
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
@@ -85,6 +88,11 @@ trait ProjectServlet {
       _db.defs.where(d => (d.outerId in modIds) and
                           (d.kind === Decode.kindToCode(Kind.TYPE))
                     ).toArray sortBy(_.name) map(Convert.toJava)
+    }
+
+    /** Returns all defs that are members of the supplied set of modules. */
+    def getModsMembers (modIds :jl.Iterable[jl.Long]) :Array[JDef] = transaction {
+      _db.defs.where(d => d.outerId in modIds.asScala.toSet).toArray map(Convert.toJava)
     }
 
     // from interface ProjectService
