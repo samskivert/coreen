@@ -326,7 +326,6 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
 
         protected FlowPanel _panel;
         protected int _row;
-        protected PopupGroup _group = new PopupGroup();
 
         protected final int _rowsPerColumn;
         protected final String _colwidth;
@@ -350,6 +349,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
     protected Project _proj;
     protected ModuleNode _allMods;
     protected DefMap _defmap;
+    protected PopupGroup _group = new PopupGroup();
 
     protected long _moduleId;
 
