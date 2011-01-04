@@ -28,18 +28,19 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
 {
     public static ToggleButton makeToggleButton (Value<Boolean> model)
     {
-        ToggleButton toggle = new ToggleButton(
-            new Image(_icons.closed_toggle()), new Image(_icons.open_toggle()));
-        toggle.addStyleName(_rsrc.styles().toggle());
-        Bindings.bindDown(model, toggle);
-        return toggle;
+        return makeToggleButton(model, false);
+    }
+
+    public static ToggleButton makeFloatingToggle (Value<Boolean> model)
+    {
+        return makeToggleButton(model, true);
     }
 
     public static FlowPanel makeTogglePanel (
         String styleName, Value<Boolean> model, Widget... widgets)
     {
         FlowPanel panel = Widgets.newFlowPanel(styleName);
-        panel.add(makeToggleButton(model));
+        panel.add(makeFloatingToggle(model));
         for (Widget w : widgets) {
             panel.add(w);
         }
@@ -47,13 +48,24 @@ public abstract class TogglePanel extends FlowPanel // FlexTable
         return panel;
     }
 
+    protected static ToggleButton makeToggleButton (Value<Boolean> model, boolean floating)
+    {
+        ToggleButton toggle = new ToggleButton(
+            new Image(_icons.closed_toggle()), new Image(_icons.open_toggle()));
+        if (floating) {
+            toggle.addStyleName(_rsrc.styles().toggle());
+        }
+        Bindings.bindDown(model, toggle);
+        return toggle;
+    }
+
     public TogglePanel (Value<Boolean> model)
     {
         // setCellSpacing(0);
         // setCellPadding(0);
 
-        add(makeToggleButton(model));
-        // setWidget(0, 0, makeToggleButton(model));
+        add(makeFloatingToggle(model));
+        // setWidget(0, 0, makeFloatingToggle(model));
         // getFlexCellFormatter().setVerticalAlignment(0, 0, HasAlignment.ALIGN_TOP);
 
         // we keep a reference to the model in case clients want to make their collapsed widget a

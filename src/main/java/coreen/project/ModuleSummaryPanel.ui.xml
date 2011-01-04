@@ -15,6 +15,12 @@
     .title a, .modColumn a {
       text-decoration: none;
     }
+    .toggleTitle {
+      border-top: 1px solid;
+    }
+    .toggleTitle:first-child {
+      border-top: none;
+    }
     .rootTitle {
       font-weight: bold;
     }

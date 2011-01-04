@@ -122,7 +122,7 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
 
         } else {
             final Value<Boolean> expanded = Value.create(false);
-            body.add(TogglePanel.makeToggleButton(expanded));
+            body.add(TogglePanel.makeFloatingToggle(expanded));
             body.add(sig);
             body.add(UIUtil.newClear());
             expanded.addListener(new Value.Listener<Boolean>() {

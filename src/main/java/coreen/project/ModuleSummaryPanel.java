@@ -19,6 +19,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Bindings;
 import com.threerings.gwt.ui.FluentTable;
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
@@ -69,7 +70,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
             });
         } else {
             _contents.clear();
-            displayModule(_moduleId, _contents);
+            displayModule(_moduleId, _contents, false);
         }
     }
 
@@ -80,28 +81,35 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         } else {
             // arrange our modules into a tree
             _allMods = ModuleNode.createTree(MOD_SEP, modules);
-            displayModule(_moduleId, _contents);
+            displayModule(_moduleId, _contents, false);
         }
     }
 
-    protected void displayModule (long moduleId, final FlowPanel contents)
+    protected void displayModule (long moduleId, final FlowPanel contents, final boolean nested)
     {
         // if we have copious modules, just display the top-level modules; TODO: improve heuristic
         if (moduleId == 0 && _allMods.countMods() > 20) {
-            // TODO: prettier
             for (final Def tip : collectTips(_allMods, new ArrayList<Def>())) {
-                // TODO: remember toggled status?
-                contents.add(new TogglePanel(Value.create(false)) {
-                    protected Widget createCollapsed () {
-                        return Link.create(tip.name, Page.PROJECT, _proj.id,
-                                           ProjectPage.Detail.MDS, tip.id);
+                Widget link = Link.createInline(
+                    tip.name, Page.PROJECT, _proj.id, ProjectPage.Detail.MDS, tip.id);
+                Value<Boolean> showing = Value.create(false);
+                // TODO: remember toggled status
+                Widget toggle = TogglePanel.makeToggleButton(showing);
+                toggle.addStyleName("inline");
+                Widget title = Widgets.newFlowPanel(_styles.title(), toggle, link);
+                title.addStyleName(_styles.toggleTitle());
+                contents.add(title);
+
+                FlowPanel members = new FlowPanel() {
+                    public void setVisible (boolean visible) {
+                        if (visible && getWidgetCount() == 0) {
+                            displayModule(tip.id, this, true);
+                        }
+                        super.setVisible(visible);
                     }
-                    protected Widget createExpanded () {
-                        FlowPanel target = new FlowPanel();
-                        displayModule(tip.id, target);
-                        return target;
-                    }
-                });
+                };
+                Bindings.bindVisible(showing, members);
+                contents.add(members);
             }
             return;
         }
@@ -122,12 +130,13 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         _projsvc.getModsMembers(modIds, new PanelCallback<Def[]>(contents) {
             public void onSuccess (Def[] modules) {
                 contents.clear();
-                gotModsMembers(mods, modules, contents);
+                gotModsMembers(mods, modules, contents, nested);
             }
         });
     }
 
-    protected void gotModsMembers (ModuleNode mods, Def[] members, FlowPanel contents)
+    protected void gotModsMembers (ModuleNode mods, Def[] members,
+                                   FlowPanel contents, boolean nested)
     {
         // split the members up by owner
         Map<Long, List<Def>> byOwner = new HashMap<Long, List<Def>>();
@@ -153,7 +162,10 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
             List<Def> tldefs = byOwner.get(mods.mod.id);
             if (tldefs != null) {
                 ModulePanel mp = new ModulePanel(tldefs.size(), cols, colwidth);
-                addTitle(contents, Widgets.newLabel(mods.mod.name, _styles.rootTitle()));
+                // if we're a nested display, our title is already visible
+                if (!nested) {
+                    addTitle(contents, Widgets.newLabel(mods.mod.name, _styles.rootTitle()));
+                }
                 mp.addModContents("", 0, tldefs);
                 contents.add(mp);
                 rootName = mods.mod.name;
@@ -326,6 +338,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
     {
         String title ();
         String rootTitle ();
+        String toggleTitle ();
         String modPanel ();
         String modColumn ();
         String modColumnX ();
