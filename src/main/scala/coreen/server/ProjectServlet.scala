@@ -345,11 +345,11 @@ trait ProjectServlet {
 
     // defines the sort ordering of def flavors
     private val FlavorPriority = List(Flavor.TYPE_PARAM,
+                                      Flavor.ANNOTATION,
                                       Flavor.ENUM,
                                       Flavor.INTERFACE,
                                       Flavor.ABSTRACT_CLASS,
                                       Flavor.CLASS,
-                                      Flavor.ANNOTATION,
                                       Flavor.OBJECT,
                                       Flavor.ABSTRACT_OBJECT,
                                       Flavor.STATIC_FIELD,
