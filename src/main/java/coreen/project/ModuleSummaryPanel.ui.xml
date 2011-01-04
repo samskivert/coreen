@@ -5,12 +5,35 @@
              ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
              ui:generateLocales="default">
   <ui:style type="coreen.project.ModuleSummaryPanel.Styles" field="_styles">
-    .modules {
-      margin: 5px 0px;
+    .title {
+      clear: both;
+      padding: 2px 5px;
+      background: #DDDDDD;
+      background: -moz-linear-gradient(left, #DDDDDD, #FFFFFF);
+      background: -webkit-gradient(linear, left top, right top, from(#DDDDDD), to(#FFFFFF));
+    }
+    .title a, .modColumn a {
+      text-decoration: none;
+    }
+    .rootTitle {
+      font-weight: bold;
+    }
+    .modPanel {
+      padding-bottom: 5px;
+    }
+    .modColumn {
+      float: left;
+      overflow: hidden;
+    }
+    .modColumnX {
+      margin-left: 5px;
+    }
+    .modItem {
+      white-space: nowrap;
     }
   </ui:style>
 
   <g:HTMLPanel>
-    <g:FlowPanel styleName="{_styles.modules}" ui:field="_modules"/>
+    <g:FlowPanel ui:field="_modules"/>
   </g:HTMLPanel>
 </ui:UiBinder>

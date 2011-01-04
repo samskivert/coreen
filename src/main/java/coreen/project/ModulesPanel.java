@@ -25,6 +25,7 @@ import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
 import coreen.ui.UIUtil;
+import coreen.util.ModuleNode;
 import coreen.util.PanelCallback;
 import coreen.util.Shower;
 
@@ -41,7 +42,7 @@ public class ModulesPanel extends SummaryPanel
     @Override // from AbstractProjectPanel
     public ProjectPage.Detail getId ()
     {
-        return ProjectPage.Detail.MDS;
+        return ProjectPage.Detail.CMD;
     }
 
     @Override // from SummaryPanel
@@ -69,10 +70,7 @@ public class ModulesPanel extends SummaryPanel
 
         // build the module hierarchy
         char modSep = '.'; // TODO
-        ModuleNode root = new ModuleNode("");
-        for (Def mod : modules) {
-            root.addModule(modSep, mod.name, mod);
-        }
+        ModuleNode root = ModuleNode.createTree(modSep, modules);
 
         // now flatten it into a bunch of links
         if (root.mod != null) {
@@ -205,64 +203,6 @@ public class ModulesPanel extends SummaryPanel
                 return TypeSummaryPanel.create(member.id, _defmap, _linker, _showing);
             }
         };
-    }
-
-    protected static class ModuleNode implements Comparable<ModuleNode>
-    {
-        public String name;
-        public Def mod;
-        public List<ModuleNode> children = new ArrayList<ModuleNode>();
-
-        public ModuleNode (String name) {
-            this.name = name;
-        }
-
-        public int compareTo (ModuleNode other) {
-            return name.compareTo(other.name);
-        }
-
-        public int countMods () {
-            if (_count == -1) {
-                _count = (mod == null) ? 0 : 1;
-                for (ModuleNode child : children) {
-                    _count += child.countMods();
-                }
-            }
-            return _count;
-        }
-
-        public void addModule (char modSep, String name, Def mod) {
-            // if we're at the end of the line, fill in our module def
-            if (name.equals("")) {
-                assert this.mod == null;
-                this.mod = mod;
-                return;
-            }
-
-            // otherwise look for (and add if necesary) the appropriate child
-            int sepIdx = name.indexOf(modSep);
-            String prefix, suffix;
-            if (sepIdx == -1) {
-                prefix = name;
-                suffix = "";
-            } else {
-                prefix = name.substring(0, sepIdx);
-                suffix = name.substring(sepIdx+1);
-            }
-            ModuleNode next = null;
-            for (ModuleNode child : children) {
-                if (child.name.equals(prefix)) {
-                    next = child;
-                    break;
-                }
-            }
-            if (next == null) {
-                children.add(next = new ModuleNode(prefix));
-            }
-            next.addModule(modSep, suffix, mod);
-        }
-
-        protected int _count = -1;
     }
 
     protected static class Deferral
