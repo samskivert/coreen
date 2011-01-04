@@ -200,7 +200,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
             if (child.mod != null) {
                 childName = child.mod.name;
                 addTitle(contents, Link.createInline(childName, Page.PROJECT, _proj.id,
-                                                     ProjectPage.Detail.MDS, child.mod.id));
+                                                     ProjectPage.Detail.MEM, child.mod.id));
             } else {
                 childName = prefix + MOD_SEP + child.name;
                 addTitle(contents, Widgets.newLabel(childName));
@@ -293,7 +293,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
                     addPanel();
                 }
                 _panel.add(Link.createInline(title, Page.PROJECT, _proj.id,
-                                             ProjectPage.Detail.CMD, modId));
+                                             ProjectPage.Detail.MEM, modId));
                 _row += 1;
             }
 

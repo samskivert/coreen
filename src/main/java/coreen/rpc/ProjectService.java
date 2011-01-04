@@ -63,6 +63,9 @@ public interface ProjectService extends RemoteService
      * sorted by name. */
     Def[] getMembers (long defId) throws ServiceException;
 
+    /** Returns details for the def and info on all defs that are its immediate children. */
+    MemberInfo getMemberInfo (long defId) throws ServiceException;
+
     /** Returns details for the specified compilation unit.
      * @throws ServiceException with e.no_such_unit if the unit is unknown. */
     CompUnitDetail getCompUnit (long unitId) throws ServiceException;

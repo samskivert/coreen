@@ -208,6 +208,7 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
     protected MemberPanel createMemberWidget (final DefInfo member)
     {
         MemberPanel panel = new MemberPanel(member);
+        panel.addStyleName(_styles.member());
         if (member.doc != null) {
             panel.add(new DocLabel(member.doc));
         }
@@ -216,12 +217,6 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
                 final SourcePanel sig = new SourcePanel(member, _defmap, _linker);
                 sig.addFirstLineIcon(DefUtil.iconForDef(member));
                 sig.addStyleName(_styles.sigPanel());
-                // if we lack doc label to put a dashed line above our sig, we add one manually
-                if (member.doc == null) {
-                    // add this to the toggle panel so that it is used by both the siglabel and the
-                    // source panel regardless of which is showing
-                    addStyleName(_styles.sigPanelBare());
-                }
                 return sig;
             }
             protected Widget createExpanded () {

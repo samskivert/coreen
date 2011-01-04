@@ -70,6 +70,11 @@ public class ProjectPage extends AbstractPage
             public AbstractProjectPanel create () { return new ModulesPanel(); }
         },
 
+        /** Viewing a def's details and members in list format. */
+        MEM(null) {
+            public AbstractProjectPanel create () { return new DefMembersPanel(); }
+        },
+
         /** Viewing an individual type. */
         TYP(null) {
             public AbstractProjectPanel create () { return new TypePanel(); }
@@ -88,7 +93,7 @@ public class ProjectPage extends AbstractPage
         /** Returns the detail page for the specified kind of def. */
         public static Detail forKind (Kind kind) {
             switch (kind) {
-            case MODULE: return MDS;
+            case MODULE: return MEM;
             case TYPE: return TYP;
             default: return DEF;
             }

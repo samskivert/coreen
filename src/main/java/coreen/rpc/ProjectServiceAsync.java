@@ -9,6 +9,7 @@ import coreen.model.CompUnitDetail;
 import coreen.model.Def;
 import coreen.model.DefContent;
 import coreen.model.DefDetail;
+import coreen.model.MemberInfo;
 import coreen.model.Project;
 import coreen.model.TypeDetail;
 import coreen.model.TypeSummary;
@@ -82,6 +83,11 @@ public interface ProjectServiceAsync
      * The async version of {@link ProjectService#getMembers}.
      */
     void getMembers (long defId, AsyncCallback<Def[]> callback);
+
+    /**
+     * The async version of {@link ProjectService#getMemberInfo}.
+     */
+    void getMemberInfo (long defId, AsyncCallback<MemberInfo> callback);
 
     /**
      * The async version of {@link ProjectService#getCompUnit}.

@@ -23,8 +23,7 @@
     .sigPanel {
       padding-bottom: 2px;
     }
-    .sigPanelBare {
-      padding-top: 2px;
+    .member {
       border-top: 1px dashed;
     }
     .superUp {

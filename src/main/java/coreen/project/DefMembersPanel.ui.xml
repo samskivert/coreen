@@ -1,0 +1,23 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             ui:generateFormat="com.google.gwt.i18n.rebind.format.PropertiesFormat"
+             ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+             ui:generateLocales="default">
+  <ui:style type="coreen.project.DefMembersPanel.Styles" field="_styles">
+    .title {
+      font-weight: bold;
+    }
+    .memberCell {
+      border-top: 1px dashed;
+    }
+    .memberCell a {
+      text-decoration: none;
+    }
+    .memberCell a:hover {
+      text-decoration: underline;
+    }
+  </ui:style>
+
+  <g:FlowPanel ui:field="_contents"/>
+</ui:UiBinder>

@@ -17,7 +17,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet
 
 import coreen.model.{Convert, Project => JProject, CompUnit => JCompUnit, Def => JDef, Use => JUse}
 import coreen.model.{CompUnitDetail, DefContent, DefId, DefDetail, TypeDetail, TypeSummary}
-import coreen.model.{Kind, Flavor}
+import coreen.model.{Kind, Flavor, MemberInfo}
 import coreen.persist.{DB, Decode, Project, CompUnit, Def}
 import coreen.project.{Updater, Watcher}
 import coreen.rpc.{ProjectService, ServiceException}
@@ -98,6 +98,17 @@ trait ProjectServlet {
     // from interface ProjectService
     def getMembers (defId :Long) :Array[JDef] = transaction {
       _db.defs.where(d => d.outerId === defId).toArray sortBy(_.name) map(Convert.toJava)
+    }
+
+    // from interface ProjectService
+    def getMemberInfo (defId :Long) :MemberInfo = transaction {
+      val info = initDefDetail(defId, new MemberInfo)
+      val members = _db.defs.where(d => d.outerId === defId).toArray
+      val memIds = members map(_.id) toSet
+      val (sigs, docs) = (_db.loadSigs(memIds), _db.loadDocs(memIds))
+      info.members = members sorted(ByFlavorName) map(
+        d => Convert.toDefInfo(d, sigs.get(d.id), docs.get(d.id)))
+      info
     }
 
     // from interface ProjectService

@@ -15,6 +15,9 @@
     .title a, .modColumn a {
       text-decoration: none;
     }
+    .title a:hover, .modColumn a:hover {
+      text-decoration: underline;
+    }
     .toggleTitle {
       border-top: 1px solid;
     }
