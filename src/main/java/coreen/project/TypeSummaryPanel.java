@@ -117,7 +117,9 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
     {
         if (bodyData != null) {
             body.add(sig);
-            addFilterControls();
+            if (_tlabel != null) {
+                addFilterControls();
+            }
             initBody(bodyData);
 
         } else {
