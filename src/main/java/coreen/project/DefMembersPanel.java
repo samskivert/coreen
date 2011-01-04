@@ -62,7 +62,7 @@ public class DefMembersPanel extends AbstractProjectPanel
         }
         _contents.add(Widgets.newLabel(info.name, _styles.title()));
 
-        FluentTable contents = new FluentTable(2, 0);
+        FluentTable contents = new FluentTable(2, 0, _styles.grid());
         for (DefInfo member : info.members) {
             Widget link = Link.createInline(member.name, Page.PROJECT, _proj.id,
                                             ProjectPage.Detail.forKind(member.kind), member.id);
@@ -70,6 +70,8 @@ public class DefMembersPanel extends AbstractProjectPanel
                 setWidget(DefUtil.adornDef(member, link), _styles.memberCell());
             if (member.doc != null) {
                 cell.right().setWidget(new DocLabel(member.doc), _styles.memberCell());
+            } else {
+                cell.right().setHTML("&nbsp;", _styles.memberCell()); // preserve formatting
             }
         }
         _contents.add(contents);
@@ -78,6 +80,7 @@ public class DefMembersPanel extends AbstractProjectPanel
     protected interface Styles extends CssResource
     {
         String title ();
+        String grid ();
         String memberCell ();
     }
     protected @UiField Styles _styles;
