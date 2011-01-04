@@ -31,9 +31,10 @@
     .modItem {
       white-space: nowrap;
     }
+    .modItem a {
+      color: #000000;
+    }
   </ui:style>
 
-  <g:HTMLPanel>
-    <g:FlowPanel ui:field="_modules"/>
-  </g:HTMLPanel>
+  <g:FlowPanel ui:field="_contents"/>
 </ui:UiBinder>

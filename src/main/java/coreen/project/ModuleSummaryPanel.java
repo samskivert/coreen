@@ -16,6 +16,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.FocusPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.FluentTable;
@@ -26,6 +27,7 @@ import coreen.client.Link;
 import coreen.client.Page;
 import coreen.model.Def;
 import coreen.model.Project;
+import coreen.ui.PopupGroup;
 import coreen.util.DefMap;
 import coreen.util.ModuleNode;
 import coreen.util.PanelCallback;
@@ -49,40 +51,66 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
     @Override // from AbstractProjectPanel
     public void setArgs (Project proj, Args args)
     {
+        // reset our modules cache if we switch projects
+        if (_proj == null || _proj.id != proj.id) {
+            _defmap = new DefMap();
+            _allMods = null;
+        }
         _proj = proj;
         _moduleId = args.get(2, 0l);
-        _projsvc.getModules(proj.id, new PanelCallback<Def[]>(_modules) {
-            public void onSuccess (Def[] modules) {
-                gotModules(modules);
-            }
-        });
+
+        if (_allMods == null) {
+            _projsvc.getModules(proj.id, new PanelCallback<Def[]>(_contents) {
+                public void onSuccess (Def[] modules) {
+                    _contents.clear();
+                    gotModules(modules);
+                }
+            });
+        } else {
+            _contents.clear();
+            displayModule(_moduleId);
+        }
     }
 
     protected void gotModules (Def[] modules)
     {
         if (modules.length == 0) {
-            _modules.add(Widgets.newLabel("No modules in this project?"));
+            _contents.add(Widgets.newLabel("No modules in this project?"));
+        } else {
+            // arrange our modules into a tree
+            _allMods = ModuleNode.createTree(MOD_SEP, modules);
+            displayModule(_moduleId);
+        }
+    }
+
+    protected void displayModule (long moduleId)
+    {
+        // if we have copious modules, just display the top-level modules; TODO: improve heuristic
+        if (moduleId == 0 && _allMods.countMods() > 20) {
+            // TODO: prettier
+            for (Def tip : collectTips(_allMods, new ArrayList<Def>())) {
+                _contents.add(Link.create(tip.name, Page.PROJECT, _proj.id,
+                                          ProjectPage.Detail.MDS, tip.id));
+            }
             return;
         }
 
-        // arrange our modules into a tree
-        ModuleNode tree = ModuleNode.createTree(MOD_SEP, modules);
-
         // scan down the tree to the first node with children; e.g. if we have ("", "com", "foo",
         // "bar", ("baz", "bif", "boo")), we want tree to point to "bar" rather than ""
-        tree = findBranches(tree);
+        ModuleNode tree = findBranches(_allMods);
         // TODO: this will interact badly with rootName below if we scan down to a phantom module
         // that has multiple submodules; we should probably revamp ModuleTree to keep track of the
         // partial fully qualified name that is valid at each node...
 
         // locate our target module in this tree and use that as the root
-        _mods = (_moduleId > 0) ? tree.findNode(_moduleId) : tree;
+        _mods = (moduleId > 0) ? tree.findNode(moduleId) : tree;
 
         // collect the ids of all modules at or below our target module and request their members
         List<Long> modIds = collectIds(_mods, new ArrayList<Long>());
-        _projsvc.getModsMembers(modIds, new PanelCallback<Def[]>(_modules) {
+        _contents.add(Widgets.newLabel("Loading..."));
+        _projsvc.getModsMembers(modIds, new PanelCallback<Def[]>(_contents) {
             public void onSuccess (Def[] modules) {
-                _modules.clear();
+                _contents.clear();
                 gotModsMembers(modules);
             }
         });
@@ -93,6 +121,9 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         // split the members up by owner
         Map<Long, List<Def>> byOwner = new HashMap<Long, List<Def>>();
         for (Def member : members) {
+            if (!member.isPublic()) {
+                continue; // skip non-public members; TODO: filter elsewhere?
+            }
             List<Def> olist = byOwner.get(member.outerId);
             if (olist == null) {
                 byOwner.put(member.outerId, olist = new ArrayList<Def>());
@@ -101,7 +132,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         }
 
         // compute some layout metrics
-        int availWidth = _modules.getOffsetWidth() - 16; // body margin
+        int availWidth = _contents.getOffsetWidth() - 16; // body margin
         int cols = availWidth / 200, gap = 5;
         int colwidth = ((availWidth - gap*(cols-1)) / cols);
 
@@ -113,7 +144,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
                 ModulePanel mp = new ModulePanel(tldefs.size(), cols, colwidth);
                 addTitle(Widgets.newLabel(_mods.mod.name, _styles.rootTitle()));
                 mp.addModContents("", 0, tldefs);
-                _modules.add(mp);
+                _contents.add(mp);
                 rootName = _mods.mod.name;
             }
         }
@@ -156,35 +187,15 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
                 mp.addModContents(header, mod.id, byOwner.get(mod.id));
             }
             DefUtil.addClear(mp);
-            _modules.add(mp);
+            _contents.add(mp);
         }
-
-        // // members.length + byOwner.size(), availWidth
-
-        // // TODO: subtract one if rootModuleId has members
-        // ModulePanel mp = new ModulePanel();
-        // _modules.add(mp);
-
-        // if (_rootModuleId > 0) {
-        //     _mods.remove(_rootModuleId);
-        //     mp.addModContents("", 0, byOwner.get(_rootModuleId));
-        // }
-
-        // List<Def> mods = new ArrayList<Def>(_mods.values());
-        // Collections.sort(mods, BY_NAME);
-        // for (Def mod : mods) {
-        //     String title = (_rootModuleName.equals(mod.name)) ? "" :
-        //         ((_rootModuleName.length() > 0 && mod.name.startsWith(_rootModuleName)) ?
-        //          ("." + mod.name.substring(_rootModuleName.length())) : mod.name);
-        //     mp.addModContents(title, mod.id, byOwner.get(mod.id));
-        // }
     }
 
     protected void addTitle (Widget title)
     {
         // we do this double wrapping to avoid the annoying feature whereby the entire width of the
         // page is clickable even though the hyperlink 
-        _modules.add(Widgets.newFlowPanel(_styles.title(), title));
+        _contents.add(Widgets.newFlowPanel(_styles.title(), title));
     }
 
     protected String unprefix (String root, String path, char charSep)
@@ -226,6 +237,18 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         return defs;
     }
 
+    protected List<Def> collectTips (ModuleNode node, List<Def> tips)
+    {
+        if (node.mod != null) {
+            tips.add(node.mod);
+        } else {
+            for (ModuleNode child : node.children) {
+                collectTips(child, tips);
+            }
+        }
+        return tips;
+    }
+
     protected class ModulePanel extends FlowPanel {
         public ModulePanel (int totalRows, int cols, int colwidth) {
             addStyleName(_styles.modPanel());
@@ -255,9 +278,14 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
                 if (_row == 0) {
                     addPanel();
                 }
+                Widget link = Link.createInline(member.name, Page.PROJECT, _proj.id,
+                                                ProjectPage.Detail.forKind(member.kind), member.id);
+                FocusPanel wrapper = new FocusPanel(link);
+                wrapper.addStyleName("inline");
+                new UsePopup.Popper(member.id, wrapper, UsePopup.TYPE, _defmap, false).
+                    setGroup(_group);
                 _panel.add(Widgets.newFlowPanel(_styles.modItem(),
-                                                DefUtil.iconForDef(member),
-                                                Widgets.newInlineLabel(member.name)));
+                                                DefUtil.iconForDef(member), wrapper));
                 if (++_row >= _rowsPerColumn) {
                     _row = 0;
                 }
@@ -275,6 +303,7 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
 
         protected FlowPanel _panel;
         protected int _row;
+        protected PopupGroup _group = new PopupGroup();
 
         protected final int _rowsPerColumn;
         protected final String _colwidth;
@@ -292,12 +321,14 @@ public class ModuleSummaryPanel extends AbstractProjectPanel
         String modItem ();
     }
     protected @UiField Styles _styles;
-    protected @UiField FlowPanel _modules;
+    protected @UiField FlowPanel _contents;
 
     protected Project _proj;
+    protected ModuleNode _allMods;
+    protected DefMap _defmap;
+
     protected long _moduleId;
     protected ModuleNode _mods;
-    protected DefMap _defmap = new DefMap();
 
     protected static final Comparator<Def> BY_NAME = new Comparator<Def>() {
         public int compare (Def one, Def two) {
