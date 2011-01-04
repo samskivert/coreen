@@ -42,9 +42,9 @@ public class TypePanel extends AbstractProjectPanel
                     // expansion of the docs until the next event loop pass
                     Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand() {
                         public void execute () {
-                            DocLabel doc = _panel.getTypeLabel().doc;
-                            if (doc != null) {
-                                doc.expanded.update(true);
+                            TypeLabel tlabel = _panel.getTypeLabel();
+                            if (tlabel != null && tlabel.doc != null) {
+                                tlabel.doc.expanded.update(true);
                             }
                         }
                     });
