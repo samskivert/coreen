@@ -204,6 +204,19 @@ trait DB {
     def loadDocs (ids :scala.collection.Set[Long]) :Map[Long, Doc] =
       _db.docs.where(d => d.defId in ids) map(d => (d.defId -> d)) toMap
 
+    /** Finds all defs in all projects with the specified name, omitting defs "greater" than the
+      * supplied max kind (see {@link Decode#kindToCode}). */
+    def findDefs (name :String, maxKind :Kind) :Seq[Def] =
+      defs.where(d => d.name === name and d.kind.~ <= Decode.kindToCode(maxKind)) toSeq
+
+    /** Finds all defs in the specified project with the specified name, omitting defs "greater"
+      * than the supplied max kind (see {@link Decode#kindToCode}). */
+    def findDefs (projectId :Long, name :String, maxKind :Kind) :Seq[Def] = 
+      from(compunits, defs)((cu, d) =>
+        where(cu.projectId === projectId and d.unitId === cu.id and
+              d.name === name and d.kind.~ <= Decode.kindToCode(maxKind))
+        select(d)) toSeq
+
     /** Resolves the details for a collection of search matches. */
     def resolveMatches[DD <: DefDetail] (matches :Seq[Def], createDD :() => DD)
                                         (implicit m :ClassManifest[DD]) :Array[DD] = {

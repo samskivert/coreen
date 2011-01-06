@@ -1,5 +1,15 @@
+;; coreen.el --- bindings to the Coreen code reading environment.
 ;;
-;; Defines various functions for interacting with Coreen.
+;; Copyright (C) 2010-2011 Michael Bayne
+;;
+;; Author: Michael Bayne <mdb * samskivert com>
+;; Version: 1.0
+;; URL: http://github.com/samskivert/coreen
+;; Compatibility: GNU Emacs 22.x, GNU Emacs 23.x
+;;
+;; This file is NOT part of GNU Emacs.
+;;
+;;; Commentary:
 ;;
 ;; You can wire these into your Java mode by adding the following to your
 ;; .emacs file:
@@ -11,12 +21,22 @@
 ;;   (define-key java-mode-map "\M-/"     'pop-coreen-mark)
 ;;   (define-key java-mode-map "\M-?"     'coreen-view-symbol)
 ;;   )
-;; (add-hook 'java-mode-hook 'coreen-java-mode-hook)
+;; (add-hook 'java-mode-hook 'coreen-java-mode-hook);
+;;
+;;; Code:
 
 (defvar coreen-url "http://localhost:8192/coreen"
   "The URL via which we communicate with Coreen.")
 (defvar coreen-marker-ring (make-ring 16)
   "Ring of markers which are locations from which \\[coreen-open-symbol] was invoked.")
+
+;; Used to handle next- and prev-error when navigating through results
+(defvar coreen-error-pos nil)
+(make-variable-buffer-local 'coreen-error-pos)
+
+;; Used when querying Coreen and processing the results
+(defvar coreen-buffer-name "*coreen*")
+(defvar coreen-searched-sym nil)
 
 (defun coreen-browse-url (url)
   "The function called by the Coreen bindings to display a URL. The default
@@ -49,22 +69,24 @@ must contain a compilation that has been processed by Coreen."
   (if (not (thing-at-point 'symbol))
       (message "There is no symbol under the point.")
     ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
-    (let* ((command (concat "GET '" coreen-url "/service?action=resolve"
+    (let* ((sym (thing-at-point 'symbol))
+           (command (concat "GET '" coreen-url "/service?action=resolve"
 			    "&src=" (buffer-file-name)
 			    "&pos=" (number-to-string (- (point) 1))
-			    ;; TODO: append &sym=cursym?
+                            "&sym=" sym
 			    "'"))
-	   (result (shell-command-to-string command))
-	   (result-words (split-string result)))
-      (cond ((string= (car result-words) "nomatch")
-             (message "Could not locate symbol: %s" (thing-at-point 'symbol)))
-            ((string= (car result-words) "match")
-	     (ring-insert coreen-marker-ring (point-marker)) ;; Record whence we came.
-	     (find-file (car (cdr result-words)))
-	     (goto-char (+ (string-to-number (car (cdr (cdr result-words)))) 1))
-	     )
-            (t (message (substring result 0 -1))) ;; strip newline
-            ))))
+           (buffer (get-buffer-create coreen-buffer-name)))
+      (setq coreen-searched-sym sym)
+      (shell-command command buffer)
+      (setq next-error-last-buffer buffer)
+      (with-current-buffer buffer
+        (coreen-results-mode)
+        (goto-char 0)
+        )
+      (let ((lines (with-current-buffer buffer
+                     (delete "" (split-string (buffer-string) "[\n\r]+")))))
+        (message (format "Coreen found %d result(s)." (length lines))))
+      (coreen-next-error-function 0 nil))))
 
 (defun pop-coreen-mark ()
   "Pop back to where \\[coreen-open-symbol] was last invoked."
@@ -76,3 +98,44 @@ must contain a compilation that has been processed by Coreen."
                           (error "The marked buffer has been deleted.")))
     (goto-char (marker-position marker))
     (set-marker marker nil nil)))
+
+;;; implementation details
+
+(define-derived-mode coreen-results-mode nil "coreen"
+  "Major mode for Coreen output."
+  (setq next-error-function 'coreen-next-error-function coreen-error-pos nil))
+
+(defun coreen-next-error-function (arg reset)
+  (with-current-buffer (get-buffer coreen-buffer-name)
+    (message "Moving %d %d" (line-number-at-pos) arg)
+    ;; handle wrapping to the end if we're at the first match and arg < 0
+    (when (and (eq 1 (line-number-at-pos)) (< arg 0))
+      (message "Start of matches (wrapped).")
+      ;; move to the end of the buffer; below we will back up one line and end
+      ;; up at the right place
+      (goto-char (point-max)))
+    (cond (reset (goto-char 0))
+          (t (forward-line arg)
+             ;; if we ended up on the last line (which is blank) then wrap back
+             ;; around to the first result
+             (when (null (thing-at-point 'symbol))
+               (message "End of matches (wrapped).")
+               (goto-char 0)))))
+  (coreen-display-current-result))
+
+(defun coreen-display-current-result ()
+  (let ((curpoint (point-marker)))
+    (with-current-buffer (get-buffer coreen-buffer-name)
+      (let ((toks (split-string (thing-at-point 'line))))
+        (cond ((string= (car toks) "nomatch")
+               (message "Could not locate symbol: %s" coreen-searched-sym))
+              ((string= (car toks) "match")
+               (ring-insert coreen-marker-ring curpoint) ;; record whence we came
+               (find-file (cadr toks))
+               (goto-char (+ (string-to-number (caddr toks)) 1))
+               )
+              (t (message (substring result 0 -1))) ;; strip newline
+              )))))
+  
+(provide 'coreen)
+;;; coreen.el ends here
