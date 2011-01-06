@@ -23,10 +23,10 @@ trait ServiceServlet {
     override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
       try {
         requireParameter(req, "action") match {
-          case action @ ("resolve" | "view") => handleResolve(
+          case action @ ("def" | "view") => handleResolve(
             action, rsp, requireParameter(req, "src"),
             requireParameter(req, "pos").toInt, requireParameter(req, "sym"))
-          case action => throw new Exception("unknown action " + action)
+          case action => throw new Exception("Unknown action " + action)
         }
       } catch {
         case e => {
@@ -69,12 +69,13 @@ trait ServiceServlet {
         }
       }
 
-      if ("resolve" == action) {
+      if ("def" == action) {
         // if we have matches, respond with them
         if (!matches.isEmpty) respond(rsp, "match", matches)
         // otherwise do an inexact search on the supplied symbol and return those matches
         else {
-          val loose = transaction { _db.findDefs(sym, Kind.FUNC) flatMap(resolveDef) }
+          val loose = transaction { _db.findDefs(sym, Kind.FUNC) sortBy(
+            d => (d.unitId, d.defStart)) flatMap(resolveDef) }
           if (!loose.isEmpty) respond(rsp, "match", loose)
           else respond(rsp, List("nomatch"))
         }

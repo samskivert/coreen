@@ -70,7 +70,7 @@ must contain a compilation that has been processed by Coreen."
       (message "There is no symbol under the point.")
     ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
     (let* ((sym (thing-at-point 'symbol))
-           (command (concat "GET '" coreen-url "/service?action=resolve"
+           (command (concat "GET '" coreen-url "/service?action=def"
 			    "&src=" (buffer-file-name)
 			    "&pos=" (number-to-string (- (point) 1))
                             "&sym=" sym
@@ -79,14 +79,13 @@ must contain a compilation that has been processed by Coreen."
       (setq coreen-searched-sym sym)
       (shell-command command buffer)
       (setq next-error-last-buffer buffer)
-      (with-current-buffer buffer
-        (coreen-results-mode)
-        (goto-char 0)
-        )
-      (let ((lines (with-current-buffer buffer
-                     (delete "" (split-string (buffer-string) "[\n\r]+")))))
-        (message (format "Coreen found %d result(s)." (length lines))))
-      (coreen-next-error-function 0 nil))))
+      (let ((rcount (with-current-buffer buffer
+                      (coreen-results-mode)
+                      (goto-char 0)
+                      (count-lines (point-min) (point-max))
+                      )))
+        (message (format "Coreen found %d result(s)." rcount))
+        (coreen-next-error-function 0 nil)))))
 
 (defun pop-coreen-mark ()
   "Pop back to where \\[coreen-open-symbol] was last invoked."
@@ -106,31 +105,33 @@ must contain a compilation that has been processed by Coreen."
   (setq next-error-function 'coreen-next-error-function coreen-error-pos nil))
 
 (defun coreen-next-error-function (arg reset)
-  (with-current-buffer (get-buffer coreen-buffer-name)
-    (message "Moving %d %d" (line-number-at-pos) arg)
-    ;; handle wrapping to the end if we're at the first match and arg < 0
-    (when (and (eq 1 (line-number-at-pos)) (< arg 0))
-      (message "Start of matches (wrapped).")
-      ;; move to the end of the buffer; below we will back up one line and end
-      ;; up at the right place
-      (goto-char (point-max)))
-    (cond (reset (goto-char 0))
-          (t (forward-line arg)
-             ;; if we ended up on the last line (which is blank) then wrap back
-             ;; around to the first result
-             (when (null (thing-at-point 'symbol))
-               (message "End of matches (wrapped).")
-               (goto-char 0)))))
-  (coreen-display-current-result))
-
-(defun coreen-display-current-result ()
-  (let ((curpoint (point-marker)))
+  (let ((savepoint (point-marker)))
     (with-current-buffer (get-buffer coreen-buffer-name)
+      ;; position the point on the desired result (in the coreen results buffer)
+      (if reset
+          ;; if we're resetting, just go to the first result
+          (goto-char 0)
+        ;; otherwise we'll be moving foward or backward based on the value of arg
+        (progn
+          ;; handle wrapping back to the end if we're at the first result and arg < 0
+          (when (and (eq 1 (line-number-at-pos)) (< arg 0))
+            (message "Start of matches (wrapped).")
+            ;; move to the end of the buffer; below we will back up one line
+            ;; and end up at the right place
+            (goto-char (point-max)))
+          ;; now move forward (or backward) the requested number of results (lines)
+          (forward-line arg)
+          ;; if we ended up on the last line (which is blank) then wrap back
+          ;; around to the first result
+          (when (null (thing-at-point 'symbol))
+            (message "End of matches (wrapped).")
+            (goto-char 0))))
+      ;; now process the result on the current line
       (let ((toks (split-string (thing-at-point 'line))))
         (cond ((string= (car toks) "nomatch")
                (message "Could not locate symbol: %s" coreen-searched-sym))
               ((string= (car toks) "match")
-               (ring-insert coreen-marker-ring curpoint) ;; record whence we came
+               (ring-insert coreen-marker-ring savepoint) ;; record whence we came
                (find-file (cadr toks))
                (goto-char (+ (string-to-number (caddr toks)) 1))
                )
