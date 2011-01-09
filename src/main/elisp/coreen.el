@@ -68,9 +68,9 @@ must contain a compilation that has been processed by Coreen."
   (interactive)
   (if (not (thing-at-point 'symbol))
       (message "There is no symbol under the point.")
-    ;; TODO: don't use GET, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
+    ;; TODO: don't use curl, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
     (let* ((sym (thing-at-point 'symbol))
-           (command (concat "GET '" coreen-url "/service?action=def"
+           (command (concat "curl -s '" coreen-url "/service?action=def"
 			    "&src=" (buffer-file-name)
 			    "&pos=" (number-to-string (- (point) 1))
                             "&sym=" sym
