@@ -23,7 +23,7 @@ trait ServiceServlet {
     override def doGet (req :HttpServletRequest, rsp :HttpServletResponse) {
       try {
         requireParameter(req, "action") match {
-          case action @ ("def" | "view") => handleResolve(
+          case action @ ("def" | "view") => handleFindDef(
             action, rsp, requireParameter(req, "src"),
             requireParameter(req, "pos").toInt, requireParameter(req, "sym"))
           case action => throw new Exception("Unknown action " + action)
@@ -36,7 +36,7 @@ trait ServiceServlet {
       }
     }
 
-    private def handleResolve (action: String, rsp :HttpServletResponse,
+    private def handleFindDef (action: String, rsp :HttpServletResponse,
                                src :String, pos :Int, sym :String) {
       val sfile = new File(src)
       if (!sfile.exists) throw new Exception("No such file " + src)
