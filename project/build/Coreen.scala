@@ -34,7 +34,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   ) ++ super.javaCompileOptions
 
   // we needs to fork and pass special arguments to the JVM
-  override def fork = forkRun("-Djava.library.path=lib" :: Nil)
+  override def fork = forkRun("-Djava.library.path=lib" :: "-mx1024M" :: Nil)
 
   // specify our main class
   override def mainClass = Some("coreen.server.Coreen")
