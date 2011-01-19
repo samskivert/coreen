@@ -271,11 +271,20 @@ public class SourcePanel extends AbstractProjectPanel
         _contents.insert(widget, lidx+1);
     }
 
+    protected DefId spanToDefId (Span span, String text)
+    {
+        DefId did = new DefId();
+        did.id = span.getId();
+        did.name = text;
+        did.kind = span.getKind();
+        return did;
+    }
+
     protected PopupPanel createDefPopup (final DefId def, final Widget deflbl)
     {
         final PopupPanel mpopup = createPopupPanel();
         MenuBar menu = new MenuBar(true);
-        menu.addItem(new MenuItem("Show uses...", new Command() {
+        menu.addItem(new MenuItem("▶ Show uses...", new Command() {
             public void execute () {
                 mpopup.hide();
                 PopupPanel spopup = createPopupPanel();
@@ -284,7 +293,7 @@ public class SourcePanel extends AbstractProjectPanel
                 repos.sizeDidChange();
             }
         }));
-        menu.addItem(new MenuItem("Show supers...", new Command() {
+        menu.addItem(new MenuItem("▲ Show supers...", new Command() {
             public void execute () {
                 mpopup.hide();
                 PopupPanel spopup = createPopupPanel();
@@ -293,7 +302,7 @@ public class SourcePanel extends AbstractProjectPanel
                 repos.sizeDidChange();
             }
         }));
-        menu.addItem(new MenuItem("Show subs...", new Command() {
+        menu.addItem(new MenuItem("▼ Show subs...", new Command() {
             public void execute () {
                 mpopup.hide();
                 PopupPanel spopup = createPopupPanel();
@@ -375,11 +384,7 @@ public class SourcePanel extends AbstractProjectPanel
 
         public void onClick (ClickEvent event) {
             if (_menu == null) {
-                DefId did = new DefId();
-                did.id = _span.getId();
-                did.name = getText();
-                did.kind = _span.getKind();
-                _menu = createDefPopup(did, this);
+                _menu = createDefPopup(spanToDefId(_span, getText()), this);
             }
             Popups.show(_menu, Popups.Position.ABOVE, this);
         }
@@ -420,10 +425,16 @@ public class SourcePanel extends AbstractProjectPanel
                 }
                 _usesrc.addStyleName(_rsrc.styles().nested());
                 addAfterLine((FlowPanel)getParent(), _usesrc);
+            } else {
+                if (_menu == null) {
+                    _menu = createDefPopup(spanToDefId(_span, getText()), this);
+                }
+                Popups.show(_menu, Popups.Position.ABOVE, this);
             }
         }
 
         protected Widget _usesrc;
+        protected PopupPanel _menu;
     }
 
     protected DefMap _defmap, _local;
