@@ -11,15 +11,17 @@
 ;;
 ;;; Commentary:
 ;;
-;; You can wire these into your Java mode by adding the following to your
-;; .emacs file:
+;; Configure Coreen for use in Java mode by adding the following to your .emacs
+;; file (customizing key bindings to your preference, naturally):
 ;;
 ;; (load "path/to/coreen")
 ;; (defun coreen-java-mode-hook ()
-;;   (define-key java-mode-map "\C-c\C-j" 'coreen-find-symbol)
+;;   (define-key java-mode-map "\C-c\C-j" 'coreen-view-symbol)
 ;;   (define-key java-mode-map "\M-."     'coreen-open-symbol)
 ;;   (define-key java-mode-map "\M-/"     'pop-coreen-mark)
-;;   (define-key java-mode-map "\M-?"     'coreen-view-symbol)
+;;   ;; these navigate between matches when there are multiple
+;;   (define-key java-mode-map "\M-]"     'next-error)
+;;   (define-key java-mode-map "\M-["     'previous-error)
 ;;   )
 ;; (add-hook 'java-mode-hook 'coreen-java-mode-hook);
 ;;
@@ -30,7 +32,7 @@
 (defvar coreen-marker-ring (make-ring 16)
   "Ring of markers which are locations from which \\[coreen-open-symbol] was invoked.")
 
-;; Used to handle next- and prev-error when navigating through results
+;; Used to handle next- and previous-error when navigating through results
 (defvar coreen-error-pos nil)
 (make-variable-buffer-local 'coreen-error-pos)
 
@@ -39,53 +41,56 @@
 (defvar coreen-searched-sym nil)
 
 (defun coreen-browse-url (url)
-  "The function called by the Coreen bindings to display a URL. The default
-  implementation simply calls (browse-url url) but this can be redefined to
-  provide custom behavior."
+  "The function called by the Coreen bindings to display a URL.
+The default implementation simply calls (browse-url url) but this
+can be redefined to provide custom behavior."
   (browse-url url)
   )
 
-(defun coreen-find-symbol (class)
-  "Searches Coreen for the symbol under the point. Only the text
-of the symbol is used for searching, the current buffer need not
-contain a compilation unit known to Coreen."
+(defun coreen-find-symbol (name)
+  "Searches Coreen for all definitions with the same name as the
+symbol under the point. The results are displayed in your web
+browser."
   (interactive (list (read-from-minibuffer "Symbol: " (thing-at-point 'symbol))))
-  (coreen-browse-url (concat coreen-url "/#LIBRARY~search~" class))
+  (coreen-browse-url (concat coreen-url "/#LIBRARY~search~" name))
   )
 
-(defun coreen-view-symbol ()
-  "Views the symbol under the point in Coreen. The current buffer
-must contain a compilation that has been processed by Coreen."
-  (interactive)
+(defun coreen-view-symbol (name)
+  "Displays the symbol under the point in your web browser, using
+Coreen. If Coreen is not able to uniquely identify the symbol
+under the point, it will display all symbols with the same name
+as the queried symbol."
+  (interactive (list (read-from-minibuffer "Symbol: " (thing-at-point 'symbol))))
   (coreen-browse-url (concat coreen-url "/service?action=view"
                       "&src=" (buffer-file-name)
                       "&pos=" (number-to-string (- (point) 1))
-                      "&sym=" (thing-at-point 'symbol)))
+                      "&sym=" name))
   )
 
-(defun coreen-open-symbol ()
-  "Navigates to the symbol under the point."
-  (interactive)
-  (if (not (thing-at-point 'symbol))
-      (message "There is no symbol under the point.")
-    ;; TODO: don't use curl, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
-    (let* ((sym (thing-at-point 'symbol))
-           (command (concat "curl -s '" coreen-url "/service?action=def"
-			    "&src=" (buffer-file-name)
-			    "&pos=" (number-to-string (- (point) 1))
-                            "&sym=" sym
-			    "'"))
-           (buffer (get-buffer-create coreen-buffer-name)))
-      (setq coreen-searched-sym sym)
-      (shell-command command buffer)
-      (setq next-error-last-buffer buffer)
-      (let ((rcount (with-current-buffer buffer
-                      (coreen-results-mode)
-                      (goto-char 0)
-                      (count-lines (point-min) (point-max))
-                      )))
-        (message (format "Coreen found %d result(s)." rcount))
-        (coreen-next-error-function 0 nil)))))
+(defun coreen-open-symbol (name)
+  "Navigates to the definition of the symbol under the point. If
+Coreen is not able to uniquely identify the symbol under the
+point, it will return all symbols with the same name as the
+queried symbol. These matches can be navigated using
+\\[next-error] and \\[previous-error]]."
+  (interactive (list (read-from-minibuffer "Symbol: " (thing-at-point 'symbol))))
+  ;; TODO: don't use curl, use Emacs to fetch the URL (maybe url-retrieve-synchronously?)
+  (let* ((command (concat "curl -s '" coreen-url "/service?action=def"
+                          "&src=" (buffer-file-name)
+                          "&pos=" (number-to-string (- (point) 1))
+                          "&sym=" name
+                          "'"))
+         (buffer (get-buffer-create coreen-buffer-name)))
+    (setq coreen-searched-sym name)
+    (shell-command command buffer)
+    (setq next-error-last-buffer buffer)
+    (let ((rcount (with-current-buffer buffer
+                    (coreen-results-mode)
+                    (goto-char 0)
+                    (count-lines (point-min) (point-max))
+                    )))
+      (message (format "Coreen found %d result(s)." rcount))
+      (coreen-next-error-function 0 nil))))
 
 (defun pop-coreen-mark ()
   "Pop back to where \\[coreen-open-symbol] was last invoked."
