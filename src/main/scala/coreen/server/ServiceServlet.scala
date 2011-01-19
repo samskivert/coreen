@@ -42,11 +42,21 @@ trait ServiceServlet {
       if (!sfile.exists) throw new Exception("No such file " + src)
       val spath = sfile.getCanonicalPath
 
+      // find the project that contains the compilation unit in question
+      val ps = transaction {
+        _db.projects filter(p => spath.startsWith(p.rootPath + File.separator)) toList
+      }
+      val popt = ps match {
+        case Nil => None
+        case List(p) => Some(p)
+        case _ => _log.warning("Source file matches multiple projects?", "src", src, "ps", ps); None
+      }
+
       val matches = transaction {
         // find the defs that overlap the supplied source position
         val odefs = for {
-          p <- _db.projects; if (spath.startsWith(p.rootPath + File.separator));
           // find the project and compunit that match the supplied path
+          p <- popt.toList;
           val unitPath = spath.substring(p.rootPath.length+1);
           unit <- _db.compunits.where(cu => cu.path === unitPath);
           // find the defs in this unit that overlap the pos
@@ -74,8 +84,11 @@ trait ServiceServlet {
         if (!matches.isEmpty) respond(rsp, "match", matches)
         // otherwise do an inexact search on the supplied symbol and return those matches
         else {
-          val loose = transaction { _db.findDefs(sym, Kind.FUNC) sortBy(
-            d => (d.unitId, d.defStart)) flatMap(resolveDef) }
+          val srcProjId = popt.map(_.id).getOrElse(0)
+          val loose = transaction { _db.findDefs(sym, Kind.TERM) flatMap(resolveDef) sortBy {
+            // sort matches in the current project above those that aren't, then by kind, and
+            // finally by comp unit and position therein
+            case (p, cu, d) => (p.id != srcProjId, d.kind, d.unitId, d.defStart) }}
           if (!loose.isEmpty) respond(rsp, "match", loose)
           else respond(rsp, List("nomatch"))
         }
