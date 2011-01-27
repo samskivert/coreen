@@ -123,8 +123,8 @@ class SourceModelSpec extends FlatSpec with ShouldMatchers
     u.getDef("foo.bar.TestA.main.args").get.name should equal("args")
     u.getDef("foo.bar.TestA.main").get.sig should equal(
       Some(SigElem("public static void main(String[] args)",
-                   List(SigDefElem("args", Kind.TERM, 33),
-                        SigDefElem("main", Kind.FUNC, 19)),
+                   List(SigDefElem("", "args", Kind.TERM, 33),
+                        SigDefElem("", "main", Kind.FUNC, 19)),
                    List(UseElem("String", "java.lang.String", Kind.TYPE, 24)))))
   }
 }
