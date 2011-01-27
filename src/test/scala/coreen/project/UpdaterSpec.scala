@@ -16,7 +16,7 @@ import coreen.server.{DirsComponent, StdoutConsoleComponent, ExecComponent, LogC
  */
 class UpdaterSpec extends FlatSpec with ShouldMatchers with Updater
   with LogComponent with StdoutConsoleComponent with DirsComponent
-  with ExecComponent with DBComponent
+  with ExecComponent with DBComponent with WatcherComponent
 {
   "collectFileTypes" should "find files" in {
     val sentinel = getClass.getClassLoader.getResource("com/test/Test.java")
