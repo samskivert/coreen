@@ -2,6 +2,7 @@
 /java-reader/
 /project/boot/
 /project/plugins/project/build.properties
+/scala-reader/
 /src/main/java/coreen/*/*Messages.java
 lib_managed/
 src_managed/
