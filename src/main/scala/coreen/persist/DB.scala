@@ -26,7 +26,7 @@ trait DB {
   /** Defines our database schemas. */
   object _db extends Schema {
     /** The schema version for amazing super primitive migration management system. */
-    val version = 18;
+    val version = 18
 
     /** Provides access to the configuration table. */
     val settings = table[Setting]
@@ -329,7 +329,7 @@ trait DBComponent extends Component with DB {
         finally stmt.close
 
         // note that we're consistent with the specified version
-        writeVersion(version);
+        writeVersion(version)
       }
     }
 

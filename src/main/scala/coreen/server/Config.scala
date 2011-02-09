@@ -67,7 +67,7 @@ trait ConfigComponent extends Component with Config {
       // and update the database
       transaction {
         if (_db.settings.update(s => where(s.key === key) set(s.value := value)) == 0) {
-          _db.settings.insert(Setting(key, value));
+          _db.settings.insert(Setting(key, value))
         }
       }
     }

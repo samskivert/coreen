@@ -58,7 +58,7 @@ trait Importer {
           pp.projectId = projectId
         }
         case None => {
-          _log.warning("Requested to update unknown project", "source", source, "status", status);
+          _log.warning("Requested to update unknown project", "source", source, "status", status)
         }
       }
     }
@@ -85,7 +85,7 @@ trait Importer {
       val (name, vers) = inferNameAndVersion(file.getName)
 
       // finish up now that we have a name, version and local filesystem location
-      finishLocalImport(source, file, name, vers);
+      finishLocalImport(source, file, name, vers)
     }
 
     private def isLocalArchive (file :File) =
@@ -110,10 +110,10 @@ trait Importer {
       val unpacker = Runtime.getRuntime.exec(Array("jar", "xf", file.getAbsolutePath), null, pdir)
       val urv = unpacker.waitFor
       if (urv != 0) {
-        updatePending(source, "Unpacking failed? Trying anyway...", 0L);
+        updatePending(source, "Unpacking failed? Trying anyway...", 0L)
       }
 
-      finishLocalImport(source, pdir, name, vers);
+      finishLocalImport(source, pdir, name, vers)
     }
 
     private def isRemoteArchive (source :String) = try {
@@ -140,7 +140,7 @@ trait Importer {
       updatePending(source, "Downloading and unpacking source...", 0L)
       RemoteUnpacker.unpackJar(url, pdir)
 
-      finishLocalImport(source, pdir, name, vers);
+      finishLocalImport(source, pdir, name, vers)
     }
 
     private def finishLocalImport (source :String, root :File, name :String, vers :String) {

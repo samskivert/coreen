@@ -435,7 +435,7 @@ trait Updater {
         // note all of the super additions, deletions and updates that are needed
         def processDef (d :DefElem) :Unit = for (defId <- defMap.get(d.id)) {
           val osups = superMap getOrElse(defId, Set())
-          val nsups = d.supers flatMap(s => defMap.get(s)) toSet; // grr!
+          val nsups = d.supers flatMap(s => defMap.get(s)) toSet;
           // note the deletions and additions to be made
           (osups -- nsups) foreach { id => toDel += Super(defId, id) }
           (nsups -- osups) foreach { id => toAdd += Super(defId, id) }
