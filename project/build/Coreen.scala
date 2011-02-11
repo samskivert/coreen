@@ -107,8 +107,9 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   }
 
   // proguard plugin configurations
-  override def proguardInJars = super.proguardInJars +++ scalaLibraryPath +++
+  override def proguardInJars = super.proguardInJars +++
     depPath("gwt-servlet") --- depPath("gwt-user") --- depPath("gwt-utils")
+  override def proguardLibraryJars = super.proguardLibraryJars +++ buildLibraryJar
   override def proguardOptions = List(
     "-dontnote !coreen.**",
     "-keep class coreen.** { *; }",
