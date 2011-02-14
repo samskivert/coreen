@@ -39,6 +39,9 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   // specify our main class
   override def mainClass = Some("coreen.server.Coreen")
 
+  // we need to know our versioned scala directory in various places
+  def scalaVersDir = "scala_" + buildScalaVersion
+
   // used to obtain the path for a specific dependency jar file
   def depPath (name :String) = managedDependencyRootPath ** (name+"*")
 
@@ -56,7 +59,7 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
   lazy val gwtc = runTask(
     Some("com.google.gwt.dev.Compiler"),
     compileClasspath +++ depPath("gwt-dev") +++ mainJavaSourcePath +++ mainResourcesPath,
-    List("-war", "target/scala_2.8.0/gwtc", "coreen")) dependsOn(copyResources)
+    List("-war", "target/" + scalaVersDir + "/gwtc", "coreen")) dependsOn(copyResources)
 
   // packages the output of our GWT client into a jar file
   def packageGwtJar = outputPath / "coreen-gwt.jar"
@@ -120,10 +123,15 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     "-keep class net.contentobjects.jnotify.** { *; }"
   )
 
+  // the paths to our Java and Scala readers
+  def javaReaderJarPath =
+    "java-reader" / "target" / scalaVersDir ** "coreen-java-reader_*.min.jar"
+  def scalaReaderJarPath =
+    "scala-reader" / "target" / scalaVersDir ** "coreen-scala-reader_*.min.jar"
+
   // copies the necessary files into place for our Getdown client
   def clientOutPath = outputPath / "client"
   def clientNativePath = clientOutPath / "native"
-  def javaReaderJarPath = "java-reader" / "target" / "scala_2.8.0" ** "coreen-java-reader_*.min.jar"
   lazy val prepclient = task {
     // clean out any previous bits
     FileUtilities.clean(clientOutPath, log)
@@ -134,8 +142,10 @@ class Coreen (info :ProjectInfo) extends DefaultProject(info) with ProguardProje
     // copy all of the appropriate jars into the target directory
     FileUtilities.copyFlat(minJarPath.get, clientOutPath, log)
     FileUtilities.copyFlat(packageGwtJar.get, clientOutPath, log)
+    FileUtilities.copyFlat(buildLibraryJar.get, clientOutPath, log)
     FileUtilities.copyFlat(depPath("getdown-pro").get, clientOutPath, log)
     FileUtilities.copyFlat(javaReaderJarPath.get, clientOutPath, log)
+    FileUtilities.copyFlat(scalaReaderJarPath.get, clientOutPath, log)
 
     // copy our native library bits into the native directory
     FileUtilities.copyFlat((dependencyPath * "*jnotify*.dll").get, clientNativePath, log)

@@ -16,6 +16,7 @@ ui.status_text = 000000
 # Main jar files
 code = coreen.jar
 code = coreen-gwt.jar
+code = scala-library.jar
 
 # Native libraries for file notification
 resource = [linux-i386] native/libjnotify.so
