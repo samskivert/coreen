@@ -75,9 +75,9 @@ object SourceModel
   def parse (elem :Elem) :CompUnitElem = {
     assert(elem.size == 1 && elem.head.label == "compunit",
            "DOM must be rooted in a single <compunit> element")
-    CompUnitElem(
-      (elem \ "@src").text,
-      parse0(elem.head.child) filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]))
+    val src = (elem \ "@src").text
+    assert(src.length > 0, "<compunit> missing 'src' attribute.")
+    CompUnitElem(src, parse0(elem.head.child) collect { case e :DefElem => e })
   }
 
   // TODO: clean up this ugly hack
@@ -98,8 +98,8 @@ object SourceModel
             (elem \ "doc").headOption map(parseDoc), // we have zero or one <doc blocks
             parseKind(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
             intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
-            children filter(_.isInstanceOf[DefElem]) map(_.asInstanceOf[DefElem]),
-            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
+            children collect { case e :DefElem => e },
+            children collect { case e :UseElem => e })
 
   protected def parseKind (elem :Node) = {
     val text = (elem \ "@kind").text
@@ -139,14 +139,13 @@ object SourceModel
   protected def parseSig (elem :Node) = {
     val children = parse0(elem.child)
     SigElem(elem.text.trim,
-            children filter(_.isInstanceOf[SigDefElem]) map(_.asInstanceOf[SigDefElem]),
-            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
+            children collect { case e :SigDefElem => e },
+            children collect { case e :UseElem => e })
   }
 
   protected def parseDoc (elem :Node) = {
     val children = parse0(elem.child)
-    DocElem(elem.text.trim,
-            children filter(_.isInstanceOf[UseElem]) map(_.asInstanceOf[UseElem]))
+    DocElem(elem.text.trim, children collect { case e :UseElem => e })
   }
 
   protected def intAttr (elem :Node, attr :String) = {
