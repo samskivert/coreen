@@ -524,29 +524,23 @@ trait Updater {
       case None => mkFile("project", "boot", "scala-.*", "lib", "scala-library.jar")
     }
 
-    def createJavaReader = _appdir match {
-      case Some(appdir) => new JVMReader(
-        "coreen.java.Main",
-        List(getScalaLibJar, mkFile(appdir, "coreen-java-reader.jar")),
-        List())
-      case None => new JVMReader(
-        "coreen.java.Main",
-        List(getScalaLibJar, mkFile("java-reader", "target", "scala_.*",
-                                    "coreen-java-reader_.*.min.jar")),
-        List())
-    }
+    def createJavaReader = new JVMReader(
+      "coreen.java.Main",
+      List(getScalaLibJar, _appdir match {
+        case Some(appdir) => mkFile(appdir, "coreen-java-reader.jar")
+        case None => mkFile("java-reader", "target", "scala_.*",
+                            "coreen-java-reader_.*.min.jar")
+      }),
+      List())
 
-    def createScalaReader = _appdir match {
-      case Some(appdir) => new JVMReader(
-        "coreen.scala.Main",
-        List(getScalaLibJar, mkFile(appdir, "coreen-scala-reader.jar")),
-        List())
-      case None => new JVMReader(
-        "coreen.scala.Main",
-        List(getScalaLibJar, mkFile("scala-reader", "target", "scala_.*",
-                                    "coreen-scala-reader_.*.min.jar")),
-        List())
-    }
+    def createScalaReader = new JVMReader(
+      "coreen.scala.Main",
+      List(getScalaLibJar, _appdir match {
+        case Some(appdir) => mkFile(appdir, "coreen-scala-reader.jar")
+        case None => mkFile("scala-reader", "target", "scala_.*",
+                            "coreen-scala-reader_.*.min.jar")
+      }),
+      List())
 
     def readerForType (typ :String) :Option[Reader] = typ match {
       case "java" => Some(createJavaReader)
