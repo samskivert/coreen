@@ -3,10 +3,11 @@
 
 package coreen.project
 
-import java.io.{File, StringReader}
-import java.sql.BatchUpdateException
+import java.io.{File, StringReader, FilenameFilter}
 import java.net.URI
+import java.sql.BatchUpdateException
 import java.util.concurrent.Callable
+import java.util.regex.Pattern
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.{Map => MMap, Set => MSet}
@@ -474,10 +475,10 @@ trait Updater {
       }
     }
 
-    class JavaReader (
+    class JVMReader (
       classname :String, classpath :List[File], javaArgs :List[String]
     ) extends Reader {
-      val javabin = mkFile(new File(System.getProperty("java.home")), "bin", "java")
+      val javabin = mkFile(System.getProperty("java.home"), "bin", "java")
       def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) = {
         val jvm :List[String] = javabin.getCanonicalPath :: "-classpath" ::
           classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) :: extraOpts
@@ -505,32 +506,51 @@ trait Updater {
       case str => Some(str)
     }
 
-    def mkFile (root :File, path :String*) = (root /: path)(new File(_, _))
-
-    def getToolsJar = {
-      val jhome = new File(System.getProperty("java.home"))
-      val tools = mkFile(jhome.getParentFile, "lib", "tools.jar")
-      val classes = mkFile(jhome.getParentFile, "Classes", "classes.jar")
-      if (tools.exists) tools
-      else if (classes.exists) classes
-      else error("Can't find tools.jar or classes.jar")
+    def mkFile (path :String*) :File = mkFile(new File(path.head), path.tail :_*)
+    def mkFile (root :File, path :String*) :File = path.foldLeft(root)(matchFile)
+    def matchFile (parent :File, pattern :String) = {
+      val p = Pattern.compile(pattern)
+      val matches = parent.listFiles(new FilenameFilter {
+        def accept (dir :File, name :String) = p.matcher(name).matches
+      })
+      if (matches.size > 1) {
+        _log.warning("Matched multiple files", "parent", parent, "pattern", pattern)
+      }
+      matches.head
     }
 
-    def createJavaJavaReader = _appdir match {
-      case Some(appdir) => new JavaReader(
+    def getScalaLibJar = _appdir match {
+      case Some(appdir) => mkFile(appdir, "scala-library.jar")
+      case None => mkFile("project", "boot", "scala-.*", "lib", "scala-library.jar")
+    }
+
+    def createJavaReader = _appdir match {
+      case Some(appdir) => new JVMReader(
         "coreen.java.Main",
-        List(getToolsJar, mkFile(appdir, "coreen-java-reader.jar")),
+        List(getScalaLibJar, mkFile(appdir, "coreen-java-reader.jar")),
         List())
-      case None => new JavaReader(
+      case None => new JVMReader(
         "coreen.java.Main",
-        List(getToolsJar,
-             mkFile(new File("java-reader"), "target", "scala_2.8.0",
-                    "coreen-java-reader_2.8.0-0.1.min.jar")),
+        List(getScalaLibJar, mkFile("java-reader", "target", "scala_.*",
+                                    "coreen-java-reader_.*.min.jar")),
+        List())
+    }
+
+    def createScalaReader = _appdir match {
+      case Some(appdir) => new JVMReader(
+        "coreen.scala.Main",
+        List(getScalaLibJar, mkFile(appdir, "coreen-scala-reader.jar")),
+        List())
+      case None => new JVMReader(
+        "coreen.scala.Main",
+        List(getScalaLibJar, mkFile("scala-reader", "target", "scala_.*",
+                                    "coreen-scala-reader_.*.min.jar")),
         List())
     }
 
     def readerForType (typ :String) :Option[Reader] = typ match {
-      case "java" => Some(createJavaJavaReader)
+      case "java" => Some(createJavaReader)
+      case "scala" => Some(createScalaReader)
       case _ => None
     }
 
