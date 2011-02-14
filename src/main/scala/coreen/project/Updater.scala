@@ -226,7 +226,7 @@ trait Updater {
           if (!accmode) ulog.append(line)
           else {
             accum.append(line).append("\n") // TODO: need line.separator?
-            accmode = !line.trim.startsWith("</compunit>")
+            accmode = (line.indexOf("</compunit>") == -1)
             if (!accmode) {
               try {
                 val cu = SourceModel.parse(XML.load(new StringReader(accum.toString)))
