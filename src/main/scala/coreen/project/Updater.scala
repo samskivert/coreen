@@ -303,9 +303,17 @@ trait Updater {
 
         val validDefIds = MSet[Long]()
         if (!toAdd.isEmpty) {
-          addedDefs ++= toAdd
+          // map the string ids to the Def instances to be added
           val added = toAdd map(ndefs)
+
+          // ensure that there are no duplicate ids in our set of to be added defs
+          val addedIds = added map(_.id)
+          if (addedIds.size < added.size) {
+            throw new Exception("One or more duplicate defs among " + toAdd)
+          }
+
           time("addNewDefs") { _db.defs.insert(added) }
+          addedDefs ++= toAdd
           added foreach { d => defToUnit.update(d.id, d.unitId) }
           validDefIds ++= added.map(_.id)
           // _log.info("Inserted " + toAdd.size + " new defs")
