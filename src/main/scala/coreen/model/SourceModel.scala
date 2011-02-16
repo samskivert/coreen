@@ -86,7 +86,7 @@ trait SourceModel {
              "DOM must be rooted in a single <compunit> element")
       val src = (elem \ "@src").text
       assert(src.length > 0, "<compunit> missing 'src' attribute.")
-      CompUnitElem(src, collectValid(parse0(elem.head.child)))
+      CompUnitElem(src, collectValid[DefElem](parse0(elem.head.child)))
     }
 
     // TODO: clean up this ugly hack
@@ -107,7 +107,7 @@ trait SourceModel {
               (elem \ "doc").headOption map(parseDoc), // we have zero or one <doc blocks
               parseKind(elem), parseFlavor(elem), parseFlags(elem), parseSupers(elem),
               intAttr(elem, "start"), intAttr(elem, "bodyStart"), intAttr(elem, "bodyEnd"),
-              collectValid(children), collectValid(children))
+              collectValid[DefElem](children), collectValid[UseElem](children))
 
     protected def parseKind (elem :Node) = {
       val text = (elem \ "@kind").text
@@ -147,12 +147,12 @@ trait SourceModel {
     protected def parseSig (elem :Node) = {
       val children = parse0(elem.child)
       SigElem(elem.text.trim,
-              children collect { case e :SigDefElem => e }, collectValid(children))
+              children collect { case e :SigDefElem => e }, collectValid[UseElem](children))
     }
 
     protected def parseDoc (elem :Node) = {
       val children = parse0(elem.child)
-      DocElem(elem.text.trim, collectValid(children))
+      DocElem(elem.text.trim, collectValid[UseElem](children))
     }
 
     protected def filterValid[T <: Validatable] (elems :Seq[T]) :Seq[T] = {
