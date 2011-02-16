@@ -13,6 +13,7 @@ import org.squeryl.PrimitiveTypeMode._
 
 import coreen.persist.{DB, DBComponent}
 import coreen.project.{Importer, Updater, WatcherComponent}
+import coreen.model.SourceModel
 
 /**
  * The main entry point for the Coreen server.
@@ -21,7 +22,7 @@ object Coreen extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
   with ConfigComponent with TrayComponent with ConsoleComponent with WatcherComponent
   with HttpComponent with ProjectServlet with LibraryServlet with ConsoleServlet with ServiceServlet
-  with Updater with Importer
+  with Updater with Importer with SourceModel
 {
   def main (args :Array[String]) {
     // if we're running via Getdown, redirect our log output to a file

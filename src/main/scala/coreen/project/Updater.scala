@@ -16,14 +16,13 @@ import scala.xml.{XML, Elem}
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.SourceModel._
 import coreen.model.{Convert, DefInfo, Kind, SourceModel, SigDef, Use => JUse}
 import coreen.persist.{CompUnit, DB, Decode, Def, DefMap, Doc, Project, Sig, Super, Use}
 import coreen.server.{Log, Exec, Dirs, Console}
 
 /** Provides project updating services. */
 trait Updater {
-  this :Log with Exec with DB with Dirs with Console with Watcher =>
+  this :Log with Exec with DB with Dirs with SourceModel with Console with Watcher =>
 
   /** Handles updating projects. */
   object _updater {
@@ -168,8 +167,9 @@ trait Updater {
         // module; we then strip those defs of their subdefs (which will be processed later) and
         // then process the whole list as if they were all part of one "declare all the modules in
         // this project" compilation unit
-        val byId = cus.flatMap(cu => allDefs(cu.defs)) filter(_.kind == Kind.MODULE) groupBy(_.id)
-        processDefs(cuDef.id, defMap, newDefs, dupDefs, defToUnit,
+        val byId = cus.flatMap(cu => _model.allDefs(cu.defs)) filter(
+          _.kind == Kind.MODULE) groupBy(_.id)
+        processDefs(cuDef.id, cuDef.path, defMap, newDefs, dupDefs, defToUnit,
                     // only prune old module defs if we're doing a full rebuild
                     byId.values map(_.head) map(_.copy(defs = Nil)) toSeq, full)
 
@@ -178,7 +178,7 @@ trait Updater {
           ulog.append("Processing defs in " + cu.src + "...")
           // we want to filter out any defs for which we have no module id mapping; this filters
           // out code from modules that have already been claimed by some other project
-          processDefs(cuIds(cu.src), defMap, newDefs, dupDefs, defToUnit,
+          processDefs(cuIds(cu.src), cu.src, defMap, newDefs, dupDefs, defToUnit,
                       cu.defs filter(d => defMap.contains(d.id)), true)
           checkAbort() // possibly terminate early
         }
@@ -229,7 +229,7 @@ trait Updater {
             accmode = (line.indexOf("</compunit>") == -1)
             if (!accmode) {
               try {
-                val cu = SourceModel.parse(XML.load(new StringReader(accum.toString)))
+                val cu = _model.parse(XML.load(new StringReader(accum.toString)))
                 val curi = new URI(cu.src)
                 if (curi.getPath.startsWith(uriRoot))
                   cu.src = curi.getPath.substring(uriRoot.length)
@@ -248,8 +248,10 @@ trait Updater {
       def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) :List[String]
     }
 
-    def processDefs (unitId :Long, defMap :DefMap, addedDefs :MSet[String], dupDefs :MSet[String],
-                     defToUnit :MMap[Long, Long], defs :Seq[DefElem], pruneOld :Boolean) {
+    def processDefs (
+      unitId :Long, unitPath :String, defMap :DefMap, addedDefs :MSet[String],
+      dupDefs :MSet[String], defToUnit :MMap[Long, Long], defs :Seq[DefElem], pruneOld :Boolean
+    ) {
       transaction {
         // resolve (fqName -> id) for all defs in this unit (and all their children)
         time("loadDefIds") { defMap.resolveIds(defs map(_.id), true) }
@@ -309,7 +311,8 @@ trait Updater {
           // ensure that there are no duplicate ids in our set of to be added defs
           val addedIds = added map(_.id)
           if (addedIds.size < added.size) {
-            throw new Exception("One or more duplicate defs among " + toAdd)
+            val dups = added groupBy(_.id) filter(_._2.size > 1)
+            throw new Exception("Duplicate defs in " + unitPath + ": " + dups)
           }
 
           time("addNewDefs") { _db.defs.insert(added) }
@@ -393,7 +396,7 @@ trait Updater {
         def parseDoc (df :DefElem) = df.doc flatMap(de => defMap.get(df.id) map(
           defId => Doc(defId, truncate(de.text, DefInfo.MAX_DOC_LENGTH-3),
                        Convert.encodeUses(parseUses(de.uses)))))
-        val (ndefs, udefs) = allDefs(defs) partition(df => addedDefs(df.id))
+        val (ndefs, udefs) = _model.allDefs(defs) partition(df => addedDefs(df.id))
         val (vndefs, vudefs) = (ndefs filter(d => !dupDefs(d.id)),
                                 udefs filter(d => !dupDefs(d.id)))
         val (nsigs, usigs) = (vndefs.flatMap(parseSig), vudefs.flatMap(parseSig))

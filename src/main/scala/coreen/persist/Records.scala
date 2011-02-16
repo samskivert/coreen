@@ -97,7 +97,7 @@ case class Def (
   def this () = this(0L, 0L, 0L, 0L, "", 0, 0, 0, 0, 0, 0, 0)
 
   override def toString = ("[id=" + id + ", oid=" + outerId + ", uid=" + unitId +
-                           ", name=" + name + ", kind=" + kind + "]")
+                           ", name=" + name + ", kind=" + kind + ", start=" + defStart + "]")
 }
 
 /** Contains metadata for a use. */

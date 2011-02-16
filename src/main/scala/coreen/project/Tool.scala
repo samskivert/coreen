@@ -5,7 +5,7 @@ package coreen.project
 
 import org.squeryl.PrimitiveTypeMode._
 
-import coreen.model.Kind
+import coreen.model.{Kind, SourceModel}
 import coreen.persist.{DBComponent, Decode}
 import coreen.server.{DirsComponent, ExecComponent, LogComponent, StdoutConsoleComponent}
 
@@ -15,7 +15,7 @@ import coreen.server.{DirsComponent, ExecComponent, LogComponent, StdoutConsoleC
 object Tool extends AnyRef
   with LogComponent with DirsComponent with ExecComponent with DBComponent
   with StdoutConsoleComponent with NoopWatcherComponent
-  with Updater with Importer
+  with Updater with Importer with SourceModel
 {
   def main (args :Array[String]) :Unit = try {
     args match {
