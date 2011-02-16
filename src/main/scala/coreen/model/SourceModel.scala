@@ -89,18 +89,6 @@ trait SourceModel {
       CompUnitElem(src, collectValid(parse0(elem.head.child)))
     }
 
-    def filterValid[T <: Validatable] (elems :Seq[T]) :Seq[T] = {
-      val (valid, invalid) = elems.partition(_.isValid)
-      if (!invalid.isEmpty) {
-        _log.warning("Dropping invalid elements " + invalid)
-      }
-      valid
-    }
-
-    def collectValid[T <: Validatable] (elems :Seq[AnyRef])(implicit m :Manifest[T]) :Seq[T] = {
-      filterValid(elems collect { case e if (m.erasure.isInstance(e)) => e.asInstanceOf[T] })
-    }
-
     // TODO: clean up this ugly hack
     protected def parse0 (elem :NodeSeq) :Seq[AnyRef] = {
       elem map(e => e.label match {
@@ -165,6 +153,19 @@ trait SourceModel {
     protected def parseDoc (elem :Node) = {
       val children = parse0(elem.child)
       DocElem(elem.text.trim, collectValid(children))
+    }
+
+    protected def filterValid[T <: Validatable] (elems :Seq[T]) :Seq[T] = {
+      val (valid, invalid) = elems.partition(_.isValid)
+      if (!invalid.isEmpty) {
+        _log.warning("Dropping invalid elements " + invalid)
+      }
+      valid
+    }
+
+    protected def collectValid[T <: Validatable] (elems :Seq[AnyRef])(
+      implicit m :Manifest[T]) :Seq[T] = {
+      filterValid(elems collect { case e if (m.erasure.isInstance(e)) => e.asInstanceOf[T] })
     }
 
     protected def intAttr (elem :Node, attr :String) = {
