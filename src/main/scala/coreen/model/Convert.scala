@@ -59,7 +59,7 @@ object Convert
   /** Initializes a DefInfo from a Scala Def. */
   def initDefInfo[DT <: DefInfo] (sdef :SDef, sig :Option[Sig], doc :Option[Doc], mem :DT) = {
     initDef(sdef, mem)
-    mem.sig = sig map(_.text) getOrElse("<missing signature>")
+    mem.sig = sig map(_.text) getOrElse("<missing signature: "+sdef.name+">")
     mem.sigDefs = sig map(s => decodeSigDefs(s.defs)) getOrElse(Array[SigDef]())
     mem.sigUses = sig map(s => decodeUses(s.uses)) getOrElse(Array[JUse]())
     mem.doc = doc map(_.text) getOrElse(null)
