@@ -532,7 +532,7 @@ trait Updater {
 
     def getScalaLibJar = _appdir match {
       case Some(appdir) => mkFile(appdir, "scala-library.jar")
-      case None => mkFile("project", "boot", "scala-.*", "lib", "scala-library.jar")
+      case None => mkFile("project", "boot", "scala-2.[89].*", "lib", "scala-library.jar")
     }
 
     def createJavaReader = new JVMReader(
