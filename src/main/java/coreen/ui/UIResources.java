@@ -19,6 +19,7 @@ public interface UIResources extends ClientBundle
         String floatRight ();
         String clear ();
         String actionable ();
+        String noSelect ();
     }
 
     @Source("ui.css")

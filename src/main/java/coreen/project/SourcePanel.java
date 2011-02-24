@@ -289,7 +289,7 @@ public class SourcePanel extends AbstractProjectPanel
                 mpopup.hide();
                 PopupPanel spopup = createPopupPanel();
                 PopupGroup.Positioner repos = createPositioner(spopup, deflbl);
-                spopup.setWidget(new DefUsesPanel(def, _defmap, repos));
+                spopup.setWidget(new DefUsesPanel(def, _defmap, spopup, repos));
                 repos.sizeDidChange();
             }
         }));

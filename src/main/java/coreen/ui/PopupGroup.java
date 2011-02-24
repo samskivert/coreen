@@ -32,7 +32,7 @@ public class PopupGroup
 
     /** Used by {@link #bindPopup} to defer popup contents creation. */
     public interface Thunk {
-        Widget create (Positioner pos);
+        Widget create (PopupPanel owner, Positioner pos);
     }
 
     /**
@@ -130,7 +130,7 @@ public class PopupGroup
             if (_popup == null) {
                 _popup = new PopupPanel(true);
                 _popup.setStyleName(_rsrc.styles().popup());
-                _popup.setWidget(_thunk.create(new Positioner() {
+                _popup.setWidget(_thunk.create(_popup, new Positioner() {
                     public void sizeDidChange () {
                         positionPopup();
                     }

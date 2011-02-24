@@ -8,9 +8,11 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+import com.threerings.gwt.ui.Popups;
 import com.threerings.gwt.ui.Widgets;
 
 /**
@@ -96,6 +98,17 @@ public class UIUtil
     {
         target.addStyleName(_rsrc.styles().floatRight());
         return target;
+    }
+
+    /**
+     * Creates an icon that can be used to drag the supplied target popup.
+     */
+    public static Widget makeDragger (PopupPanel target)
+    {
+        Label dragger = Widgets.newLabel("▤", _rsrc.styles().noSelect());
+        dragger.setTitle("Click and drag to move popup.");
+        Popups.makeDraggable(dragger, target);
+        return dragger;
     }
 
     protected static final UIResources _rsrc = GWT.create(UIResources.class);

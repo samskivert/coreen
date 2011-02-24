@@ -5,16 +5,18 @@ package coreen.project;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
 import com.threerings.gwt.util.Value;
 
 import coreen.client.ClientMessages;
+import coreen.model.DefId;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.PopupGroup;
-import coreen.model.DefId;
+import coreen.ui.UIUtil;
 import coreen.util.DefMap;
 import coreen.util.PanelCallback;
 
@@ -23,7 +25,8 @@ import coreen.util.PanelCallback;
  */
 public class DefUsesPanel extends FlowPanel
 {
-    public DefUsesPanel (DefId def, DefMap defmap, final PopupGroup.Positioner repos)
+    public DefUsesPanel (DefId def, DefMap defmap,
+                         final PopupPanel popup, final PopupGroup.Positioner repos)
     {
         add(Widgets.newLabel(_cmsgs.loading()));
         _def = def;
@@ -32,17 +35,19 @@ public class DefUsesPanel extends FlowPanel
         _projsvc.findUses(def.id, new PanelCallback<ProjectService.UsesResult[]>(this) {
             public void onSuccess (ProjectService.UsesResult[] results) {
                 clear();
-                init(results);
+                init(popup, results);
                 repos.sizeDidChange();
             }
         });
     }
 
-    protected void init (ProjectService.UsesResult[] results)
+    protected void init (PopupPanel popup, ProjectService.UsesResult[] results)
     {
         String title = (results.length == 0) ? "No uses of " : "Uses of ";
-        add(Widgets.newLabel(title + _def.name));
+        add(Widgets.newFlowPanel(UIUtil.makeFloatLeft(UIUtil.makeDragger(popup)),
+                                 Widgets.newLabel(title + _def.name)));
         // DefUtil.addDef(this, _def, _defmap, UsePopup.TYPE);
+
         for (final ProjectService.UsesResult result : results) {
             FlowPanel header = TypeLabel.makeTypeHeader(result, _defmap, UsePopup.TYPE);
             header.addStyleName(_rsrc.styles().borderTop());

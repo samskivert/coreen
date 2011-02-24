@@ -8,6 +8,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Hyperlink;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import com.threerings.gwt.ui.Widgets;
@@ -76,7 +77,7 @@ public class TypeLabel extends FlowPanel
         Label supHier = Widgets.newLabel(" ▲ ");
         supHier.setTitle("Show supertypes...");
         new PopupGroup().bindClick(supHier, new PopupGroup.Thunk() {
-            public Widget create (PopupGroup.Positioner repos) {
+            public Widget create (PopupPanel popup, PopupGroup.Positioner repos) {
                 return new SuperTypesPanel(deet.id, defmap, repos);
             }
         });
@@ -85,7 +86,7 @@ public class TypeLabel extends FlowPanel
         Label subs = Widgets.newLabel(" ▼ ");
         subs.setTitle("Show subtypes...");
         new PopupGroup().showBelow().bindClick(subs, new PopupGroup.Thunk() {
-            public Widget create (PopupGroup.Positioner repos) {
+            public Widget create (PopupPanel popup, PopupGroup.Positioner repos) {
                 return new SubTypesPanel(deet.id, defmap, repos);
             }
         });
@@ -94,8 +95,8 @@ public class TypeLabel extends FlowPanel
         Label uses = Widgets.newLabel(" ▶ ");
         uses.setTitle("Show uses...");
         new PopupGroup().showBelow().bindClick(uses, new PopupGroup.Thunk() {
-            public Widget create (PopupGroup.Positioner repos) {
-                return new DefUsesPanel(deet, defmap, repos);
+            public Widget create (PopupPanel popup, PopupGroup.Positioner repos) {
+                return new DefUsesPanel(deet, defmap, popup, repos);
             }
         });
         _header.add(uses);
