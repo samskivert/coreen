@@ -398,12 +398,12 @@ public class SourcePanel extends AbstractProjectPanel
         public UseSpanWidget (String text, Span use) {
             super(text, use);
 
-            // provide a use popup for types, modules and funcs, but not terms
-            if (use.getKind() == Kind.TERM) {
+//             // provide a use popup for types, modules and funcs, but not terms
+//             if (use.getKind() == Kind.TERM) {
                 UseHighlighter.bind(use.getId(), this, _defmap);
-            } else {
-                new UsePopup.Popper(use.getId(), this, _linker, _defmap, false).setGroup(_pgroup);
-            }
+//             } else {
+//                 new UsePopup.Popper(use.getId(), this, _linker, _defmap, false).setGroup(_pgroup);
+//             }
 
             UIUtil.makeActionable(this, this);
         }
@@ -419,7 +419,7 @@ public class SourcePanel extends AbstractProjectPanel
                 }
             } else if (!defViz) {
                 if (_span.getKind() == Kind.TYPE) {
-                    _usesrc = new TypeDetailPanel(_span.getId(), _defmap, _linker);
+                    _usesrc = TypeSummaryPanel.createMini(_span.getId(), _defmap, _linker);
                 } else {
                     _usesrc = new DefSourcePanel(_span.getId(), _defmap, _linker);
                 }

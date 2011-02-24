@@ -37,7 +37,7 @@ public class DefUtil
             // type or somehow identify explicitly that a type is anonymous; we want to treat such
             // types differently in the user interface
             !StringUtil.isBlank(deets.name)) {
-            TypeSummaryPanel tsp = TypeSummaryPanel.create(deets, defmap, linker);
+            TypeSummaryPanel tsp = TypeSummaryPanel.createMini(deets, defmap, linker);
             if (extra != null) {
                 tsp.getTypeLabel().addToHeader(extra);
             }

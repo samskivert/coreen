@@ -58,7 +58,7 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
     }
 
     /** Creates a panel that acts like a type label and allows deferred expansion of members. */
-    public static TypeSummaryPanel create (DefDetail dd, DefMap defmap, UsePopup.Linker linker)
+    public static TypeSummaryPanel createMini (DefDetail dd, DefMap defmap, UsePopup.Linker linker)
     {
         TypeSummaryPanel panel = new TypeSummaryPanel(dd.id, defmap, linker, IdMap.create(false));
         panel.init(dd, new Def[0], null);
@@ -66,29 +66,25 @@ public class TypeSummaryPanel extends TypeAndMembersPanel<TypeSummary>
         return panel;
     }
 
+    /** Creates a panel that acts like a type label and allows deferred expansion of members. */
+    public static TypeSummaryPanel createMini (long defId, DefMap defmap, UsePopup.Linker linker)
+    {
+        return new TypeSummaryPanel(defId, defmap, linker, IdMap.create(false)) {
+            @Override protected void loadData () {
+                _projsvc.getDef(defId, new PanelCallback<DefDetail>(_contents) {
+                    public void onSuccess (DefDetail dd) {
+                        _contents.clear();
+                        init(dd, new Def[0], null);
+                    }
+                });
+            }
+        };
+    }
+
     /** Notes that the specified member def should be shown once it is loaded. */
     public void showMember (long memberId)
     {
         _expanded.get(memberId).update(true);
-    }
-
-    @Override // from Widget
-    public void onLoad ()
-    {
-        super.onLoad();
-        if (isVisible()) {
-            ensureLoaded();
-        }
-    }
-
-    @Override // from Widget
-    public void setVisible (boolean visible)
-    {
-        boolean wasVisible = isVisible();
-        if (visible) {
-            ensureLoaded();
-        }
-        super.setVisible(visible);
     }
 
     protected TypeSummaryPanel (long defId, DefMap defmap, UsePopup.Linker linker,
