@@ -567,9 +567,9 @@ trait Updater {
         else name.substring(didx+1)
       }
       def collect (file :File) :Set[String] = {
-        // skip files that symlink out of the project root (half-assed way of avoiding loops)
-        if (!file.getCanonicalPath.startsWith(rootPath)) Set()
-        else if (file.isDirectory) file.listFiles.toSet flatMap(collect)
+        // follow directories as long as they're not symlinks
+        if (file.isDirectory && file.getCanonicalPath == file.getAbsolutePath)
+          file.listFiles.toSet flatMap(collect)
         else Set(suffix(file.getName))
       }
       collect(root)
