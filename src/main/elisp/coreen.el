@@ -132,8 +132,11 @@ queried symbol. These matches can be navigated using
             (message "End of matches (wrapped).")
             (goto-char 0))))
       ;; now process the result on the current line
-      (let ((toks (split-string (thing-at-point 'line))))
-        (cond ((string= (car toks) "nomatch")
+      (let* ((result (thing-at-point 'line))
+	     (toks (split-string result)))
+        (cond ((string= result "")
+	       (message "No response from Coreen.  Is Coreen running?"))
+	      ((string= (car toks) "nomatch")
                (message "Could not locate symbol: %s" coreen-searched-sym))
               ((string= (car toks) "match")
                (ring-insert coreen-marker-ring savepoint) ;; record whence we came
