@@ -567,10 +567,11 @@ trait Updater {
         else name.substring(didx+1)
       }
       def collect (file :File) :Set[String] = {
+        if (!file.isDirectory) Set(suffix(file.getName))
         // follow directories as long as they're not symlinks
-        if (file.isDirectory && file.getCanonicalPath == file.getAbsolutePath)
+        else if (file.getCanonicalPath == file.getAbsolutePath)
           file.listFiles.toSet flatMap(collect)
-        else Set(suffix(file.getName))
+        else Set()
       }
       collect(root)
     }
