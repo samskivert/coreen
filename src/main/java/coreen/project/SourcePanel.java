@@ -4,6 +4,7 @@
 package coreen.project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import coreen.model.DefInfo;
 import coreen.model.Kind;
 import coreen.model.Project;
 import coreen.model.Span;
+import coreen.model.Use;
 import coreen.ui.PopupGroup;
 import coreen.ui.UIResources;
 import coreen.ui.UIUtil;
@@ -75,10 +77,10 @@ public class SourcePanel extends AbstractProjectPanel
         removeStyleName(_styles.codeMode()); // no white-space: pre
     }
 
-    public SourcePanel (String text, Span use, DefMap defmap, UsePopup.Linker linker)
+    public SourcePanel (String text, Collection<Use> uses, DefMap defmap, UsePopup.Linker linker)
     {
         this(defmap, linker);
-        init(text, new Span[0], new Span[] { use }, -1L, true);
+        init(text, new Span[0], uses.toArray(new Span[uses.size()]), -1L, true);
     }
 
     /**

@@ -3,6 +3,9 @@
 
 package coreen.project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.PopupPanel;
@@ -13,6 +16,7 @@ import com.threerings.gwt.util.Value;
 
 import coreen.client.ClientMessages;
 import coreen.model.DefId;
+import coreen.model.Use;
 import coreen.rpc.ProjectService;
 import coreen.rpc.ProjectServiceAsync;
 import coreen.ui.PopupGroup;
@@ -55,11 +59,17 @@ public class DefUsesPanel extends FlowPanel
             add(new TogglePanel(Value.create(false)) {
                 protected Widget createCollapsed () {
                     FlowPanel bits = new FlowPanel();
-                    // bits.add(new SourcePanel(result, _defmap, UsePopup.TYPE));
+                    List<Use> uses = new ArrayList<Use>();
                     for (int ii = 0; ii < result.uses.length; ii++) {
-                        // TODO: add line number
-                        bits.add(new SourcePanel(result.lines[ii], result.uses[ii],
-                                                 _defmap, UsePopup.TYPE));
+                        uses.add(result.uses[ii]);
+                        // combine multiple on the same line into one SourcePanel
+                        int lineNo = result.lineNos[ii];
+                        if (ii == result.uses.length-1 || lineNo != result.lineNos[ii+1]) {
+                            // TODO: add line number
+                            bits.add(new SourcePanel(result.lines[ii], uses,
+                                                     _defmap, UsePopup.TYPE));
+                            uses.clear();
+                        }
                     }
                     return bits;
                 }
