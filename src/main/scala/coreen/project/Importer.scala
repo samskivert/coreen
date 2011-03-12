@@ -179,6 +179,9 @@ trait Importer {
       // java project layouts
       addFirstExister(List(mkFile(root, "src", "main", "java"),
                            mkFile(root, "src", "java")))
+      // scala project layouts
+      addFirstExister(List(mkFile(root, "src", "main", "scala"),
+                           mkFile(root, "src", "scala")))
       // TODO: other common project layouts?
 
       // if all else fails, try 'src' directory
