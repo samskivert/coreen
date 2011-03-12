@@ -527,7 +527,8 @@ trait Updater {
       if (matches.size > 1) {
         _log.warning("Matched multiple files", "parent", parent, "pattern", pattern)
       }
-      matches.head
+      matches.headOption.getOrElse(
+        error("Failed to match " + parent.getPath + File.separator + pattern))
     }
 
     def getScalaLibJar = _appdir match {
