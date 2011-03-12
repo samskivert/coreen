@@ -27,6 +27,7 @@ resource = [windows-amd64] native/jnotify_64bit.dll
 
 # Reader code (not in our main classpath)
 resource = coreen-java-reader.jar
+resource = coreen-scala-reader.jar
 
 # Latest version of getdown (not in our main classpath)
 resource = getdown-pro.jar
