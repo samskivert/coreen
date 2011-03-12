@@ -54,47 +54,7 @@ trait Updater {
         // fire up readers to handle all types of files we find in the project
         val readers = Map() ++ (types flatMap(t => readerForType(t) map(r => (t -> r))))
         ulog.append("Processing compilation units of type " + readers.keySet.mkString(", ") + "...")
-        readers.values map(_.invoke(p, full, ulog))
-      } catch {
-        case t => ulog.append("Update failed.", t)
-      }
-
-      ulog.close
-    }
-
-    abstract class Reader {
-      def invoke (p :Project, full :Boolean, ulog :Writer) {
-        val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
-        val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
-        val lastMod = if (full) 0L else p.lastUpdated
-        val argList = args(p.rootPath, extraOpts,  lastMod.toString :: dirList)
-        ulog.append("Invoking reader: " + argList.mkString(" "))
-        val proc = Runtime.getRuntime.exec(argList.toArray)
-
-        // read stderr on a separate thread so that we can ensure that stdout and stderr are both
-        // actively drained, preventing the process from blocking
-        val errLines = _exec.svc.submit(new Callable[Array[String]] {
-          def call = Source.fromInputStream(proc.getErrorStream).getLines.toArray
-        })
-
-        // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
-        // and processing each complete unit that we receive; anything in between compunit elements
-        // is reported verbatim to the status log
-        val cus = time("parseCompUnits") {
-          parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
-        }
-        ulog.append("Parsed " + cus.size + " compunits.")
-
-        // now that we've totally drained stdout, we can wait for stderr output and log it
-        val errs = errLines.get
-
-        // report any error status code (TODO: we probably don't really need to do this)
-        val ecode = proc.waitFor
-        if (ecode != 0) {
-          ulog.append("Reader exited with status: " + ecode)
-          ulog.append(errs)
-          return // leave the project as is; TODO: maybe not if this is the first import...
-        }
+        val cus = readers.values flatMap(_.invoke(p, full, ulog))
 
         // determine which CUs we knew about before
         val oldCUs = time("loadOldUnits") {
@@ -211,6 +171,50 @@ trait Updater {
 
         // if this was a full update, let the watcher know to rescan our directories
         if (full) _watcher.projectUpdated(p)
+
+      } catch {
+        case t => ulog.append("Update failed.", t)
+      }
+
+      ulog.close
+    }
+
+    abstract class Reader {
+      // TODO: revamp this signature so that we can process things incrementally
+      def invoke (p :Project, full :Boolean, ulog :Writer) :Seq[CompUnitElem] = {
+        val extraOpts = p.readerOpts.map(_.split(" ").toList).getOrElse(List())
+        val dirList = p.srcDirs.map(_.split(" ").toList).getOrElse(List())
+        val lastMod = if (full) 0L else p.lastUpdated
+        val argList = args(p.rootPath, extraOpts,  lastMod.toString :: dirList)
+        ulog.append("Invoking reader: " + argList.mkString(" "))
+        val proc = Runtime.getRuntime.exec(argList.toArray)
+
+        // read stderr on a separate thread so that we can ensure that stdout and stderr are both
+        // actively drained, preventing the process from blocking
+        val errLines = _exec.svc.submit(new Callable[Array[String]] {
+          def call = Source.fromInputStream(proc.getErrorStream).getLines.toArray
+        })
+
+        // consume stdout from the reader, accumulating <compunit ...>...</compunit> into a buffer
+        // and processing each complete unit that we receive; anything in between compunit elements
+        // is reported verbatim to the status log
+        val cus = time("parseCompUnits") {
+          parseCompUnits(p, ulog, Source.fromInputStream(proc.getInputStream).getLines)
+        }
+        ulog.append("Parsed " + cus.size + " compunits.")
+
+        // now that we've totally drained stdout, we can wait for stderr output and log it
+        val errs = errLines.get
+
+        // report any error status code (TODO: we probably don't really need to do this)
+        val ecode = proc.waitFor
+        if (ecode != 0) {
+          ulog.append(errs)
+          error("Reader exited with status: " + ecode)
+          // leave the project as is; TODO: maybe not if this is the first import...
+        }
+
+        cus
       }
 
       def parseCompUnits (p :Project, ulog :Writer, lines :Iterator[String]) = {
@@ -245,7 +249,8 @@ trait Updater {
         cubuf.toList
       }
 
-      def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) :List[String]
+      protected def args (
+        rootPath :String, extraOpts :List[String], srcDirs :List[String]) :List[String]
     }
 
     def processDefs (
@@ -490,7 +495,8 @@ trait Updater {
       classname :String, classpath :List[File], javaArgs :List[String]
     ) extends Reader {
       val javabin = mkFile(System.getProperty("java.home"), "bin", "java")
-      def args (rootPath :String, extraOpts :List[String], srcDirs :List[String]) = {
+      override protected def args (
+        rootPath :String, extraOpts :List[String], srcDirs :List[String]) = {
         val jvm :List[String] = javabin.getCanonicalPath :: "-classpath" ::
           classpath.map(_.getAbsolutePath).mkString(File.pathSeparator) :: extraOpts
         jvm ++ (classname :: javaArgs) ++ (rootPath :: srcDirs)
