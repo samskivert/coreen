@@ -14,8 +14,16 @@ Coreen's functionality breaks down into three areas:
 
 Coreen is an extremely early work-in-progress. It presently works only with
 Java source code (it is functionally code-agnostic under the hood but will
-require per-language name resolvers). It also barely accomplishes basic code
-display, but new functionality is being added daily.
+require per-language name resolvers). It accomplishes basic code display,
+navigation and searching, but new functionality is being added frequently.
+
+## Screen Shots
+
+Here are some screenshots showing a few different views:
+
+* [Project summary](https://github.com/samskivert/coreen/raw/master/docs/shots/projsum.png)
+* [Package summary](https://github.com/samskivert/coreen/raw/master/docs/shots/pkgsum.png)
+* [Class summary](https://github.com/samskivert/coreen/raw/master/docs/shots/classsum.png)
 
 ## Try It
 
