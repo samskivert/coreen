@@ -24,6 +24,7 @@ Here are some screenshots showing a few different views:
 * [Project summary](https://github.com/samskivert/coreen/raw/master/docs/shots/projsum.png)
 * [Package summary](https://github.com/samskivert/coreen/raw/master/docs/shots/pkgsum.png)
 * [Class summary](https://github.com/samskivert/coreen/raw/master/docs/shots/classsum.png)
+* [Searching](https://github.com/samskivert/coreen/raw/master/docs/shots/search.png)
 
 ## Try It
 
