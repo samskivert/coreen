@@ -48,16 +48,20 @@ instructions for making that a reality.
 
 ### Emacs
 
-Add the following elisp to your .emacs file:
+Download the
+[coreen.el](https://github.com/samskivert/coreen/raw/master/src/main/elisp/coreen.el)
+file (or just check out the whole project and reference it from
+`src/main/elisp/coreen.el`), and add the following elisp to your .emacs file:
 
-    (defun coreen-lookup-symbol (class)
-      "Looks the symbol under the point up in Coreen."
-      (interactive (list (read-from-minibuffer "Class: " (thing-at-point 'symbol))))
-      (browse-url (concat "http://localhost:8192/coreen/#LIBRARY~search~" class))
-      )
-    ;; this maps lookup in Java mode to Ctrl-c Ctrl-j, adjust and extrapolate as desired
+    (load "path/to/coreen.el")
+    ;; these key combinations are, of course, only suggestions
     (defun coreen-java-mode-hook ()
-      (define-key java-mode-map "\C-c\C-j" 'coreen-lookup-symbol)
+      (define-key java-mode-map "\C-c\C-j" 'coreen-view-symbol)
+      (define-key java-mode-map "\M-."     'coreen-open-symbol)
+      (define-key java-mode-map "\M-/"     'pop-coreen-mark)
+      (define-key java-mode-map "\M-?"     'coreen-view-symbol)
+      (define-key java-mode-map "\M-["     'previous-error)
+      (define-key java-mode-map "\M-]"     'next-error)
       )
     (add-hook 'java-mode-hook 'coreen-java-mode-hook)
 
