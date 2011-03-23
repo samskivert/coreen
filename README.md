@@ -35,6 +35,10 @@ installer appropriate to your platform here:
 * [Mac OS X](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.dmg)
 * [Windows](http://github.com/samskivert/coreen/raw/master/client/installers/coreen-install.exe)
 
+Check out the [Getting Started with
+Java](https://github.com/samskivert/coreen/wiki/Getting-started-with-java)
+documentation once you have it installed.
+
 ## Wire it into your development environment
 
 Coreen is most useful when you can use it to look up names while you're editing
