@@ -17,7 +17,7 @@ Java source code (it is functionally code-agnostic under the hood but will
 require per-language name resolvers). It accomplishes basic code display,
 navigation and searching, but new functionality is being added frequently.
 
-## Screen Shots
+## Screen shots
 
 Here are some screenshots showing a few different views:
 
@@ -26,7 +26,7 @@ Here are some screenshots showing a few different views:
 * [Class summary](https://github.com/samskivert/coreen/raw/master/docs/shots/classsum.png)
 * [Searching](https://github.com/samskivert/coreen/raw/master/docs/shots/search.png)
 
-## Try It
+## Try it
 
 Coreen is an application that runs on your local machine. Download the
 installer appropriate to your platform here:
@@ -39,7 +39,7 @@ Check out the [Getting Started with
 Java](https://github.com/samskivert/coreen/wiki/Getting-started-with-java)
 documentation once you have it installed.
 
-## Discuss It
+## Discuss it
 
 Coreen has a [Google Group](https://groups.google.com/forum/#!forum/coreen)
 where you can ask questions, discuss code reading, suggest features, and do
