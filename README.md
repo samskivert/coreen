@@ -39,6 +39,12 @@ Check out the [Getting Started with
 Java](https://github.com/samskivert/coreen/wiki/Getting-started-with-java)
 documentation once you have it installed.
 
+## Discuss It
+
+Coreen has a [Google Group](https://groups.google.com/forum/#!forum/coreen)
+where you can ask questions, discuss code reading, suggest features, and do
+many other communication-related activities.
+
 ## Wire it into your development environment
 
 Coreen is most useful when you can use it to look up names while you're editing
@@ -82,11 +88,7 @@ Gnome or KDE installed.
 Contributions are welcome for instructions on how to easily call out to Coreen
 from other editors. Please send them to my email address below.
 
-## Contact
-
-Coreen has a [Google Group](https://groups.google.com/forum/#!forum/coreen)
-where you can ask questions, discuss code reading, suggest features, and do
-many other communication-related activities.
+## Blame
 
 Coreen is a research project being conducted by [Michael
 Bayne](mailto:mdb@cs.washington.edu). Feel free to email him to let him know
