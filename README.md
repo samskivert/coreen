@@ -80,6 +80,10 @@ from other editors. Please send them to my email address below.
 
 ## Contact
 
+Coreen has a [Google Group](https://groups.google.com/forum/#!forum/coreen)
+where you can ask questions, discuss code reading, suggest features, and do
+many other communication-related activities.
+
 Coreen is a research project being conducted by [Michael
 Bayne](mailto:mdb@cs.washington.edu). Feel free to email him to let him know
 that this is a crazy idea (crazy good, or crazy bad), or even better, that you
