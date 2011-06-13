@@ -580,7 +580,9 @@ trait Updater {
           file.listFiles.toSet flatMap(collect)
         else Set()
       }
-      collect(root)
+      // convert the root to a canonical file so that if the root itself is a symlink, we follow
+      // that symlink, but then no other
+      collect(root.getCanonicalFile)
     }
 
     def truncate (text :String, length :Int) =
