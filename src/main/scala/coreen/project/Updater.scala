@@ -380,7 +380,7 @@ trait Updater {
         val (bound, unbound) = ((List[Use](),List[(Use,String)]()) /: nuses)((
           acc, up) => defMap.get(up._2) match {
           case Some(id) => ((up._1 copy (referentId = id)) :: acc._1, acc._2)
-            case None => (acc._1, up :: acc._2)
+          case None => (acc._1, up :: acc._2)
         })
         time("insertUses") { _db.uses.insert(bound) }
 
